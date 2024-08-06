@@ -18,16 +18,18 @@ interface AuthState {
   token: string;
   user: User | null;
   roles: Role[];
+  isUserLoaded: boolean;
 }
 
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
     token: localStorage.getItem('token') || '',
     user: null,
-    roles: []
+    roles: [],
+    isUserLoaded: false,
   }),
   actions: {
-    async login(user: { email: string, password: string }) {
+    async login(user: { email: string; password: string }) {
       try {
         const response = await axios.post('/users/login', user);
         const { token, twoFactorRequired } = response.data;
@@ -41,14 +43,13 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('token', token);
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         this.token = token;
-        await this.getUser();
-        await this.getUserRoles();
+        await this.fetchUser();
         useAlertStore().setAlert('Login successful', 'success');
       } catch (error) {
         useAlertStore().setAlert('Login failed', 'danger');
       }
     },
-    async register(user: { username: string, email: string, password: string }) {
+    async register(user: { username: string; email: string; password: string }) {
       try {
         await axios.post('/users/register', user);
         useAlertStore().setAlert('Registration successful', 'success');
@@ -56,27 +57,21 @@ export const useAuthStore = defineStore('auth', {
         useAlertStore().setAlert('Registration failed', 'danger');
       }
     },
-    async getUser() {
+    async fetchUser() {
       try {
         const response = await axios.get('/users/me');
-        this.user = response.data;
+        this.user = {...response.data};
+        this.isUserLoaded = true;
       } catch (error) {
-        useAlertStore().setAlert('Failed to fetch user data', 'danger');
+        this.isUserLoaded = false;
+        console.error('Failed to fetch user', error);
       }
     },
-    async getUserRoles() {
-      try {
-        const response = await axios.get('/users/me/roles');
-        this.roles = response.data;
-      } catch (error) {
-        useAlertStore().setAlert('Failed to fetch user roles', 'danger');
-      }
-    },
-    async updateProfile(user: { username: string, email: string }) {
+    async updateProfile(user: { username: string; email: string }) {
       const response = await axios.put('/users/me', user);
-      this.user = response.data;
+      this.user = {...response.data};
     },
-    async changePassword(passwords: { currentPassword: string, newPassword: string }) {
+    async changePassword(passwords: { currentPassword: string; newPassword: string }) {
       await axios.put('/users/me/password', passwords);
     },
     async enable2FA() {
@@ -85,24 +80,25 @@ export const useAuthStore = defineStore('auth', {
     },
     async verify2FA(token: string) {
       await axios.post('/users/2fa/verify', { token });
-      await this.getUser();
+      await this.fetchUser();
     },
     async disable2FA() {
       await axios.post('/users/2fa/disable');
-      await this.getUser();
+      await this.fetchUser();
     },
     logout() {
       this.token = '';
       this.user = null;
       this.roles = [];
+      this.isUserLoaded = false;
       localStorage.removeItem('token');
       delete axios.defaults.headers.common['Authorization'];
       useAlertStore().setAlert('Logged out successfully', 'success');
-    }
+    },
   },
   getters: {
     isAuthenticated: (state): boolean => !!state.token,
     getUser: (state): User | null => state.user,
     getUserRoles: (state): string[] => state.roles.map(role => role.name),
-  }
+  },
 });

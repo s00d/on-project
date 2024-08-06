@@ -2,17 +2,26 @@
   <div class="tabs mt-3">
     <ul class="nav nav-tabs">
       <li class="nav-item">
-        <router-link class="nav-link" :class="{ active: isActive('/projects') }" to="/projects">Projects</router-link>
+        <router-link class="nav-link" :class="{ active: isActive('/cabinet') }" to="/cabinet">Projects</router-link>
       </li>
       <li class="nav-item">
-        <router-link class="nav-link" :class="{ active: isActive('/reports') }" to="/reports">Reports</router-link>
+        <router-link class="nav-link" :class="{ active: isActive('/cabinet/reports') }" to="/cabinet/reports">Reports</router-link>
       </li>
       <li class="nav-item">
-        <router-link class="nav-link" :class="{ active: isActive('/settings') }" to="/settings">Settings</router-link>
+        <router-link class="nav-link" :class="{ active: isActive('/cabinet/settings') }" to="/cabinet/settings">Settings</router-link>
+      </li>
+      <li class="nav-item">
+        <router-link class="nav-link" :class="{ active: isActive('/cabinet/kanban') }" to="/cabinet/kanban">Kanban Board</router-link>
+      </li>
+      <li class="lnav-item">
+        <router-link class="nav-link" :class="{ active: isActive('/cabinet/reports') }" to="/cabinet/reports">Reports</router-link>
+      </li>
+      <li class="nav-item">
+        <router-link class="nav-link" :class="{ active: isActive('/cabinet/roles') }" to="/cabinet/roles">Roles & Permissions</router-link>
       </li>
     </ul>
     <div class="tab-content mt-3">
-      <router-view></router-view>
+      <slot></slot>
     </div>
   </div>
 </template>

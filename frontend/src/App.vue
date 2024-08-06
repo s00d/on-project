@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Header />
+    <HeaderComponent />
     <Alert />
     <router-view />
   </div>
@@ -8,13 +8,13 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import Header from './components/Header.vue';
+import HeaderComponent from './components/HeaderComponent.vue';
 import Alert from './components/Alert.vue';
 
 export default defineComponent({
   name: 'App',
   components: {
-    Header,
+    HeaderComponent,
     Alert,
   },
 });
@@ -27,6 +27,5 @@ export default defineComponent({
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
 </style>

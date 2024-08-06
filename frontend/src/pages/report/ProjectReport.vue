@@ -1,18 +1,24 @@
 <template>
-  <div class="container mt-5">
-    <h1>Project Report</h1>
-    <form @submit.prevent="generateReport" class="mt-3">
-      <div class="mb-3">
-        <label for="projectId" class="form-label">Project ID</label>
-        <input v-model="projectId" type="number" id="projectId" class="form-control" required />
-      </div>
-      <button type="submit" class="btn btn-primary">Generate Report</button>
-    </form>
-    <div v-if="report" class="mt-3">
-      <h3>{{ report.project }}</h3>
-      <p>{{ report.description }}</p>
-      <p>Completed Tasks: {{ report.completedTasks }}</p>
-      <p>Total Tasks: {{ report.totalTasks }}</p>
+  <div class="admin-panel">
+    <div class="content">
+      <Tabs>
+        <div class="container mt-5">
+          <h1>Project Report</h1>
+          <form @submit.prevent="generateReport" class="mt-3">
+            <div class="mb-3">
+              <label for="projectId" class="form-label">Project ID</label>
+              <input v-model="projectId" type="number" id="projectId" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Generate Report</button>
+          </form>
+          <div v-if="report" class="mt-3">
+            <h3>{{ report.project }}</h3>
+            <p>{{ report.description }}</p>
+            <p>Completed Tasks: {{ report.completedTasks }}</p>
+            <p>Total Tasks: {{ report.totalTasks }}</p>
+          </div>
+        </div>
+      </Tabs>
     </div>
   </div>
 </template>
@@ -20,6 +26,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue';
 import axios from 'axios';
+import Tabs from "@/components/Tabs.vue";
 
 interface ProjectReport {
   project: string;

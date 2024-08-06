@@ -1,16 +1,22 @@
 <template>
-  <div class="container mt-5">
-    <h1>Priority Distribution Report</h1>
-    <form @submit.prevent="generateReport" class="mt-3">
-      <div class="mb-3">
-        <label for="projectId" class="form-label">Project ID</label>
-        <input v-model="projectId" type="number" id="projectId" class="form-control" required />
-      </div>
-      <button type="submit" class="btn btn-primary">Generate Report</button>
-    </form>
-    <div v-if="report" class="mt-3">
-      <h3>Priority Distribution</h3>
-      <canvas id="priorityDistributionChart"></canvas>
+  <div class="admin-panel">
+    <div class="content">
+      <Tabs>
+        <div class="container mt-5">
+          <h1>Priority Distribution Report</h1>
+          <form @submit.prevent="generateReport" class="mt-3">
+            <div class="mb-3">
+              <label for="projectId" class="form-label">Project ID</label>
+              <input v-model="projectId" type="number" id="projectId" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Generate Report</button>
+          </form>
+          <div v-if="report" class="mt-3">
+            <h3>Priority Distribution</h3>
+            <canvas id="priorityDistributionChart"></canvas>
+          </div>
+        </div>
+      </Tabs>
     </div>
   </div>
 </template>
@@ -20,6 +26,7 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { Chart, ArcElement, CategoryScale, LinearScale, Tooltip } from 'chart.js';
 import type { ChartConfiguration } from 'chart.js';
+import Tabs from "@/components/Tabs.vue";
 
 Chart.register(ArcElement, CategoryScale, LinearScale, Tooltip);
 

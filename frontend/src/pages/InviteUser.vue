@@ -1,26 +1,34 @@
 <template>
-  <div class="container mt-5">
-    <h1>Invite User to Project</h1>
-    <form @submit.prevent="inviteUser" class="mt-3">
-      <div class="mb-3">
-        <label for="projectId" class="form-label">Project ID</label>
-        <input v-model="projectId" type="text" id="projectId" class="form-control" />
-      </div>
-      <div class="mb-3">
-        <label for="userId" class="form-label">User ID</label>
-        <input v-model="userId" type="text" id="userId" class="form-control" />
-      </div>
-      <button type="submit" class="btn btn-primary">Invite User</button>
-    </form>
+  <div class="admin-panel">
+    <div class="content">
+      <Tabs>
+        <div class="container mt-5">
+          <h1>Invite User to Project</h1>
+          <form @submit.prevent="inviteUser" class="mt-3">
+            <div class="mb-3">
+              <label for="projectId" class="form-label">Project ID</label>
+              <input v-model="projectId" type="text" id="projectId" class="form-control" />
+            </div>
+            <div class="mb-3">
+              <label for="userId" class="form-label">User ID</label>
+              <input v-model="userId" type="text" id="userId" class="form-control" />
+            </div>
+            <button type="submit" class="btn btn-primary">Invite User</button>
+          </form>
+        </div>
+      </Tabs>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import axios from 'axios';
+import Tabs from "@/components/Tabs.vue";
 
 export default defineComponent({
   name: 'InviteUser',
+  components: {Tabs},
   setup() {
     const projectId = ref('');
     const userId = ref('');

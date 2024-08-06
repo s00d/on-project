@@ -44,7 +44,7 @@
 <script lang="ts">
 import { defineComponent, ref, onMounted, computed } from 'vue';
 import { useTaskStore } from '@/stores/taskStore';
-import TaskCard from '../components/TaskCard.vue';
+import TaskCard from '../../components/TaskCard.vue';
 
 export default defineComponent({
   name: 'TaskList',

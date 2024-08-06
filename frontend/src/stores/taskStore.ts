@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 import { useAlertStore } from './alertStore';
-import { io } from 'socket.io-client';
+import { socket } from '@/plugins/socketPlugin';
 
 export interface Task {
   id: number;
@@ -34,8 +34,6 @@ interface TaskState {
   labels: Label[];
   comments: Comment[];
 }
-
-const socket = io(import.meta.env.VITE_SOCKET_URL);
 
 export const useTaskStore = defineStore('task', {
   state: (): TaskState => ({

@@ -5,7 +5,6 @@
       Project Manager is a powerful tool that helps you manage your projects efficiently.
       You can create projects, add tasks, assign tasks to users, and track the progress of your projects using our Kanban board.
     </p>
-    <router-link class="btn btn-primary mt-3" to="/projects">View Projects</router-link>
   </div>
 </template>
 

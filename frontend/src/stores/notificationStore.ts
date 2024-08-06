@@ -1,9 +1,7 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
-import { io } from 'socket.io-client';
+import { socket } from '@/plugins/socketPlugin';
 import { useAlertStore } from './alertStore';
-
-const socket = io(import.meta.env.VITE_SOCKET_URL);
 
 interface Notification {
   id: number;

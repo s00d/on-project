@@ -1,8 +1,6 @@
 <template>
   <div class="admin-panel">
-    <HeaderComponent />
     <div class="d-flex">
-      <Sidebar />
       <div class="content p-3" style="margin-left: 250px;">
         <Tabs />
       </div>
@@ -12,7 +10,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import HeaderComponent from '@/components/Header.vue';
+import HeaderComponent from '@/components/HeaderComponent.vue';
 import Sidebar from '@/components/Sidebar.vue';
 import Tabs from '@/components/Tabs.vue';
 

@@ -1,48 +1,54 @@
 <template>
-  <div class="container mt-5">
-    <h1>Profile</h1>
-    <form @submit.prevent="updateProfile" class="mt-3">
-      <div class="mb-3">
-        <label for="username" class="form-label">Username</label>
-        <input v-model="username" type="text" id="username" class="form-control" required />
-      </div>
-      <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
-        <input v-model="email" type="email" id="email" class="form-control" required />
-      </div>
-      <button type="submit" class="btn btn-primary">Update Profile</button>
-    </form>
-    <hr class="mt-5" />
-    <h2>Change Password</h2>
-    <form @submit.prevent="changePassword" class="mt-3">
-      <div class="mb-3">
-        <label for="currentPassword" class="form-label">Current Password</label>
-        <input v-model="currentPassword" type="password" id="currentPassword" class="form-control" required />
-      </div>
-      <div class="mb-3">
-        <label for="newPassword" class="form-label">New Password</label>
-        <input v-model="newPassword" type="password" id="newPassword" class="form-control" required />
-      </div>
-      <button type="submit" class="btn btn-primary">Change Password</button>
-    </form>
-    <hr class="mt-5" />
-    <h2>Two-Factor Authentication (2FA)</h2>
-    <div v-if="!user.twoFactorEnabled">
-      <button @click="enable2FA" class="btn btn-secondary">Enable 2FA</button>
-      <div v-if="qrCodeUrl">
-        <h3>Scan this QR code with your authenticator app</h3>
-        <img :src="qrCodeUrl" alt="QR Code" />
-        <form @submit.prevent="verify2FA" class="mt-3">
-          <div class="mb-3">
-            <label for="token" class="form-label">Enter Token</label>
-            <input v-model="token" type="text" id="token" class="form-control" required />
+  <div class="admin-panel">
+    <div class="content">
+      <Tabs>
+        <div class="container mt-5">
+          <h1>Profile</h1>
+          <form @submit.prevent="updateProfile" class="mt-3">
+            <div class="mb-3">
+              <label for="username" class="form-label">Username</label>
+              <input v-model="username" type="text" id="username" class="form-control" required />
+            </div>
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input v-model="email" type="email" id="email" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Update Profile</button>
+          </form>
+          <hr class="mt-5" />
+          <h2>Change Password</h2>
+          <form @submit.prevent="changePassword" class="mt-3">
+            <div class="mb-3">
+              <label for="currentPassword" class="form-label">Current Password</label>
+              <input v-model="currentPassword" type="password" id="currentPassword" class="form-control" required />
+            </div>
+            <div class="mb-3">
+              <label for="newPassword" class="form-label">New Password</label>
+              <input v-model="newPassword" type="password" id="newPassword" class="form-control" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Change Password</button>
+          </form>
+          <hr class="mt-5" />
+          <h2>Two-Factor Authentication (2FA)</h2>
+          <div v-if="!user.twoFactorEnabled">
+            <button @click="enable2FA" class="btn btn-secondary">Enable 2FA</button>
+            <div v-if="qrCodeUrl">
+              <h3>Scan this QR code with your authenticator app</h3>
+              <img :src="qrCodeUrl" alt="QR Code" />
+              <form @submit.prevent="verify2FA" class="mt-3">
+                <div class="mb-3">
+                  <label for="token" class="form-label">Enter Token</label>
+                  <input v-model="token" type="text" id="token" class="form-control" required />
+                </div>
+                <button type="submit" class="btn btn-primary">Verify</button>
+              </form>
+            </div>
           </div>
-          <button type="submit" class="btn btn-primary">Verify</button>
-        </form>
-      </div>
-    </div>
-    <div v-else>
-      <button @click="disable2FA" class="btn btn-secondary">Disable 2FA</button>
+          <div v-else>
+            <button @click="disable2FA" class="btn btn-secondary">Disable 2FA</button>
+          </div>
+        </div>
+      </Tabs>
     </div>
   </div>
 </template>
@@ -51,9 +57,11 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import { useAlertStore } from '@/stores/alertStore';
+import Tabs from "@/components/Tabs.vue";
 
 export default defineComponent({
   name: 'ProfilePage',
+  components: {Tabs},
   setup() {
     const authStore = useAuthStore();
     const alertStore = useAlertStore();

@@ -9,7 +9,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
-import KanbanColumn from '../components/KanbanColumn.vue';
+import KanbanColumn from '../../components/KanbanColumn.vue';
 import { useTaskStore } from '@/stores/taskStore';
 
 export default defineComponent({

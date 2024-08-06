@@ -12,36 +12,34 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
-import { useTaskStore } from '@/store';
+<script lang="ts" setup>
+import { ref, computed } from 'vue';
 import { marked } from 'marked';
+import { useTaskStore } from '@/stores/taskStore';
 
-export default defineComponent({
-  name: 'CommentCard',
-  props: {
-    comment: {
-      type: Object,
-      required: true,
-    },
-  },
-  setup(props) {
-    const taskStore = useTaskStore();
-    const comment = ref({ ...props.comment });
+interface Comment {
+  id: number;
+  content: string;
+  attachment?: string;
+  user: {
+    username: string;
+  };
+}
 
-    const parsedContent = ref(marked(comment.value.content));
+const props = defineProps<{ comment: Comment }>();
+const taskStore = useTaskStore();
+const comment = ref({ ...props.comment });
 
-    const editComment = () => {
-      // Implement edit comment logic here
-    };
+const parsedContent = computed(() => marked(comment.value.content));
 
-    const deleteComment = async () => {
-      await taskStore.deleteComment(comment.value.id);
-    };
+const editComment = () => {
+  // Implement edit comment logic here
+};
 
-    return { comment, parsedContent, editComment, deleteComment };
-  },
-});
+const deleteComment = async () => {
+  await taskStore.deleteComment(comment.value.id);
+};
+
 </script>
 
 <style>

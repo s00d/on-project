@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
-import { io } from 'socket.io-client';
+import { socket } from '@/plugins/socketPlugin';
 import { useAlertStore } from './alertStore';
 
 export interface Sprint {
@@ -15,8 +15,6 @@ export interface Sprint {
 interface SprintState {
   sprints: Sprint[];
 }
-
-const socket = io(import.meta.env.VITE_SOCKET_URL);
 
 export const useSprintStore = defineStore('sprint', {
   state: (): SprintState => ({

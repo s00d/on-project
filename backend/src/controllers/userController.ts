@@ -12,13 +12,18 @@ import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 
 
+const createUser = async (username:string, email: string, password: string) =>  {
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const apikey = uuidv4();
+  const user = await User.create({ username, email, password: hashedPassword, apikey });
+  return user;
+}
+
+
 const register = async (req: Request, res: Response) => {
   const { username, email, password } = req.body;
-  const hashedPassword = await bcrypt.hash(password, 10);
-  const apiKey = uuidv4();
   try {
-    const user = await User.create({ username, email, password: hashedPassword, apiKey });
-    res.json(user);
+    res.json(createUser(username, email, password));
   } catch (err: any) {
     const error = err as Error;
     res.status(400).json({ error: error.message });
@@ -44,8 +49,8 @@ const login = async (req: Request, res: Response) => {
 };
 
 const getMe = async (req: Request, res: Response) => {
-  const user = await User.findByPk(req.session.user!.id);
-  res.json(user);
+  const user = await User.findByPk(req.session.user?.id);
+  res.json({user: user ?? null});
 };
 
 const getUserRoles = async (req: Request, res: Response) => {
@@ -182,4 +187,4 @@ const resetPassword = async (req: Request, res: Response) => {
   }
 };
 
-export { register, login, getMe, getUserRoles, enable2FA, verify2FA, disable2FA, requestPasswordReset, resetPassword };
+export { createUser, register, login, getMe, getUserRoles, enable2FA, verify2FA, disable2FA, requestPasswordReset, resetPassword };

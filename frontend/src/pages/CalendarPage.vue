@@ -1,12 +1,18 @@
 <template>
-  <div class="container mt-5">
-    <h1>Project Calendar</h1>
-    <FullCalendar
-      :plugins="[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]"
-      initial-view="dayGridMonth"
-      :events="events"
-      @eventClick="handleEventClick"
-    />
+  <div class="admin-panel">
+    <div class="content">
+      <Tabs>
+        <div class="container mt-5">
+          <h1>Project Calendar</h1>
+          <FullCalendar
+            :plugins="[dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin]"
+            initial-view="dayGridMonth"
+            :events="events"
+            @eventClick="handleEventClick"
+          />
+        </div>
+      </Tabs>
+    </div>
   </div>
 </template>
 
@@ -18,6 +24,7 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
+import Tabs from "@/components/Tabs.vue";
 
 const events = ref([]);
 

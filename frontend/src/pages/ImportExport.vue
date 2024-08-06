@@ -1,12 +1,18 @@
 <template>
-  <div class="container mt-5">
-    <h1>Import/Export Data</h1>
-    <div class="mb-3">
-      <label for="importFile" class="form-label">Import Data</label>
-      <input type="file" id="importFile" class="form-control" @change="handleFileImport" />
+  <div class="admin-panel">
+    <div class="content">
+      <Tabs>
+        <div class="container mt-5">
+          <h1>Import/Export Data</h1>
+          <div class="mb-3">
+            <label for="importFile" class="form-label">Import Data</label>
+            <input type="file" id="importFile" class="form-control" @change="handleFileImport" />
+          </div>
+          <button class="btn btn-primary" @click="exportData">Export Data</button>
+          <GitHubImport />
+        </div>
+      </Tabs>
     </div>
-    <button class="btn btn-primary" @click="exportData">Export Data</button>
-    <GitHubImport />
   </div>
 </template>
 
@@ -14,10 +20,12 @@
 import { defineComponent } from 'vue';
 import axios from 'axios';
 import GitHubImport from '../components/GitHubImport.vue';
+import Tabs from "@/components/Tabs.vue";
 
 export default defineComponent({
   name: 'ImportExport',
   components: {
+    Tabs,
     GitHubImport,
   },
   setup() {

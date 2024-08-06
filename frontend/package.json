@@ -1,11 +1,15 @@
 {
   "name": "frontend",
   "version": "0.1.0",
-  "private": true,
+  "type": "module",
   "scripts": {
-    "serve": "vue-cli-service serve --port 4577",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "dev": "vite",
+    "build": "run-p type-check \"build-only {@}\" --",
+    "preview": "vite preview",
+    "build-only": "vite build",
+    "type-check": "vue-tsc --build --force",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "format": "prettier --write src/"
   },
   "dependencies": {
     "@fullcalendar/daygrid": "^6.1.15",
@@ -51,25 +55,5 @@
     "vite": "^5.3.1",
     "vite-plugin-vue-devtools": "^7.3.1",
     "vue-tsc": "^2.0.21"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/vue3-essential",
-      "eslint:recommended"
-    ],
-    "parserOptions": {
-      "parser": "@babel/eslint-parser"
-    },
-    "rules": {}
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead",
-    "not ie 11"
-  ]
+  }
 }

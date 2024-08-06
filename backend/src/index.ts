@@ -25,7 +25,10 @@ import { importExportRouter } from './routes/importExportRoutes';
 import dotenv from 'dotenv';
 import path from "path";
 import {createDefaultRoles} from "./models/Role";
-import type { User } from "./models";
+import { User } from "./models";
+import {createUser} from "./controllers/userController";
+
+const isDev = process.env.NODE_ENV === 'development';
 
 declare module 'express-session' {
   interface SessionData {
@@ -33,7 +36,7 @@ declare module 'express-session' {
   }
 }
 
-dotenv.config();
+dotenv.config({ path: '../.env' });
 
 const app = express();
 const server = createServer(app);
@@ -41,7 +44,8 @@ const io = new Server(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"]
-  }
+  },
+  transports: ['websocket', 'polling']
 });
 
 const SQLiteStore = connect_sqlite3(session);
@@ -77,20 +81,25 @@ app.use('/api/task-templates', taskTemplateRouter);
 app.use('/api/import-export', importExportRouter);
 
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/public', express.static(path.join(__dirname, '../public')));
 
-// frontend proxy
-app.use(
-  '/*',
-  createProxyMiddleware({
-    target: 'http://localhost:4577',
-    changeOrigin: true
-  })
-);
+if (isDev) {
+  // frontend proxy
+  app.use(
+    '/*',
+    createProxyMiddleware({
+      target: 'http://localhost:5173',
+      changeOrigin: true,
+      ws: true
+    })
+  );
+}
+
 
 io.on('connection', (socket) => {
-  console.log('a user connected');
+  console.log('a user connected to socket');
   socket.on('disconnect', () => {
-    console.log('user disconnected');
+    console.log('user disconnected from socket');
   });
 });
 
@@ -98,6 +107,17 @@ app.set('io', io);
 
 sequelize.sync().then(async () => {
   await createDefaultRoles()
+
+  const adminUsername = process.env.DEFAULT_ADMIN ?? 'admin';
+  const adminUser = await User.findOne({ where: { username: adminUsername } });
+  if (!adminUser) {
+    const email = process.env.DEFAULT_ADMIN_EMAIL || 'admin@admin.ru';
+    const pass = process.env.DEFAULT_ADMIN_EMAIL || 'password';
+    await createUser(adminUsername, email, pass)
+    console.log('Admin user created');
+  } else {
+    console.log('Admin user already exists');
+  }
 
   const PORT = parseInt(process.env.PORT || '3000');
   const HOST = process.env.HOST || 'localhost';

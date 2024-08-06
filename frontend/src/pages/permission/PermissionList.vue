@@ -1,22 +1,28 @@
 <template>
-  <div class="container mt-5">
-    <h1>Permissions</h1>
-    <form v-if="isDeveloper" @submit.prevent="addPermission" class="mt-3">
-      <div class="mb-3">
-        <label for="entity" class="form-label">Entity</label>
-        <input v-model="newPermissionEntity" type="text" id="entity" class="form-control" />
-      </div>
-      <div class="mb-3">
-        <label for="action" class="form-label">Action</label>
-        <input v-model="newPermissionAction" type="text" id="action" class="form-control" />
-      </div>
-      <button type="submit" class="btn btn-primary">Add Permission</button>
-    </form>
-    <ul class="list-group mt-3">
-      <li v-for="permission in permissions" :key="permission.id" class="list-group-item">
-        <h5>{{ permission.entity }} - {{ permission.action }}</h5>
-      </li>
-    </ul>
+  <div class="admin-panel">
+    <div class="content">
+      <Tabs>
+        <div class="container mt-5">
+          <h1>Permissions</h1>
+          <form v-if="isDeveloper" @submit.prevent="addPermission" class="mt-3">
+            <div class="mb-3">
+              <label for="entity" class="form-label">Entity</label>
+              <input v-model="newPermissionEntity" type="text" id="entity" class="form-control" />
+            </div>
+            <div class="mb-3">
+              <label for="action" class="form-label">Action</label>
+              <input v-model="newPermissionAction" type="text" id="action" class="form-control" />
+            </div>
+            <button type="submit" class="btn btn-primary">Add Permission</button>
+          </form>
+          <ul class="list-group mt-3">
+            <li v-for="permission in permissions" :key="permission.id" class="list-group-item">
+              <h5>{{ permission.entity }} - {{ permission.action }}</h5>
+            </li>
+          </ul>
+        </div>
+      </Tabs>
+    </div>
   </div>
 </template>
 
@@ -25,9 +31,11 @@ import { defineComponent, ref, onMounted, computed } from 'vue';
 import { useRoleStore } from '@/stores/roleStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useRoute } from 'vue-router';
+import Tabs from "@/components/Tabs.vue";
 
 export default defineComponent({
   name: 'PermissionList',
+  components: {Tabs},
   setup() {
     const roleStore = useRoleStore();
     const authStore = useAuthStore();
