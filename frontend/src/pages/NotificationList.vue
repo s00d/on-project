@@ -1,0 +1,34 @@
+<template>
+  <div class="container mt-5">
+    <h1>Notifications</h1>
+    <ul class="list-group mt-3">
+      <li v-for="notification in notifications" :key="notification.id" class="list-group-item" :class="{ 'list-group-item-secondary': notification.read }">
+        <p>{{ notification.message }}</p>
+        <button v-if="!notification.read" @click="markAsRead(notification.id)" class="btn btn-primary">Mark as Read</button>
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script lang="ts">
+import { defineComponent, onMounted } from 'vue';
+import { useNotificationStore } from '@/stores/notificationStore';
+
+export default defineComponent({
+  name: 'NotificationList',
+  setup() {
+    const notificationStore = useNotificationStore();
+
+    onMounted(() => {
+      notificationStore.fetchNotifications();
+      notificationStore.subscribeToSocketEvents();
+    });
+
+    const markAsRead = async (notificationId: number) => {
+      await notificationStore.markAsRead(notificationId);
+    };
+
+    return { notifications: notificationStore.notifications, markAsRead };
+  },
+});
+</script>

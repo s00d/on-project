@@ -1,0 +1,29 @@
+{
+  "name": "on-project",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "backend": "npm run start --prefix backend",
+    "frontend": "npm run serve --prefix frontend",
+    "start": "concurrently \"npm run backend\" \"npm run frontend\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.1.0",
+    "@types/vue": "^2.0.0",
+    "concurrently": "^8.2.2",
+    "typescript": "^5.5.4"
+  },
+  "packageManager": "yarn@3.7.0+sha256.7bf0c78a106332886ea4e59641fd819b1af953edcd72c4d93a32b1c71000ee67"
+}
