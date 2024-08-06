@@ -7,16 +7,15 @@ import {
   generatePriorityDistributionReport, generateProgressReport, generateTeamWorkloadReport
 } from '../controllers/reportController';
 import { authenticateAll } from '../middlewares/authMiddleware';
-import { checkRole } from '../middlewares/roleMiddleware';
 
 const router = Router();
 
-router.get('/project/:projectId', authenticateAll, checkRole('Developer'), generateReport);
-router.get('/project/:projectId/priority', authenticateAll, checkRole('Developer'), generatePriorityReport);
-router.get('/project/:projectId/overdue', authenticateAll, checkRole('Developer'), generateOverdueReport);
-router.get('/project/:projectId/performance', authenticateAll, checkRole('Developer'), generateTeamPerformanceReport);
-router.get('/project/:projectId/priority', authenticateAll, checkRole('Developer'), generatePriorityDistributionReport);
-router.get('/project/:projectId/progress', authenticateAll, checkRole('Developer'), generateProgressReport);
-router.get('/project/:projectId/workload', authenticateAll, checkRole('Developer'), generateTeamWorkloadReport);
+router.get('/project/:projectId', authenticateAll, generateReport);
+router.get('/project/:projectId/priority', authenticateAll, generatePriorityReport);
+router.get('/project/:projectId/overdue', authenticateAll, generateOverdueReport);
+router.get('/project/:projectId/performance', authenticateAll, generateTeamPerformanceReport);
+router.get('/project/:projectId/priority', authenticateAll, generatePriorityDistributionReport);
+router.get('/project/:projectId/progress', authenticateAll, generateProgressReport);
+router.get('/project/:projectId/workload', authenticateAll, generateTeamWorkloadReport);
 
 export { router as reportRouter };

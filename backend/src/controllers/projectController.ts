@@ -1,16 +1,24 @@
 import { Request, Response } from 'express';
 import { Project } from '../models';
 import { ProjectUser } from '../models';
-import { User } from '../models';
-import {UserRole} from "../models";
-
 
 const getProjects = async (req: Request, res: Response) => {
-  const projects = await Project.findAll({
-    where: { ownerId: req.session.user!.id },
-    include: [User]
-  });
-  res.json(projects);
+  try {
+    const userId = req.session.user!.id;
+    const projects = await Project.findAll({
+      include: [
+        {
+          model: ProjectUser,
+          where: { userId },
+          attributes: [], // не включаем атрибуты из ProjectUser
+        },
+      ],
+    });
+    res.json(projects);
+  } catch (err: any) {
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
+  }
 };
 
 const createProject = async (req: Request, res: Response) => {
@@ -20,6 +28,7 @@ const createProject = async (req: Request, res: Response) => {
   try {
     const project = await Project.create({ name, description, ownerId });
     await ProjectUser.create({ projectId: project.id, userId: ownerId });
+
     res.json(project);
   } catch (err: any) {
     const error = err as Error;
@@ -62,8 +71,8 @@ const getProjectUsers = async (req: Request, res: Response) => {
     });
 
     if (project) {
-      const userRoles = await UserRole.findAll({ where: { projectId }, include: User });
-      res.json(userRoles.map(ur => ur.user));
+      const userRoles = await ProjectUser.findAll({ where: { projectId }, include: Project });
+      res.json(userRoles.map(ur => ur.project));
     } else {
       res.status(403).json({ error: 'Only the project owner can view project users' });
     }
@@ -85,7 +94,7 @@ const addUserToProject = async (req: Request, res: Response) => {
     });
 
     if (project) {
-      const userRole = await UserRole.create({ userId, roleId, projectId });
+      const userRole = await ProjectUser.create({ userId, projectId });
       res.json(userRole);
     } else {
       res.status(403).json({ error: 'Only the project owner can add users to the project' });
@@ -109,7 +118,7 @@ const removeUserFromProject = async (req: Request, res: Response) => {
     });
 
     if (project) {
-      const userRole = await UserRole.findOne({ where: { userId, projectId } });
+      const userRole = await ProjectUser.findOne({ where: { userId, projectId } });
       if (userRole) {
         await userRole.destroy();
         res.status(204).end();

@@ -1,9 +1,9 @@
 <template>
-  <div class="dropdown">
-    <button class="btn btn-secondary dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+  <div class="dropdown" @click="toggleDropdown">
+    <button class="btn btn-light dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
       Notifications <span class="badge bg-danger">{{ unreadNotifications.length }}</span>
     </button>
-    <ul class="dropdown-menu" aria-labelledby="notificationDropdown">
+    <ul v-if="isDropdownOpen" class="dropdown-menu show" aria-labelledby="notificationDropdown">
       <li v-if="unreadNotifications.length === 0" class="dropdown-item">No new notifications</li>
       <li v-for="notification in unreadNotifications" :key="notification.id" class="dropdown-item">
         {{ notification.message }}
@@ -13,25 +13,35 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, onMounted } from 'vue';
+<script lang="ts" setup>
+import {ref, onMounted, computed} from 'vue';
 import { useNotificationStore } from '@/stores/notificationStore';
 
-export default defineComponent({
-  name: 'NotificationDropdown',
-  setup() {
-    const notificationStore = useNotificationStore();
+const notificationStore = useNotificationStore();
+const isDropdownOpen = ref(false);
 
-    onMounted(() => {
-      notificationStore.fetchNotifications();
-      notificationStore.subscribeToSocketEvents();
-    });
+const toggleDropdown = () => {
+  isDropdownOpen.value = !isDropdownOpen.value;
+  if (isDropdownOpen.value) {
+    notificationStore.fetchNotifications();
+  }
+};
 
-    const markAsRead = async (notificationId: number) => {
-      await notificationStore.markAsRead(notificationId);
-    };
+const markAsRead = async (notificationId: number) => {
+  await notificationStore.markAsRead(notificationId);
+};
 
-    return { unreadNotifications: notificationStore.unreadNotifications, markAsRead };
-  },
+onMounted(() => {
+  notificationStore.subscribeToSocketEvents();
 });
+
+const unreadNotifications = computed(() => notificationStore.unreadNotifications);
 </script>
+
+<style scoped>
+.dropdown-menu {
+  width: 300px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+</style>

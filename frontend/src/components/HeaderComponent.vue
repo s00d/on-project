@@ -16,6 +16,9 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item" v-if="isAuthenticated">
+            <NotificationDropdown />
+          </li>
+          <li class="nav-item" v-if="isAuthenticated">
             <router-link class="nav-link" to="/cabinet/profile">Profile</router-link>
           </li>
           <li class="nav-item" v-if="isAuthenticated">
@@ -42,6 +45,7 @@
 import { computed } from 'vue';
 import { useAuthStore } from '@/stores/authStore';
 import { useRouter } from 'vue-router';
+import NotificationDropdown from "@/components/NotificationDropdown.vue";
 
 const authStore = useAuthStore();
 const router = useRouter();

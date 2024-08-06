@@ -37,7 +37,7 @@ export const useProjectStore = defineStore('project', {
         useAlertStore().setAlert('Failedto fetch project', 'danger');
       }
     },
-    async createProject(project: Project) {
+    async createProject(project: { name: string, description: string }) {
       try {
         const response = await axios.post('/projects', project);
         this.projects.push(response.data);

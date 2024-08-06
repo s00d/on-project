@@ -1,5 +1,7 @@
-import { Model, DataTypes } from 'sequelize';
+import {Model, DataTypes, NonAttribute} from 'sequelize';
 import { sequelize } from '../sequelize';
+import {Task} from "./Task";
+import {Project} from "./Project";
 
 class User extends Model {
   public id!: number;
@@ -13,6 +15,8 @@ class User extends Model {
   public resetPasswordExpires!: Date | null;
   public createdAt!: Date;
   public updatedAt!: Date;
+
+  declare project?: NonAttribute<Project>;
 }
 
 User.init({

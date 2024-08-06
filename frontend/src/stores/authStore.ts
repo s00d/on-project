@@ -46,6 +46,7 @@ export const useAuthStore = defineStore('auth', {
         await this.fetchUser();
         useAlertStore().setAlert('Login successful', 'success');
       } catch (error) {
+        console.error('Login failed', 'danger')
         useAlertStore().setAlert('Login failed', 'danger');
       }
     },

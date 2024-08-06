@@ -15,7 +15,6 @@ import { labelRouter } from './routes/labelRoutes';
 import { commentRouter } from './routes/commentRoutes';
 import { roadmapRouter } from './routes/roadmapRoutes';
 import { sprintRouter } from './routes/sprintRoutes';
-import { roleRouter } from './routes/roleRoutes';
 import { notificationRouter } from './routes/notificationRoutes';
 import { reportRouter } from './routes/reportRoutes';
 import { taskHistoryRouter } from './routes/taskHistoryRoutes';
@@ -24,7 +23,6 @@ import { taskTemplateRouter } from './routes/taskTemplateRoutes';
 import { importExportRouter } from './routes/importExportRoutes';
 import dotenv from 'dotenv';
 import path from "path";
-import {createDefaultRoles} from "./models/Role";
 import { User } from "./models";
 import {createUser} from "./controllers/userController";
 
@@ -72,7 +70,6 @@ app.use('/api/labels', labelRouter);
 app.use('/api/comments', commentRouter);
 app.use('/api/roadmaps', roadmapRouter);
 app.use('/api/sprints', sprintRouter);
-app.use('/api/roles', roleRouter);
 app.use('/api/notifications', notificationRouter);
 app.use('/api/reports', reportRouter);
 app.use('/api/task-history', taskHistoryRouter);
@@ -106,7 +103,6 @@ io.on('connection', (socket) => {
 app.set('io', io);
 
 sequelize.sync().then(async () => {
-  await createDefaultRoles()
 
   const adminUsername = process.env.DEFAULT_ADMIN ?? 'admin';
   const adminUser = await User.findOne({ where: { username: adminUsername } });

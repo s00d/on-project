@@ -1,22 +1,19 @@
-import { Request, Response } from 'express';
-import { User } from '../models';
+import {Request, Response} from 'express';
+import {User} from '../models';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import {UserRole} from "../models";
-import {Role} from "../models";
 import speakeasy from 'speakeasy';
 import qrcode from 'qrcode';
 import {Op} from "sequelize";
 import {transporter} from "../../config/nodemailer";
 import crypto from 'crypto';
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
 
 
 const createUser = async (username:string, email: string, password: string) =>  {
   const hashedPassword = await bcrypt.hash(password, 10);
   const apikey = uuidv4();
-  const user = await User.create({ username, email, password: hashedPassword, apikey });
-  return user;
+  return await User.create({username, email, password: hashedPassword, apikey});
 }
 
 
@@ -51,17 +48,6 @@ const login = async (req: Request, res: Response) => {
 const getMe = async (req: Request, res: Response) => {
   const user = await User.findByPk(req.session.user?.id);
   res.json({user: user ?? null});
-};
-
-const getUserRoles = async (req: Request, res: Response) => {
-  const userId = req.session.user!.id;
-  try {
-    const userRoles = await UserRole.findAll({ where: { userId }, include: [Role] });
-    res.json(userRoles.map(ur => ur.role));
-  } catch (err: any) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
-  }
 };
 
 const enable2FA = async (req: Request, res: Response) => {
@@ -187,4 +173,4 @@ const resetPassword = async (req: Request, res: Response) => {
   }
 };
 
-export { createUser, register, login, getMe, getUserRoles, enable2FA, verify2FA, disable2FA, requestPasswordReset, resetPassword };
+export { createUser, register, login, getMe, enable2FA, verify2FA, disable2FA, requestPasswordReset, resetPassword };

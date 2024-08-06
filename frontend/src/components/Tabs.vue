@@ -13,9 +13,6 @@
       <li class="nav-item">
         <router-link class="nav-link" :class="{ active: isActive('/cabinet/kanban') }" to="/cabinet/kanban">Kanban Board</router-link>
       </li>
-      <li class="lnav-item">
-        <router-link class="nav-link" :class="{ active: isActive('/cabinet/reports') }" to="/cabinet/reports">Reports</router-link>
-      </li>
       <li class="nav-item">
         <router-link class="nav-link" :class="{ active: isActive('/cabinet/roles') }" to="/cabinet/roles">Roles & Permissions</router-link>
       </li>

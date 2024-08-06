@@ -3,15 +3,18 @@ import { defineStore } from 'pinia';
 export const useAlertStore = defineStore('alert', {
   state: () => ({
     message: '',
-    type: 'success'
+    type: 'success',
   }),
   actions: {
     setAlert(message: string, type: string = 'success') {
       this.message = message;
       this.type = type;
       setTimeout(() => {
-        this.message = '';
+        this.clearAlert();
       }, 5000);
-    }
-  }
+    },
+    clearAlert() {
+      this.message = '';
+    },
+  },
 });

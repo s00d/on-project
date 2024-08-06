@@ -11,6 +11,7 @@
         <input v-model="password" type="password" id="password" class="form-control" autocomplete="current-password" />
       </div>
       <button type="submit" class="btn btn-primary">Login</button>
+      <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
     </form>
   </div>
 </template>
@@ -24,6 +25,7 @@ const authStore = useAuthStore();
 const router = useRouter();
 const email = ref('');
 const password = ref('');
+const error = ref('');
 
 const login = async () => {
   try {
@@ -33,8 +35,8 @@ const login = async () => {
     } else {
       router.push('/cabinet');
     }
-  } catch (error) {
-    alert('Login failed');
+  } catch (err: any) {
+    error.value = 'Login failed: ' + err.response?.data?.error || err.message;
   }
 };
 </script>

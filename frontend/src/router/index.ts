@@ -30,7 +30,7 @@ import TeamWorkloadReport from '../pages/report/TeamWorkloadReport.vue';
 
 import Calendar from '../pages/CalendarPage.vue';
 import ImportExport from '../pages/ImportExport.vue';
-import TaskTemplates from '../pages/TaskTemplates.vue';
+import TaskTemplates from '../pages/project/TaskTemplates.vue';
 
 import {useAuthStore} from '@/stores/authStore';
 
@@ -163,6 +163,18 @@ const routes = [
   {
     path: '/cabinet/projects/tasks',
     component: TaskList,
+    beforeEnter: (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
+      const authStore = useAuthStore();
+      if (!authStore.isAuthenticated) {
+        next('/auth/login');
+      } else {
+        next();
+      }
+    }
+  },
+  {
+    path: '/cabinet/projects/templates',
+    component: TaskTemplates,
     beforeEnter: (to: RouteLocationNormalized, from: RouteLocationNormalized, next: NavigationGuardNext) => {
       const authStore = useAuthStore();
       if (!authStore.isAuthenticated) {

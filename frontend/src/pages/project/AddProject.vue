@@ -38,7 +38,7 @@ export default defineComponent({
 
     const addProject = async () => {
       await projectStore.createProject({ name: name.value, description: description.value });
-      router.push('/projects');
+      router.push('/cabinet');
     };
 
     return { name, description, addProject };
