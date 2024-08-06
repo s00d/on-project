@@ -14,7 +14,9 @@
           <ul class="list-group mt-3">
             <li v-for="role in roles" :key="role.id" class="list-group-item">
               <h5>{{ role.name }}</h5>
-              <button v-if="isDeveloper" @click="viewPermissions(role.id)" class="btn btn-info">View Permissions</button>
+              <button v-if="isDeveloper" @click="viewPermissions(role.id)" class="btn btn-info">
+                View Permissions
+              </button>
             </li>
           </ul>
         </div>
@@ -24,42 +26,42 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed } from 'vue';
-import { useRoleStore } from '@/stores/roleStore';
-import { useAuthStore } from '@/stores/authStore';
-import Tabs from "@/components/Tabs.vue";
+import { defineComponent, ref, onMounted, computed } from 'vue'
+import { useRoleStore } from '@/stores/roleStore'
+import { useAuthStore } from '@/stores/authStore'
+import Tabs from '@/components/Tabs.vue'
 
 export default defineComponent({
   name: 'RoleList',
-  components: {Tabs},
+  components: { Tabs },
   setup() {
-    const roleStore = useRoleStore();
-    const authStore = useAuthStore();
-    const newRoleName = ref('');
+    const roleStore = useRoleStore()
+    const authStore = useAuthStore()
+    const newRoleName = ref('')
 
     const fetchRoles = async () => {
-      await roleStore.fetchRoles();
-    };
+      await roleStore.fetchRoles()
+    }
 
     const addRole = async () => {
-      await roleStore.createRole({ name: newRoleName.value });
-      newRoleName.value = '';
-    };
+      await roleStore.createRole({ name: newRoleName.value })
+      newRoleName.value = ''
+    }
 
     const viewPermissions = (roleId: number) => {
       // Implement view permissions logic here
-    };
+    }
 
     const isDeveloper = computed(() => {
-      return authStore.getUserRoles.includes('Developer');
-    });
+      return authStore.getUserRoles.includes('Developer')
+    })
 
     onMounted(() => {
-      fetchRoles();
-      roleStore.subscribeToSocketEvents();
-    });
+      fetchRoles()
+      roleStore.subscribeToSocketEvents()
+    })
 
-    return { roles: roleStore.roles, newRoleName, addRole, viewPermissions, isDeveloper };
-  },
-});
+    return { roles: roleStore.roles, newRoleName, addRole, viewPermissions, isDeveloper }
+  }
+})
 </script>

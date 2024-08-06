@@ -7,7 +7,13 @@
           <form @submit.prevent="generateReport" class="mt-3">
             <div class="mb-3">
               <label for="projectId" class="form-label">Project ID</label>
-              <input v-model="projectId" type="number" id="projectId" class="form-control" required />
+              <input
+                v-model="projectId"
+                type="number"
+                id="projectId"
+                class="form-control"
+                required
+              />
             </div>
             <button type="submit" class="btn btn-primary">Generate Report</button>
           </form>
@@ -21,29 +27,29 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
-import axios from 'axios';
-import Tabs from "@/components/Tabs.vue";
+import { defineComponent, ref } from 'vue'
+import axios from 'axios'
+import Tabs from '@/components/Tabs.vue'
 
 export default defineComponent({
   name: 'OverdueReport',
-  components: {Tabs},
+  components: { Tabs },
   setup() {
-    const projectId = ref<number | null>(null);
-    const report = ref<{ overdueTasks: number } | null>(null);
+    const projectId = ref<number | null>(null)
+    const report = ref<{ overdueTasks: number } | null>(null)
 
     const generateReport = async () => {
       if (projectId.value !== null) {
         try {
-          const response = await axios.get(`/reports/project/${projectId.value}/overdue`);
-          report.value = response.data;
+          const response = await axios.get(`/reports/project/${projectId.value}/overdue`)
+          report.value = response.data
         } catch (error) {
-          console.error('Failed to generate report', error);
+          console.error('Failed to generate report', error)
         }
       }
-    };
+    }
 
-    return { projectId, report, generateReport };
-  },
-});
+    return { projectId, report, generateReport }
+  }
+})
 </script>

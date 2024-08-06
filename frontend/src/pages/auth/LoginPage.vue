@@ -8,7 +8,13 @@
       </div>
       <div class="mb-3">
         <label for="password" class="form-label">Password</label>
-        <input v-model="password" type="password" id="password" class="form-control" autocomplete="current-password" />
+        <input
+          v-model="password"
+          type="password"
+          id="password"
+          class="form-control"
+          autocomplete="current-password"
+        />
       </div>
       <button type="submit" class="btn btn-primary">Login</button>
       <div v-if="error" class="alert alert-danger mt-3">{{ error }}</div>
@@ -17,26 +23,26 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { useAuthStore } from '@/stores/authStore';
-import { useRouter } from 'vue-router';
+import { ref } from 'vue'
+import { useAuthStore } from '@/stores/authStore'
+import { useRouter } from 'vue-router'
 
-const authStore = useAuthStore();
-const router = useRouter();
-const email = ref('');
-const password = ref('');
-const error = ref('');
+const authStore = useAuthStore()
+const router = useRouter()
+const email = ref('')
+const password = ref('')
+const error = ref('')
 
 const login = async () => {
   try {
-    const result = await authStore.login({ email: email.value, password: password.value });
+    const result = await authStore.login({ email: email.value, password: password.value })
     if (result?.twoFactorRequired) {
-      router.push('/auth/verify-2fa');
+      router.push('/auth/verify-2fa')
     } else {
-      router.push('/cabinet');
+      router.push('/cabinet')
     }
   } catch (err: any) {
-    error.value = 'Login failed: ' + err.response?.data?.error || err.message;
+    error.value = 'Login failed: ' + err.response?.data?.error || err.message
   }
-};
+}
 </script>

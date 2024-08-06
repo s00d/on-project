@@ -27,47 +27,53 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed } from 'vue';
-import { useRoleStore } from '@/stores/roleStore';
-import { useAuthStore } from '@/stores/authStore';
-import { useRoute } from 'vue-router';
-import Tabs from "@/components/Tabs.vue";
+import { defineComponent, ref, onMounted, computed } from 'vue'
+import { useRoleStore } from '@/stores/roleStore'
+import { useAuthStore } from '@/stores/authStore'
+import { useRoute } from 'vue-router'
+import Tabs from '@/components/Tabs.vue'
 
 export default defineComponent({
   name: 'PermissionList',
-  components: {Tabs},
+  components: { Tabs },
   setup() {
-    const roleStore = useRoleStore();
-    const authStore = useAuthStore();
-    const route = useRoute();
-    const newPermissionEntity = ref('');
-    const newPermissionAction = ref('');
-    const roleId = Number(route.params.roleId);
+    const roleStore = useRoleStore()
+    const authStore = useAuthStore()
+    const route = useRoute()
+    const newPermissionEntity = ref('')
+    const newPermissionAction = ref('')
+    const roleId = Number(route.params.roleId)
 
     const fetchPermissions = async () => {
-      await roleStore.fetchPermissions(roleId);
-    };
+      await roleStore.fetchPermissions(roleId)
+    }
 
     const addPermission = async () => {
       await roleStore.createPermission({
         roleId,
         entity: newPermissionEntity.value,
-        action: newPermissionAction.value,
-      });
-      newPermissionEntity.value = '';
-      newPermissionAction.value = '';
-    };
+        action: newPermissionAction.value
+      })
+      newPermissionEntity.value = ''
+      newPermissionAction.value = ''
+    }
 
     const isDeveloper = computed(() => {
-      return authStore.getUserRoles.includes('Developer');
-    });
+      return authStore.getUserRoles.includes('Developer')
+    })
 
     onMounted(() => {
-      fetchPermissions();
-      roleStore.subscribeToSocketEvents();
-    });
+      fetchPermissions()
+      roleStore.subscribeToSocketEvents()
+    })
 
-    return { permissions: roleStore.permissions, newPermissionEntity, newPermissionAction, addPermission, isDeveloper };
-  },
-});
+    return {
+      permissions: roleStore.permissions,
+      newPermissionEntity,
+      newPermissionAction,
+      addPermission,
+      isDeveloper
+    }
+  }
+})
 </script>

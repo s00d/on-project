@@ -1,84 +1,88 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import session from "express-session";
-import connect_sqlite3 from "connect-sqlite3";
-import morgan from "morgan";
-import { errorReporter } from "express-youch";
-import { createProxyMiddleware } from 'http-proxy-middleware';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
-import { sequelize } from './sequelize';
-import { userRouter } from './routes/userRoutes';
-import { projectRouter } from './routes/projectRoutes';
-import { taskRouter } from './routes/taskRoutes';
-import { labelRouter } from './routes/labelRoutes';
-import { commentRouter } from './routes/commentRoutes';
-import { roadmapRouter } from './routes/roadmapRoutes';
-import { sprintRouter } from './routes/sprintRoutes';
-import { notificationRouter } from './routes/notificationRoutes';
-import { reportRouter } from './routes/reportRoutes';
-import { taskHistoryRouter } from './routes/taskHistoryRoutes';
-import { taskAttachmentRouter } from './routes/taskAttachmentRoutes';
-import { taskTemplateRouter } from './routes/taskTemplateRoutes';
-import { importExportRouter } from './routes/importExportRoutes';
-import dotenv from 'dotenv';
-import path from "path";
-import { User } from "./models";
-import {createUser} from "./controllers/userController";
+import express from 'express'
+import bodyParser from 'body-parser'
+import session from 'express-session'
+// import formidable from "express-formidable";
+import connect_sqlite3 from 'connect-sqlite3'
+import morgan from 'morgan'
+import { errorReporter } from 'express-youch'
+import { createProxyMiddleware } from 'http-proxy-middleware'
+import { createServer } from 'http'
+import { Server } from 'socket.io'
+import { sequelize } from './sequelize'
+import { userRouter } from './routes/userRoutes'
+import { projectRouter } from './routes/projectRoutes'
+import { taskRouter } from './routes/taskRoutes'
+import { labelRouter } from './routes/labelRoutes'
+import { commentRouter } from './routes/commentRoutes'
+import { roadmapRouter } from './routes/roadmapRoutes'
+import { sprintRouter } from './routes/sprintRoutes'
+import { notificationRouter } from './routes/notificationRoutes'
+import { reportRouter } from './routes/reportRoutes'
+import { taskHistoryRouter } from './routes/taskHistoryRoutes'
+import { taskAttachmentRouter } from './routes/taskAttachmentRoutes'
+import { taskTemplateRouter } from './routes/taskTemplateRoutes'
+import { importExportRouter } from './routes/importExportRoutes'
+import dotenv from 'dotenv'
+import path from 'path'
+import { User } from './models'
+import { createUser } from './controllers/userController'
 
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = process.env.NODE_ENV === 'development'
 
 declare module 'express-session' {
   interface SessionData {
-    user: User;
+    user: User
   }
 }
 
-dotenv.config({ path: '../.env' });
+dotenv.config({ path: '../.env' })
 
-const app = express();
-const server = createServer(app);
+const app = express()
+const server = createServer(app)
 const io = new Server(server, {
   cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
+    origin: '*',
+    methods: ['GET', 'POST']
   },
   transports: ['websocket', 'polling']
-});
+})
 
-const SQLiteStore = connect_sqlite3(session);
+const SQLiteStore = connect_sqlite3(session)
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(session({
-  store: (new SQLiteStore({
-    db: (process.env.DATABASE_STORAGE || 'data/database.db').replace('./', ''),
-  })) as any,
-  secret: process.env.SESSION_SECRET || 'your_secret_key',
-  resave: true,
-  saveUninitialized: true,
-  cookie: { secure: (process.env.SESSION_SECURE || 'false') === 'true' } // Используйте secure: true в production с HTTPS
-}));
+app.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.json())
+// app.use(formidable());
+app.use(
+  session({
+    store: new SQLiteStore({
+      db: (process.env.DATABASE_STORAGE || 'data/database.db').replace('./', '')
+    }) as any,
+    secret: process.env.SESSION_SECRET || 'your_secret_key',
+    resave: true,
+    saveUninitialized: true,
+    cookie: { secure: (process.env.SESSION_SECURE || 'false') === 'true' } // Используйте secure: true в production с HTTPS
+  })
+)
 
 app.use(morgan('combined'))
-app.use(errorReporter());
+app.use(errorReporter())
 
-app.use('/api/users', userRouter);
-app.use('/api/projects', projectRouter);
-app.use('/api/tasks', taskRouter);
-app.use('/api/labels', labelRouter);
-app.use('/api/comments', commentRouter);
-app.use('/api/roadmaps', roadmapRouter);
-app.use('/api/sprints', sprintRouter);
-app.use('/api/notifications', notificationRouter);
-app.use('/api/reports', reportRouter);
-app.use('/api/task-history', taskHistoryRouter);
-app.use('/api/task-attachments', taskAttachmentRouter);
-app.use('/api/task-templates', taskTemplateRouter);
-app.use('/api/import-export', importExportRouter);
+app.use('/api/users', userRouter)
+app.use('/api/projects', projectRouter)
+app.use('/api/tasks', taskRouter)
+app.use('/api/labels', labelRouter)
+app.use('/api/comments', commentRouter)
+app.use('/api/roadmaps', roadmapRouter)
+app.use('/api/sprints', sprintRouter)
+app.use('/api/notifications', notificationRouter)
+app.use('/api/reports', reportRouter)
+app.use('/api/task-history', taskHistoryRouter)
+app.use('/api/task-attachments', taskAttachmentRouter)
+app.use('/api/task-templates', taskTemplateRouter)
+app.use('/api/import-export', importExportRouter)
 
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-app.use('/public', express.static(path.join(__dirname, '../public')));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
+app.use('/public', express.static(path.join(__dirname, '../public')))
 
 if (isDev) {
   // frontend proxy
@@ -89,38 +93,36 @@ if (isDev) {
       changeOrigin: true,
       ws: true
     })
-  );
+  )
 }
 
-
 io.on('connection', (socket) => {
-  console.log('a user connected to socket');
+  console.log('a user connected to socket')
   socket.on('disconnect', () => {
-    console.log('user disconnected from socket');
-  });
-});
+    console.log('user disconnected from socket')
+  })
+})
 
-app.set('io', io);
+app.set('io', io)
 
 sequelize.sync().then(async () => {
-
-  const adminUsername = process.env.DEFAULT_ADMIN ?? 'admin';
-  const adminUser = await User.findOne({ where: { username: adminUsername } });
+  const adminUsername = process.env.DEFAULT_ADMIN ?? 'admin'
+  const adminUser = await User.findOne({ where: { username: adminUsername } })
   if (!adminUser) {
-    const email = process.env.DEFAULT_ADMIN_EMAIL || 'admin@admin.ru';
-    const pass = process.env.DEFAULT_ADMIN_EMAIL || 'password';
+    const email = process.env.DEFAULT_ADMIN_EMAIL || 'admin@admin.ru'
+    const pass = process.env.DEFAULT_ADMIN_EMAIL || 'password'
     await createUser(adminUsername, email, pass)
-    console.log('Admin user created');
+    console.log('Admin user created')
   } else {
-    console.log('Admin user already exists');
+    console.log('Admin user already exists')
   }
 
-  const PORT = parseInt(process.env.PORT || '3000');
-  const HOST = process.env.HOST || 'localhost';
+  const PORT = parseInt(process.env.PORT || '3000')
+  const HOST = process.env.HOST || 'localhost'
 
   server.listen(PORT, HOST, () => {
-    console.log(`Server is running on port http://${HOST}:${PORT}`);
-  });
-});
+    console.log(`Server is running on port http://${HOST}:${PORT}`)
+  })
+})
 
-export { io };
+export { io }

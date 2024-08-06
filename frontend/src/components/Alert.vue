@@ -1,15 +1,20 @@
 <template>
   <div v-if="alertStore.message" :class="`alert alert-${alertStore.type}`" role="alert">
     {{ alertStore.message }}
-    <button type="button" class="btn-close" aria-label="Close" @click="alertStore.clearAlert"></button>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Close"
+      @click="alertStore.clearAlert"
+    ></button>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { useAlertStore } from '@/stores/alertStore';
-import { computed } from 'vue';
+import { useAlertStore } from '@/stores/alertStore'
+import { computed } from 'vue'
 
-const alertStore = useAlertStore();
+const alertStore = useAlertStore()
 </script>
 
 <style scoped>

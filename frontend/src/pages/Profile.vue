@@ -20,11 +20,23 @@
           <form @submit.prevent="changePassword" class="mt-3">
             <div class="mb-3">
               <label for="currentPassword" class="form-label">Current Password</label>
-              <input v-model="currentPassword" type="password" id="currentPassword" class="form-control" required />
+              <input
+                v-model="currentPassword"
+                type="password"
+                id="currentPassword"
+                class="form-control"
+                required
+              />
             </div>
             <div class="mb-3">
               <label for="newPassword" class="form-label">New Password</label>
-              <input v-model="newPassword" type="password" id="newPassword" class="form-control" required />
+              <input
+                v-model="newPassword"
+                type="password"
+                id="newPassword"
+                class="form-control"
+                required
+              />
             </div>
             <button type="submit" class="btn btn-primary">Change Password</button>
           </form>
@@ -54,75 +66,90 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
-import { useAuthStore } from '@/stores/authStore';
-import { useAlertStore } from '@/stores/alertStore';
-import Tabs from "@/components/Tabs.vue";
+import { defineComponent, ref, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/authStore'
+import { useAlertStore } from '@/stores/alertStore'
+import Tabs from '@/components/Tabs.vue'
 
 export default defineComponent({
   name: 'ProfilePage',
-  components: {Tabs},
+  components: { Tabs },
   setup() {
-    const authStore = useAuthStore();
-    const alertStore = useAlertStore();
-    const username = ref(authStore.user?.username);
-    const email = ref(authStore.user?.email);
-    const currentPassword = ref('');
-    const newPassword = ref('');
-    const qrCodeUrl = ref('');
-    const token = ref('');
+    const authStore = useAuthStore()
+    const alertStore = useAlertStore()
+    const username = ref(authStore.user?.username)
+    const email = ref(authStore.user?.email)
+    const currentPassword = ref('')
+    const newPassword = ref('')
+    const qrCodeUrl = ref('')
+    const token = ref('')
 
     const updateProfile = async () => {
       try {
-        await authStore.updateProfile({ username: username.value!, email: email.value! });
-        alertStore.setAlert('Profile updated successfully', 'success');
+        await authStore.updateProfile({ username: username.value!, email: email.value! })
+        alertStore.setAlert('Profile updated successfully', 'success')
       } catch (error) {
-        alertStore.setAlert('Failed to update profile', 'danger');
+        alertStore.setAlert('Failed to update profile', 'danger')
       }
-    };
+    }
 
     const changePassword = async () => {
       try {
-        await authStore.changePassword({ currentPassword: currentPassword.value, newPassword: newPassword.value });
-        alertStore.setAlert('Password changed successfully', 'success');
+        await authStore.changePassword({
+          currentPassword: currentPassword.value,
+          newPassword: newPassword.value
+        })
+        alertStore.setAlert('Password changed successfully', 'success')
       } catch (error) {
-        alertStore.setAlert('Failed to change password', 'danger');
+        alertStore.setAlert('Failed to change password', 'danger')
       }
-    };
+    }
 
     const enable2FA = async () => {
       try {
-        const response = await authStore.enable2FA();
-        qrCodeUrl.value = response.qrCodeUrl;
+        const response = await authStore.enable2FA()
+        qrCodeUrl.value = response.qrCodeUrl
       } catch (error) {
-        alertStore.setAlert('Failed to enable 2FA', 'danger');
+        alertStore.setAlert('Failed to enable 2FA', 'danger')
       }
-    };
+    }
 
     const verify2FA = async () => {
       try {
-        await authStore.verify2FA(token.value);
-        alertStore.setAlert('2FA enabled successfully', 'success');
-        qrCodeUrl.value = '';
+        await authStore.verify2FA(token.value)
+        alertStore.setAlert('2FA enabled successfully', 'success')
+        qrCodeUrl.value = ''
       } catch (error) {
-        alertStore.setAlert('Failed to verify 2FA', 'danger');
+        alertStore.setAlert('Failed to verify 2FA', 'danger')
       }
-    };
+    }
 
     const disable2FA = async () => {
       try {
-        await authStore.disable2FA();
-        alertStore.setAlert('2FA disabled successfully', 'success');
+        await authStore.disable2FA()
+        alertStore.setAlert('2FA disabled successfully', 'success')
       } catch (error) {
-        alertStore.setAlert('Failed to disable 2FA', 'danger');
+        alertStore.setAlert('Failed to disable 2FA', 'danger')
       }
-    };
+    }
 
     onMounted(() => {
-      authStore.getUser();
-    });
+      authStore.getUser()
+    })
 
-    return { username, email, currentPassword, newPassword, qrCodeUrl, token, updateProfile, changePassword, enable2FA, verify2FA, disable2FA };
-  },
-});
+    return {
+      username,
+      email,
+      currentPassword,
+      newPassword,
+      qrCodeUrl,
+      token,
+      updateProfile,
+      changePassword,
+      enable2FA,
+      verify2FA,
+      disable2FA
+    }
+  }
+})
 </script>

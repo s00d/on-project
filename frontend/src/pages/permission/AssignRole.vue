@@ -12,7 +12,9 @@
             <div class="mb-3">
               <label for="roleId" class="form-label">Role</label>
               <select v-model="roleId" id="roleId" class="form-control">
-                <option v-for="role in roles" :key="role.id" :value="role.id">{{ role.name }}</option>
+                <option v-for="role in roles" :key="role.id" :value="role.id">
+                  {{ role.name }}
+                </option>
               </select>
             </div>
             <div class="mb-3">
@@ -28,33 +30,37 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
-import { useRoleStore } from '@/stores/roleStore';
-import Tabs from "@/components/Tabs.vue";
+import { defineComponent, ref, onMounted } from 'vue'
+import { useRoleStore } from '@/stores/roleStore'
+import Tabs from '@/components/Tabs.vue'
 
 export default defineComponent({
   name: 'AssignRole',
-  components: {Tabs},
+  components: { Tabs },
   setup() {
-    const roleStore = useRoleStore();
-    const userId = ref<number | null>(null);
-    const roleId = ref<number | null>(null);
-    const projectId = ref<number | null>(null);
+    const roleStore = useRoleStore()
+    const userId = ref<number | null>(null)
+    const roleId = ref<number | null>(null)
+    const projectId = ref<number | null>(null)
 
     const assignRole = async () => {
       if (userId.value && roleId.value && projectId.value) {
-        await roleStore.assignRole({ userId: userId.value, roleId: roleId.value, projectId: projectId.value });
-        userId.value = null;
-        roleId.value = null;
-        projectId.value = null;
+        await roleStore.assignRole({
+          userId: userId.value,
+          roleId: roleId.value,
+          projectId: projectId.value
+        })
+        userId.value = null
+        roleId.value = null
+        projectId.value = null
       }
-    };
+    }
 
     onMounted(async () => {
-      await roleStore.fetchRoles();
-    });
+      await roleStore.fetchRoles()
+    })
 
-    return { userId, roleId, projectId, roles: roleStore.roles, assignRole };
-  },
-});
+    return { userId, roleId, projectId, roles: roleStore.roles, assignRole }
+  }
+})
 </script>

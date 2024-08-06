@@ -1,6 +1,12 @@
 <template>
   <div class="dropdown" @click="toggleDropdown">
-    <button class="btn btn-light dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+    <button
+      class="btn btn-light dropdown-toggle"
+      type="button"
+      id="notificationDropdown"
+      data-bs-toggle="dropdown"
+      aria-expanded="false"
+    >
       Notifications <span class="badge bg-danger">{{ unreadNotifications.length }}</span>
     </button>
     <ul v-if="isDropdownOpen" class="dropdown-menu show" aria-labelledby="notificationDropdown">
@@ -14,28 +20,28 @@
 </template>
 
 <script lang="ts" setup>
-import {ref, onMounted, computed} from 'vue';
-import { useNotificationStore } from '@/stores/notificationStore';
+import { ref, onMounted, computed } from 'vue'
+import { useNotificationStore } from '@/stores/notificationStore'
 
-const notificationStore = useNotificationStore();
-const isDropdownOpen = ref(false);
+const notificationStore = useNotificationStore()
+const isDropdownOpen = ref(false)
 
 const toggleDropdown = () => {
-  isDropdownOpen.value = !isDropdownOpen.value;
+  isDropdownOpen.value = !isDropdownOpen.value
   if (isDropdownOpen.value) {
-    notificationStore.fetchNotifications();
+    notificationStore.fetchNotifications()
   }
-};
+}
 
 const markAsRead = async (notificationId: number) => {
-  await notificationStore.markAsRead(notificationId);
-};
+  await notificationStore.markAsRead(notificationId)
+}
 
 onMounted(() => {
-  notificationStore.subscribeToSocketEvents();
-});
+  notificationStore.subscribeToSocketEvents()
+})
 
-const unreadNotifications = computed(() => notificationStore.unreadNotifications);
+const unreadNotifications = computed(() => notificationStore.unreadNotifications)
 </script>
 
 <style scoped>

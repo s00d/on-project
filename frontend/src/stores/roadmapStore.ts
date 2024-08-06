@@ -1,75 +1,75 @@
-import { defineStore } from 'pinia';
-import axios from 'axios';
-import { socket } from '@/plugins/socketPlugin';
-import { useAlertStore } from './alertStore';
+import { defineStore } from 'pinia'
+import axios from 'axios'
+import { socket } from '@/plugins/socketPlugin'
+import { useAlertStore } from './alertStore'
 
 interface Roadmap {
-  id: number;
-  title: string;
-  description: string;
-  projectId: number;
+  id: number
+  title: string
+  description: string
+  projectId: number
 }
 
 interface RoadmapState {
-  roadmaps: Roadmap[];
+  roadmaps: Roadmap[]
 }
 
 export const useRoadmapStore = defineStore('roadmap', {
   state: (): RoadmapState => ({
-    roadmaps: [],
+    roadmaps: []
   }),
   actions: {
     async fetchRoadmaps(projectId: number) {
       try {
-        const response = await axios.get(`/roadmaps/${projectId}`);
-        this.roadmaps = response.data;
+        const response = await axios.get(`/roadmaps/${projectId}`)
+        this.roadmaps = response.data
       } catch (error) {
-        useAlertStore().setAlert('Failed to fetch roadmaps', 'danger');
+        useAlertStore().setAlert('Failed to fetch roadmaps', 'danger')
       }
     },
-    async createRoadmap(roadmap: { title: string, description?: string, projectId: number }) {
+    async createRoadmap(roadmap: { title: string; description?: string; projectId: number }) {
       try {
-        const response = await axios.post('/roadmaps', roadmap);
-        this.roadmaps.push(response.data);
-        useAlertStore().setAlert('Roadmap created successfully', 'success');
+        const response = await axios.post('/roadmaps', roadmap)
+        this.roadmaps.push(response.data)
+        useAlertStore().setAlert('Roadmap created successfully', 'success')
       } catch (error) {
-        useAlertStore().setAlert('Failed to create roadmap', 'danger');
+        useAlertStore().setAlert('Failed to create roadmap', 'danger')
       }
     },
-    async updateRoadmap(roadmapId: number, roadmap: { title: string, description?: string }) {
+    async updateRoadmap(roadmapId: number, roadmap: { title: string; description?: string }) {
       try {
-        const response = await axios.put(`/roadmaps/${roadmapId}`, roadmap);
-        const index = this.roadmaps.findIndex(r => r.id === roadmapId);
+        const response = await axios.put(`/roadmaps/${roadmapId}`, roadmap)
+        const index = this.roadmaps.findIndex((r) => r.id === roadmapId)
         if (index !== -1) {
-          this.roadmaps[index] = response.data;
-          useAlertStore().setAlert('Roadmap updated successfully', 'success');
+          this.roadmaps[index] = response.data
+          useAlertStore().setAlert('Roadmap updated successfully', 'success')
         }
       } catch (error) {
-        useAlertStore().setAlert('Failed to update roadmap', 'danger');
+        useAlertStore().setAlert('Failed to update roadmap', 'danger')
       }
     },
     async deleteRoadmap(roadmapId: number) {
       try {
-        await axios.delete(`/roadmaps/${roadmapId}`);
-        this.roadmaps = this.roadmaps.filter(r => r.id !== roadmapId);
-        useAlertStore().setAlert('Roadmap deleted successfully', 'success');
+        await axios.delete(`/roadmaps/${roadmapId}`)
+        this.roadmaps = this.roadmaps.filter((r) => r.id !== roadmapId)
+        useAlertStore().setAlert('Roadmap deleted successfully', 'success')
       } catch (error) {
-        useAlertStore().setAlert('Failed to delete roadmap', 'danger');
+        useAlertStore().setAlert('Failed to delete roadmap', 'danger')
       }
     },
     subscribeToSocketEvents() {
       socket.on('roadmap:create', (roadmap) => {
-        this.roadmaps.push(roadmap);
-      });
+        this.roadmaps.push(roadmap)
+      })
       socket.on('roadmap:update', (updatedRoadmap) => {
-        const index = this.roadmaps.findIndex(roadmap => roadmap.id === updatedRoadmap.id);
+        const index = this.roadmaps.findIndex((roadmap) => roadmap.id === updatedRoadmap.id)
         if (index !== -1) {
-          this.roadmaps[index] = updatedRoadmap;
+          this.roadmaps[index] = updatedRoadmap
         }
-      });
+      })
       socket.on('roadmap:delete', ({ id }) => {
-        this.roadmaps = this.roadmaps.filter(roadmap => roadmap.id !== id);
-      });
+        this.roadmaps = this.roadmaps.filter((roadmap) => roadmap.id !== id)
+      })
     }
-  },
-});
+  }
+})

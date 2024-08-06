@@ -11,7 +11,11 @@
             </div>
             <div class="mb-3">
               <label for="description" class="form-label">Description</label>
-              <textarea v-model="newSprintDescription" id="description" class="form-control"></textarea>
+              <textarea
+                v-model="newSprintDescription"
+                id="description"
+                class="form-control"
+              ></textarea>
             </div>
             <div class="mb-3">
               <label for="startDate" class="form-label">Start Date</label>
@@ -40,26 +44,26 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
-import { useSprintStore } from '@/stores/sprintStore';
-import { useRoute } from 'vue-router';
-import Tabs from "@/components/Tabs.vue";
+import { defineComponent, ref, onMounted } from 'vue'
+import { useSprintStore } from '@/stores/sprintStore'
+import { useRoute } from 'vue-router'
+import Tabs from '@/components/Tabs.vue'
 
 export default defineComponent({
   name: 'SprintList',
-  components: {Tabs},
+  components: { Tabs },
   setup() {
-    const sprintStore = useSprintStore();
-    const route = useRoute();
-    const newSprintTitle = ref('');
-    const newSprintDescription = ref('');
-    const newSprintStartDate = ref('');
-    const newSprintEndDate = ref('');
-    const roadmapId = Number(route.params.roadmapId);
+    const sprintStore = useSprintStore()
+    const route = useRoute()
+    const newSprintTitle = ref('')
+    const newSprintDescription = ref('')
+    const newSprintStartDate = ref('')
+    const newSprintEndDate = ref('')
+    const roadmapId = Number(route.params.roadmapId)
 
     const fetchSprints = async () => {
-      await sprintStore.fetchSprints(roadmapId);
-    };
+      await sprintStore.fetchSprints(roadmapId)
+    }
 
     const addSprint = async () => {
       await sprintStore.createSprint({
@@ -67,28 +71,37 @@ export default defineComponent({
         description: newSprintDescription.value,
         startDate: new Date(newSprintStartDate.value),
         endDate: new Date(newSprintEndDate.value),
-        roadmapId,
-      });
-      newSprintTitle.value = '';
-      newSprintDescription.value = '';
-      newSprintStartDate.value = '';
-      newSprintEndDate.value = '';
-    };
+        roadmapId
+      })
+      newSprintTitle.value = ''
+      newSprintDescription.value = ''
+      newSprintStartDate.value = ''
+      newSprintEndDate.value = ''
+    }
 
     const deleteSprint = async (sprintId: number) => {
-      await sprintStore.deleteSprint(sprintId);
-    };
+      await sprintStore.deleteSprint(sprintId)
+    }
 
     const editSprint = async (sprint) => {
       // Implement edit sprint logic here
-    };
+    }
 
     onMounted(() => {
-      fetchSprints();
-      sprintStore.subscribeToSocketEvents();
-    });
+      fetchSprints()
+      sprintStore.subscribeToSocketEvents()
+    })
 
-    return { sprints: sprintStore.sprints, newSprintTitle, newSprintDescription, newSprintStartDate, newSprintEndDate, addSprint, deleteSprint, editSprint };
-  },
-});
+    return {
+      sprints: sprintStore.sprints,
+      newSprintTitle,
+      newSprintDescription,
+      newSprintStartDate,
+      newSprintEndDate,
+      addSprint,
+      deleteSprint,
+      editSprint
+    }
+  }
+})
 </script>

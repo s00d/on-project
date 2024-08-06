@@ -12,13 +12,13 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import axios from 'axios';
+import { ref } from 'vue'
+import axios from 'axios'
 
-const email = ref('');
+const email = ref('')
 
 const requestReset = async () => {
-  await axios.post('/users/request-reset', { email: email.value });
-  email.value = '';
-};
+  await axios.post('/users/request-reset', { email: email.value })
+  email.value = ''
+}
 </script>

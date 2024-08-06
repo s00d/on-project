@@ -1,7 +1,7 @@
-import { Sequelize } from 'sequelize';
-import dotenv from 'dotenv';
+import { Sequelize } from 'sequelize'
+import dotenv from 'dotenv'
 
-dotenv.config({ path: '../.env' });
+dotenv.config({ path: '../.env' })
 
 const sequelize = new Sequelize({
   dialect: process.env.DATABASE_DIALECT as 'sqlite' | 'postgres' | 'mysql',
@@ -10,7 +10,7 @@ const sequelize = new Sequelize({
   port: parseInt(process.env.DATABASE_PORT || '5432', 10),
   database: process.env.DATABASE_NAME || 'on-project',
   username: process.env.DATABASE_USERNAME || 'root',
-  password: process.env.DATABASE_PASSWORD || 'root',
-});
+  password: process.env.DATABASE_PASSWORD || 'root'
+})
 
-export { sequelize };
+export { sequelize }

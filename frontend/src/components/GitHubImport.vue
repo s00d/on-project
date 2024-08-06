@@ -10,19 +10,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
-import axios from 'axios';
+import { defineComponent, ref } from 'vue'
+import axios from 'axios'
 
 export default defineComponent({
   name: 'GitHubImport',
   setup() {
-    const repoUrl = ref('');
+    const repoUrl = ref('')
 
     const importFromGitHub = async () => {
-      await axios.post('/api/mport-export/github-import', { repoUrl: repoUrl.value });
-    };
+      await axios.post('/api/mport-export/github-import', { repoUrl: repoUrl.value })
+    }
 
-    return { repoUrl, importFromGitHub };
-  },
-});
+    return { repoUrl, importFromGitHub }
+  }
+})
 </script>

@@ -1,33 +1,44 @@
 <template>
-  <div>
-    <h1>Kanban Board</h1>
-    <div class="kanban-columns">
-      <KanbanColumn v-for="status in statuses" :key="status" :status="status" />
+  <div class="admin-panel">
+    <div class="content">
+      <Tabs>
+        <div>
+          <h1>Kanban Board</h1>
+          <div class="kanban-columns">
+            <KanbanColumn
+              v-for="status in statuses"
+              :key="status"
+              :status="status"
+              :project-id="projectId"
+              @task-dropped="onTaskDropped"
+            />
+          </div>
+        </div>
+      </Tabs>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
-import KanbanColumn from '../../components/KanbanColumn.vue';
-import { useTaskStore } from '@/stores/taskStore';
+<script lang="ts" setup>
+import { ref, onMounted } from 'vue'
+import KanbanColumn from '../../components/KanbanColumn.vue'
+import { useTaskStore } from '@/stores/taskStore'
+import { useRoute } from 'vue-router'
+import Tabs from '@/components/Tabs.vue'
 
-export default defineComponent({
-  name: 'KanbanBoard',
-  components: {
-    KanbanColumn,
-  },
-  setup() {
-    const statuses = ref(['To Do', 'In Progress', 'Done']);
-    const taskStore = useTaskStore();
+const route = useRoute()
+const projectId = route.params.projectId.toString()
+const statuses = ref(['To Do', 'In Progress', 'Done'])
+const taskStore = useTaskStore()
 
-    onMounted(async () => {
-      await taskStore.fetchTasks();
-    });
+onMounted(async () => {
+  const pId = parseInt(projectId.toString())
+  await taskStore.fetchTasks(pId, {})
+})
 
-    return { statuses };
-  },
-});
+const onTaskDropped = async (taskId: number, newStatus: string) => {
+  await taskStore.updateTask(parseInt(projectId), taskId, { status: newStatus })
+}
 </script>
 
 <style>

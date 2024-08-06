@@ -22,27 +22,27 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
-import axios from 'axios';
-import Tabs from "@/components/Tabs.vue";
+import { defineComponent, ref } from 'vue'
+import axios from 'axios'
+import Tabs from '@/components/Tabs.vue'
 
 export default defineComponent({
   name: 'InviteUser',
-  components: {Tabs},
+  components: { Tabs },
   setup() {
-    const projectId = ref('');
-    const userId = ref('');
+    const projectId = ref('')
+    const userId = ref('')
 
     const inviteUser = async () => {
       try {
-        await axios.post('/projects/invite', { projectId: projectId.value, userId: userId.value });
-        alert('User invited successfully');
+        await axios.post('/projects/invite', { projectId: projectId.value, userId: userId.value })
+        alert('User invited successfully')
       } catch (error) {
-        alert('Failed to invite user');
+        alert('Failed to invite user')
       }
-    };
+    }
 
-    return { projectId, userId, inviteUser };
+    return { projectId, userId, inviteUser }
   }
-});
+})
 </script>

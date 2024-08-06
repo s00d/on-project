@@ -34,7 +34,6 @@
           <li class="nav-item" v-if="!isAuthenticated">
             <router-link class="nav-link" to="/auth/register">Register</router-link>
           </li>
-
         </ul>
       </div>
     </div>
@@ -42,18 +41,18 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
-import { useAuthStore } from '@/stores/authStore';
-import { useRouter } from 'vue-router';
-import NotificationDropdown from "@/components/NotificationDropdown.vue";
+import { computed } from 'vue'
+import { useAuthStore } from '@/stores/authStore'
+import { useRouter } from 'vue-router'
+import NotificationDropdown from '@/components/NotificationDropdown.vue'
 
-const authStore = useAuthStore();
-const router = useRouter();
+const authStore = useAuthStore()
+const router = useRouter()
 
-const isAuthenticated = computed(() => authStore.isAuthenticated);
+const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 const logout = () => {
-  authStore.logout();
-  router.push('/auth/login');
-};
+  authStore.logout()
+  router.push('/auth/login')
+}
 </script>

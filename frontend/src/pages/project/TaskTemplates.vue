@@ -11,7 +11,12 @@
             </div>
             <div class="mb-3">
               <label for="description" class="form-label">Description</label>
-              <textarea v-model="description" id="description" class="form-control" required></textarea>
+              <textarea
+                v-model="description"
+                id="description"
+                class="form-control"
+                required
+              ></textarea>
             </div>
             <div class="mb-3">
               <label for="priority" class="form-label">Priority</label>
@@ -39,49 +44,53 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
-import axios from 'axios';
-import Tabs from "@/components/Tabs.vue";
+import { defineComponent, ref, onMounted } from 'vue'
+import axios from 'axios'
+import Tabs from '@/components/Tabs.vue'
 
 interface TaskTemplate {
-  id: number;
-  title: string;
-  description: string;
-  priority: string;
+  id: number
+  title: string
+  description: string
+  priority: string
 }
 
 export default defineComponent({
   name: 'TaskTemplates',
-  components: {Tabs},
+  components: { Tabs },
   setup() {
-    const title = ref('');
-    const description = ref('');
-    const priority = ref('Medium');
-    const templates = ref<TaskTemplate[]>([]);
+    const title = ref('')
+    const description = ref('')
+    const priority = ref('Medium')
+    const templates = ref<TaskTemplate[]>([])
 
     const fetchTemplates = async () => {
-      const response = await axios.get('/api/templates');
-      templates.value = response.data;
-    };
+      const response = await axios.get('/api/templates')
+      templates.value = response.data
+    }
 
     const createTemplate = async () => {
-      const newTemplate = { title: title.value, description: description.value, priority: priority.value };
-      await axios.post('/api/templates', newTemplate);
-      fetchTemplates();
-    };
+      const newTemplate = {
+        title: title.value,
+        description: description.value,
+        priority: priority.value
+      }
+      await axios.post('/api/templates', newTemplate)
+      fetchTemplates()
+    }
 
     const applyTemplate = async (template: TaskTemplate) => {
       // Apply the template (e.g., create a new task using the template)
       await axios.post('/api/tasks', {
         title: template.title,
         description: template.description,
-        priority: template.priority,
-      });
-    };
+        priority: template.priority
+      })
+    }
 
-    onMounted(fetchTemplates);
+    onMounted(fetchTemplates)
 
-    return { title, description, priority, templates, createTemplate, applyTemplate };
-  },
-});
+    return { title, description, priority, templates, createTemplate, applyTemplate }
+  }
+})
 </script>

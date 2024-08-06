@@ -1,7 +1,7 @@
 <template>
   <div class="admin-panel">
     <div class="d-flex">
-      <div class="content p-3" style="margin-left: 250px;">
+      <div class="content p-3" style="margin-left: 250px">
         <Tabs />
       </div>
     </div>
@@ -9,19 +9,19 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import HeaderComponent from '@/components/HeaderComponent.vue';
-import Sidebar from '@/components/Sidebar.vue';
-import Tabs from '@/components/Tabs.vue';
+import { defineComponent } from 'vue'
+import HeaderComponent from '@/components/HeaderComponent.vue'
+import Sidebar from '@/components/Sidebar.vue'
+import Tabs from '@/components/Tabs.vue'
 
 export default defineComponent({
   name: 'AdminPanel',
   components: {
     HeaderComponent,
     Sidebar,
-    Tabs,
-  },
-});
+    Tabs
+  }
+})
 </script>
 
 <style scoped>

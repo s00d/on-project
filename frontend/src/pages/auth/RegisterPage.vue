@@ -4,7 +4,13 @@
     <form @submit.prevent="register" class="mt-3">
       <div class="mb-3">
         <label for="username" class="form-label">Username</label>
-        <input v-model="username" type="text" id="username" class="form-control" autocomplete="username" />
+        <input
+          v-model="username"
+          type="text"
+          id="username"
+          class="form-control"
+          autocomplete="username"
+        />
       </div>
       <div class="mb-3">
         <label for="email" class="form-label">Email</label>
@@ -12,7 +18,13 @@
       </div>
       <div class="mb-3">
         <label for="password" class="form-label">Password</label>
-        <input v-model="password" type="password" id="password" class="form-control" autocomplete="new-password" />
+        <input
+          v-model="password"
+          type="password"
+          id="password"
+          class="form-control"
+          autocomplete="new-password"
+        />
       </div>
       <button type="submit" class="btn btn-primary">Register</button>
     </form>
@@ -20,23 +32,27 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import { useAuthStore } from '@/stores/authStore';
-import { useRouter } from 'vue-router';
+import { ref } from 'vue'
+import { useAuthStore } from '@/stores/authStore'
+import { useRouter } from 'vue-router'
 
-const authStore = useAuthStore();
-const router = useRouter();
-const username = ref('');
-const email = ref('');
-const password = ref('');
+const authStore = useAuthStore()
+const router = useRouter()
+const username = ref('')
+const email = ref('')
+const password = ref('')
 
 const register = async () => {
   try {
-    await authStore.register({ username: username.value, email: email.value, password: password.value });
-    alert('Registration successful');
-    router.push('/auth/login');
+    await authStore.register({
+      username: username.value,
+      email: email.value,
+      password: password.value
+    })
+    alert('Registration successful')
+    router.push('/auth/login')
   } catch (error) {
-    alert('Registration failed');
+    alert('Registration failed')
   }
-};
+}
 </script>

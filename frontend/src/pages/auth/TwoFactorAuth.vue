@@ -5,7 +5,12 @@
       <button @click="enable2FA" class="btn btn-primary">Enable 2FA</button>
       <div v-if="qrCodeUrl">
         <img :src="qrCodeUrl" alt="QR Code" />
-        <input v-model="token" placeholder="Enter token" class="form-control mt-2" autocomplete="one-time-code" />
+        <input
+          v-model="token"
+          placeholder="Enter token"
+          class="form-control mt-2"
+          autocomplete="one-time-code"
+        />
         <button @click="verify2FA" class="btn btn-primary mt-2">Verify</button>
       </div>
     </div>
@@ -16,40 +21,40 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
-import axios from 'axios';
-import { useAuthStore } from '@/stores/authStore';
+import { ref } from 'vue'
+import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore'
 
-const authStore = useAuthStore();
-const qrCodeUrl = ref('');
-const token = ref('');
+const authStore = useAuthStore()
+const qrCodeUrl = ref('')
+const token = ref('')
 
 const enable2FA = async () => {
-  const response = await axios.post('/users/2fa/enable');
-  qrCodeUrl.value = response.data.qrCodeUrl;
-};
+  const response = await axios.post('/users/2fa/enable')
+  qrCodeUrl.value = response.data.qrCodeUrl
+}
 
 const verify2FA = async () => {
-  const response = await axios.post('/auth/2fa/verify', { token: token.value });
+  const response = await axios.post('/auth/2fa/verify', { token: token.value })
   if (response.data.success) {
-    const user = authStore.getUser;
+    const user = authStore.getUser
     if (user) {
-      user.twoFactorEnabled = true;
-      qrCodeUrl.value = '';
-      token.value = '';
+      user.twoFactorEnabled = true
+      qrCodeUrl.value = ''
+      token.value = ''
     }
   }
-};
+}
 
 const disable2FA = async () => {
-  const response = await axios.post('/auth/2fa/disable');
+  const response = await axios.post('/auth/2fa/disable')
   if (response.data.success) {
-    const user = authStore.getUser;
+    const user = authStore.getUser
     if (user) {
-      user.twoFactorEnabled = false;
+      user.twoFactorEnabled = false
     }
   }
-};
+}
 
-const twoFactorEnabled = authStore.getUser?.twoFactorEnabled ?? false;
+const twoFactorEnabled = authStore.getUser?.twoFactorEnabled ?? false
 </script>

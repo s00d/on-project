@@ -1,13 +1,20 @@
-import { Router } from 'express';
-import { getTasks, createTask, updateTask, deleteTask } from '../controllers/taskController';
-import { authenticateAll } from '../middlewares/authMiddleware';
+import { Router } from 'express'
+import {
+  getTasks,
+  getTask,
+  createTask,
+  updateTask,
+  deleteTask
+} from '../controllers/taskController'
+import { authenticateAll } from '../middlewares/authMiddleware'
+import { isProjectCreator } from '../middlewares/roleMiddleware'
 
-const router = Router();
+const router = Router()
 
-router.get('/', authenticateAll, getTasks);
-router.post('/', authenticateAll, createTask);
-router.put('/:id', authenticateAll, updateTask);
-router.delete('/:id', authenticateAll, deleteTask);
+router.get('/:projectId', authenticateAll, getTasks)
+router.post('/:projectId', authenticateAll, createTask)
+router.get('/:projectId/:id', authenticateAll, getTask)
+router.put('/:projectId/:id', authenticateAll, updateTask)
+router.delete('/:projectId/:id', authenticateAll, isProjectCreator, deleteTask)
 
-
-export { router as taskRouter };
+export { router as taskRouter }

@@ -1,81 +1,89 @@
-import { Request, Response } from 'express';
-import { Comment } from '../models';
-import { User } from '../models';
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import { io } from '../index';
+import { Request, Response } from 'express'
+import { Comment } from '../models'
+import { User } from '../models'
+import multer from 'multer'
+import path from 'path'
+import fs from 'fs'
+import { io } from '../index'
+import formidable from 'formidable'
 
 // Настройка хранения файлов с использованием multer
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    cb(null, 'uploads/')
   },
   filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
+    cb(null, `${Date.now()}-${file.originalname}`)
   }
-});
+})
 
-const upload = multer({ storage });
+const upload = multer({ storage })
 
 const getComments = async (req: Request, res: Response) => {
-  const taskId = req.params.taskId;
-  const comments = await Comment.findAll({ where: { taskId }, include: [User] });
-  res.json(comments);
-};
+  const taskId = req.params.taskId
+  const comments = await Comment.findAll({ where: { taskId }, include: [User] })
+  res.json(comments)
+}
 
 const addComment = async (req: Request, res: Response) => {
-  const { content, taskId, userId } = req.body;
-  const attachment = req.file ? req.file.filename : null;
+  const taskId = req.params.id
+  const form = formidable({})
+
+  const [fields, files] = await form.parse(req)
+
+  const content = fields?.content?.toString()
+  const userId = parseInt(fields?.userId?.toString() ?? '0')
+
+  const attachment = files?.filename && files?.filename?.length > 0 ? files.filename[0] : null
 
   try {
-    const comment = await Comment.create({ content, taskId, userId, attachment });
-    io.emit('comment:create', comment);
-    res.json(comment);
+    const comment = await Comment.create({ content, taskId, userId, attachment })
+    io.emit('comment:create', comment)
+    res.json(comment)
   } catch (err: any) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
+    const error = err as Error
+    res.status(400).json({ error: error.message })
   }
-};
+}
 
 const updateComment = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { content } = req.body;
+  const { id } = req.params
+  const { content } = req.body
 
   try {
-    const comment = await Comment.findByPk(id);
+    const comment = await Comment.findByPk(id)
     if (comment) {
-      await comment.update({ content });
-      io.emit('comment:update', comment);
-      res.json(comment);
+      await comment.update({ content })
+      io.emit('comment:update', comment)
+      res.json(comment)
     } else {
-      res.status(404).json({ error: 'Comment not found' });
+      res.status(404).json({ error: 'Comment not found' })
     }
   } catch (err: any) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
+    const error = err as Error
+    res.status(400).json({ error: error.message })
   }
-};
+}
 
 const deleteComment = async (req: Request, res: Response) => {
-  const { id } = req.params;
+  const { id } = req.params
 
   try {
-    const comment = await Comment.findByPk(id);
+    const comment = await Comment.findByPk(id)
     if (comment) {
       if (comment.attachment) {
-        fs.unlinkSync(path.join(__dirname, '../../uploads', comment.attachment));
+        fs.unlinkSync(path.join(__dirname, '../../uploads', comment.attachment))
       }
-      await comment.destroy();
-      io.emit('comment:delete', { id: Number(id) });
-      res.status(204).end();
+      await comment.destroy()
+      io.emit('comment:delete', { id: Number(id) })
+      res.status(204).end()
     } else {
-      res.status(404).json({ error: 'Comment not found' });
+      res.status(404).json({ error: 'Comment not found' })
     }
   } catch (err: any) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
+    const error = err as Error
+    res.status(400).json({ error: error.message })
   }
-};
+}
 
-export { getComments, addComment, updateComment, deleteComment, upload };
+export { getComments, addComment, updateComment, deleteComment, upload }
