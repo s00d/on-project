@@ -25,7 +25,6 @@ Project.hasMany(Roadmap, { foreignKey: 'projectId' })
 Project.belongsToMany(User, { through: ProjectUser, foreignKey: 'projectId' })
 
 Task.hasMany(Comment, { foreignKey: 'taskId' })
-Task.belongsTo(User, { foreignKey: 'assigneeId' })
 Task.belongsTo(Project, { foreignKey: 'projectId' })
 Task.belongsTo(Label, { foreignKey: 'labelId' })
 Task.belongsTo(Task, { as: 'relatedTask', foreignKey: 'relatedTaskId' })

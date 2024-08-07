@@ -38,6 +38,15 @@
         >Settings</router-link
         >
       </li>
+
+      <li class="nav-item">
+        <router-link
+          class="nav-link"
+          :class="{ active: isActive(`/cabinet/projects/${projectId}/invite`) }"
+          :to="`/cabinet/projects/${projectId}/invite`"
+        >invite users</router-link
+        >
+      </li>
     </ul>
     <div class="tab-content mt-3">
       <slot></slot>

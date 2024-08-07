@@ -73,17 +73,24 @@ const generateTeamPerformanceReport = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Project not found' })
     }
     const tasks = project.tasks
+
     const performance = tasks?.reduce(
       (acc, task) => {
-        acc[task.assigneeId] = acc[task.assigneeId] || { total: 0, completed: 0 }
-        acc[task.assigneeId].total += 1
-        if (task.status === 'Done') {
-          acc[task.assigneeId].completed += 1
-        }
+        const assigneeIds = task.assigneeIds
+
+        assigneeIds.forEach((assigneeId: number) => {
+          acc[assigneeId] = acc[assigneeId] || { total: 0, completed: 0 }
+          acc[assigneeId].total += 1
+          if (task.status === 'Done') {
+            acc[assigneeId].completed += 1
+          }
+        })
+
         return acc
       },
       {} as Record<number, { total: number; completed: number }>
     )
+
     res.json(performance)
   } catch (err: any) {
     const error = err as Error
@@ -141,7 +148,6 @@ const generateProgressReport = async (req: Request, res: Response) => {
     res.status(400).json({ error: error.message })
   }
 }
-
 const generateTeamWorkloadReport = async (req: Request, res: Response) => {
   const projectId = req.params.projectId
   try {
@@ -152,14 +158,16 @@ const generateTeamWorkloadReport = async (req: Request, res: Response) => {
     const tasks = project.tasks
     const workload = tasks?.reduce(
       (acc, task) => {
-        const assignee = task.assigneeId || 'Unassigned'
-        if (!acc[assignee]) {
-          acc[assignee] = 0
-        }
-        acc[assignee] += 1
+        const assigneeIds = task.assigneeIds || ['Unassigned']
+        assigneeIds.forEach((assigneeId: number | string) => {
+          if (!acc[assigneeId]) {
+            acc[assigneeId] = 0
+          }
+          acc[assigneeId] += 1
+        })
         return acc
       },
-      {} as Record<string, number>
+      {} as Record<string | number, number>
     )
     res.json(workload)
   } catch (err: any) {

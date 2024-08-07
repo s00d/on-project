@@ -18,7 +18,7 @@ const getTasks = async (req: Request, res: Response) => {
   try {
     const { count, rows } = await Task.findAndCountAll({
       where: whereClause,
-      include: [User, Label],
+      include: [Label],
       limit: Number(pageSize),
       offset: (Number(page) - 1) * Number(pageSize)
     })
@@ -33,7 +33,7 @@ const getTask = async (req: Request, res: Response) => {
   const { projectId, id } = req.params
 
   try {
-    const task = await Task.findOne({ where: { projectId, id }, include: [User, Label] })
+    const task = await Task.findOne({ where: { projectId, id }, include: [Label] })
     res.json(task)
   } catch (err: any) {
     const error = err as Error
@@ -43,7 +43,7 @@ const getTask = async (req: Request, res: Response) => {
 
 const createTask = async (req: Request, res: Response) => {
   const { projectId } = req.params;
-  const { title, description, status, assigneeId, labelId, dueDate, priority, estimatedTime, type, plannedDate, relatedTaskId, actualTime, tags, customFields } = req.body;
+  const { title, description, status, assigneeIds, labelId, dueDate, priority, estimatedTime, type, plannedDate, relatedTaskId, actualTime, tags, customFields } = req.body;
   const userId = req.session.user!.id;
 
   try {
@@ -52,7 +52,7 @@ const createTask = async (req: Request, res: Response) => {
       description,
       status,
       projectId: Number(projectId),
-      assigneeId,
+      assigneeIds: assigneeIds ?? [],
       labelId,
       dueDate,
       priority,
@@ -65,8 +65,10 @@ const createTask = async (req: Request, res: Response) => {
       customFields: customFields ?? {}
     });
     await logTaskHistory(task.id, userId, 'created');
-    if (assigneeId) {
-      await createNotification(assigneeId, `You have been assigned a new task: ${title}`);
+    if (assigneeIds && assigneeIds.length) {
+      for (let i in assigneeIds) {
+        await createNotification(assigneeIds[i], `You have been assigned a new task: ${title}`);
+      }
     }
     io.emit('task:create', task);
     res.json(task);
@@ -78,7 +80,7 @@ const createTask = async (req: Request, res: Response) => {
 
 const updateTask = async (req: Request, res: Response) => {
   const { projectId, id } = req.params;
-  const { title, description, status, assigneeId, labelId, dueDate, priority, estimatedTime, type, plannedDate, relatedTaskId, actualTime, tags, customFields } = req.body;
+  const { title, description, status, assigneeIds, labelId, dueDate, priority, estimatedTime, type, plannedDate, relatedTaskId, actualTime, tags, customFields } = req.body;
   const userId = req.session.user!.id;
 
   try {
@@ -89,7 +91,7 @@ const updateTask = async (req: Request, res: Response) => {
       if (title !== undefined) updatedFields.title = title;
       if (description !== undefined) updatedFields.description = description;
       if (status !== undefined) updatedFields.status = status;
-      if (assigneeId !== undefined) updatedFields.assigneeId = assigneeId;
+      if (assigneeIds !== undefined) updatedFields.assigneeIds = assigneeIds;
       if (labelId !== undefined) updatedFields.labelId = labelId;
       if (dueDate !== undefined) updatedFields.dueDate = dueDate;
       if (priority !== undefined) updatedFields.priority = priority;
@@ -104,8 +106,10 @@ const updateTask = async (req: Request, res: Response) => {
       await task.update(updatedFields);
       await logTaskHistory(task.id, userId, 'updated');
 
-      if (assigneeId) {
-        await createNotification(assigneeId, `Task updated: ${title}`);
+      if (assigneeIds && assigneeIds.length) {
+        for (let i in assigneeIds) {
+          await createNotification(assigneeIds[i], `Task updated: ${title}`);
+        }
       }
 
       io.emit('task:update', task);

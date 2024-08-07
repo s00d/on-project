@@ -16,7 +16,12 @@
       @dragstart="(event) => onDragStart(event, task.id)"
     >
       <h5 class="card-title">{{ task.title }}</h5>
-      <p v-if="task.User">Assigned to: {{ task.User.username }}</p>
+      <p v-if="task.assigneeIds">
+        Assigned to:
+        <span v-for="assigneeId in task.assigneeIds" :key="assigneeId">
+          <span v-if="users[assigneeId]" v-text="users[assigneeId].username"></span>
+        </span>
+      </p>
     </div>
   </div>
 </template>
@@ -25,15 +30,18 @@
 import { ref, computed } from 'vue'
 import { useTaskStore } from '@/stores/taskStore'
 import type { Task } from '@/stores/taskStore'
+import type {User} from "@/stores/authStore";
 
 interface Props {
   status: string
   projectId: string
+  users: User[]
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits(['task-dropped'])
 const taskStore = useTaskStore()
+const users = ref<User[]>([])
 
 const isDragOver = ref(false)
 

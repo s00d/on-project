@@ -20,7 +20,7 @@
     </div>
     <div class="mb-3">
       <label for="label" class="form-label">Assignee</label>
-      <select v-model="task.assigneeId" id="label" class="form-select">
+      <select v-model="task.assigneeIds" id="label" class="form-select" multiple>
         <option v-for="user in users" :key="user.id" :value="user.id">
           {{ user.username }}
         </option>
@@ -54,8 +54,8 @@
       <input type="number" v-model="task.actualTime" id="actualTime" class="form-control" />
     </div>
     <div class="mb-3">
-      <label for="tags" class="form-label">Tags (comma-separated)</label>
-      <input type="text" v-model="tagsString" id="tags" class="form-control" />
+      <label for="tags" class="form-label">Tags</label>
+      <TagsInput v-model="tags" placeholder="Add a tag" />
     </div>
 
     <div class="mb-3">
@@ -122,6 +122,7 @@ import {type Comment, type Task, useTaskStore} from '@/stores/taskStore'
 import {useAuthStore, type User} from '@/stores/authStore'
 import CommentCard from '@/components/CommentCard.vue'
 import {type Project, useProjectStore} from "@/stores/projectStore";
+import TagsInput from "@/components/TagsInput.vue";
 
 const props = defineProps<{
   task: Task
@@ -138,7 +139,7 @@ const task = ref({ ...props.task })
 const comments = ref<Comment[]>([])
 const newCommentContent = ref('')
 const attachment = ref<File | null>(null)
-const tagsString = ref(task.value.tags ? task.value.tags.join(', ') : '')
+const tags = ref(task.value.tags ? task.value.tags : [])
 const users = ref<User[]>([])
 const customFieldsStrict = ref<{ name: string; description: string; type: string }[]>([])
 
@@ -153,7 +154,7 @@ const saveTask = async () => {
     title: task.value.title,
     description: task.value.description,
     status: task.value.status,
-    assigneeId: task.value.assigneeId,
+    assigneeIds: task.value.assigneeIds,
     labelId: task.value.labelId,
     dueDate: task.value.dueDate,
     estimatedTime: task.value.estimatedTime,
@@ -161,7 +162,7 @@ const saveTask = async () => {
     plannedDate: task.value.plannedDate,
     relatedTaskId: task.value.relatedTaskId,
     actualTime: task.value.actualTime,
-    tags: tagsString.value.split(',').map(tag => tag.trim())
+    tags: tags.value
   })
   emit('close')
 }

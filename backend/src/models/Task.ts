@@ -11,7 +11,7 @@ class Task extends Model {
   public description!: string
   public status!: string
   declare projectId: ForeignKey<Project['id']>
-  declare assigneeId: ForeignKey<User['id']>
+  public assigneeIds!: number[]
   declare labelId: ForeignKey<Label['id']>
   public dueDate!: Date
   public priority!: string
@@ -27,7 +27,7 @@ class Task extends Model {
   public updatedAt!: Date
 
   declare Comments?: NonAttribute<Comment[]>
-  declare Assignee?: NonAttribute<User>
+  declare Assignees?: NonAttribute<User[]>
   declare Label?: NonAttribute<Label>
   declare RelatedTask?: NonAttribute<Task>
 }
@@ -55,9 +55,16 @@ Task.init(
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    assigneeId: {
-      type: DataTypes.INTEGER,
-      allowNull: true
+    assigneeIds: {
+      type: DataTypes.STRING, // Хранить как строку, разделенную запятыми
+      defaultValue: '',
+      get() {
+        const rawValue = this.getDataValue('assigneeIds')
+        return rawValue ? rawValue.split(',').map(Number) : []
+      },
+      set(val: number[]) {
+        this.setDataValue('assigneeIds', val.join(','))
+      }
     },
     labelId: {
       type: DataTypes.INTEGER,
@@ -131,7 +138,7 @@ Task.init(
     timestamps: true,
     indexes: [
       { fields: ['projectId'] },
-      { fields: ['assigneeId'] },
+      { fields: ['assigneeIds'] },
       { fields: ['relatedTaskId'] },
       { fields: ['labelId'] },
       { fields: ['createdAt'] },

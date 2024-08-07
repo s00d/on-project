@@ -30,7 +30,6 @@ const getProject = async (req: Request, res: Response) => {
     const project = await Project.findOne({
       where: {
         id: projectId,
-        ownerId: userId
       },
       include: [
         {
@@ -68,7 +67,8 @@ const createProject = async (req: Request, res: Response) => {
 }
 
 const inviteUser = async (req: Request, res: Response) => {
-  const { projectId, userId } = req.body
+  const { userId } = req.body
+  const { projectId } = req.params
 
   try {
     const project = await Project.findOne({
@@ -77,6 +77,17 @@ const inviteUser = async (req: Request, res: Response) => {
         ownerId: req.session.user!.id
       }
     })
+
+    const existingProjectUser = await ProjectUser.findOne({
+      where: {
+        projectId,
+        userId
+      }
+    });
+
+    if (existingProjectUser) {
+      return res.status(400).json({ error: 'User is already a member of the project' });
+    }
 
     if (project) {
       await ProjectUser.create({ projectId, userId })
@@ -105,8 +116,20 @@ const getProjectUsers = async (req: Request, res: Response) => {
     })
 
     if (project) {
-      const userRoles = await ProjectUser.findAll({ where: { projectId }, include: User })
-      res.json(userRoles.map((ur) => ({ id: ur.User?.id, username: ur.User?.username })))
+      const userRoles = await ProjectUser.findAll({ where: { projectId }, include: User });
+
+      // Формируем объект с ключами по ID пользователя
+      const usersById: Record<number, { id: number; username: string }> = {};
+      userRoles.forEach((ur) => {
+        if (ur.User) {
+          usersById[ur.User.id] = {
+            id: ur.User.id,
+            username: ur.User.username
+          };
+        }
+      });
+
+      res.json(usersById);
     } else {
       res.status(403).json({ error: 'Only the project owner can view project users' })
     }

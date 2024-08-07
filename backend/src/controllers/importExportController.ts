@@ -65,7 +65,7 @@ const importFromGitHub = async (req: Request, res: Response) => {
           description: task.note,
           status: column.name,
           projectId: 1, // This should be set to the appropriate project ID in your system
-          assigneeId: null, // This should be set to the appropriate user ID in your system
+          assigneeIds: [], // This should be set to the appropriate user ID in your system
           labelId: null, // This should be set to the appropriate label ID in your system
           dueDate: null,
           priority: 'Medium'

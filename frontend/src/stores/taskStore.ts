@@ -8,7 +8,7 @@ export interface TaskBase {
   description?: string | null
   status?: string | null
   projectId?: number | null
-  assigneeId?: number | null
+  assigneeIds?: number[]
   labelId?: number | null
   dueDate?: Date | null
   priority?: string | null
@@ -23,7 +23,6 @@ export interface TaskBase {
 
 export interface Task extends TaskBase {
   id: number
-  User?: { username: string; id: number }
   Label?: { name: string; color: string; id: number }
 }
 

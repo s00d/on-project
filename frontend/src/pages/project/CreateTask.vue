@@ -4,7 +4,7 @@
       <Tabs>
         <div class="container mt-5">
           <h1>Create Task</h1>
-          <form @submit.prevent="createTask" class="mt-3">
+          <div class="mt-3">
             <div class="mb-3">
               <label for="title" class="form-label">Task Title</label>
               <input v-model="title" type="text" id="title" class="form-control" required />
@@ -27,7 +27,7 @@
             </div>
             <div class="mb-3">
               <label for="assignee" class="form-label">Assignee</label>
-              <select v-model="assigneeId" id="assignee" class="form-select">
+              <select v-model="assigneeIds" id="assignee" class="form-select" multiple>
                 <option v-for="user in users" :key="user.id" :value="user.id">
                   {{ user.username }}
                 </option>
@@ -72,8 +72,8 @@
               <input v-model="actualCost" type="number" id="actualCost" class="form-control" />
             </div>
             <div class="mb-3">
-              <label for="tags" class="form-label">Tags (comma-separated)</label>
-              <input v-model="tags" type="text" id="tags" class="form-control" />
+              <label for="tags" class="form-label">Tags</label>
+              <TagsInput v-model="tags" placeholder="Add a tag" />
             </div>
 
             <div class="mb-3">
@@ -101,8 +101,8 @@
               </div>
             </div>
 
-            <button type="submit" class="btn btn-primary">Create Task</button>
-          </form>
+            <button type="button" class="btn btn-primary" @click.prevent="createTask" >Create Task</button>
+          </div>
         </div>
       </Tabs>
     </div>
@@ -118,6 +118,7 @@ import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import { useProjectStore } from '@/stores/projectStore'
 import Tabs from '@/components/Tabs.vue'
+import TagsInput from "@/components/TagsInput.vue";
 
 const taskStore = useTaskStore()
 const projectStore = useProjectStore()
@@ -134,7 +135,7 @@ const title = ref('')
 const description = ref('')
 const status = ref((project?.value?.statuses && project?.value?.statuses.length > 0) ? project?.value?.statuses[0] : 'To Do')
 const priority = ref((project?.value?.priorities && project?.value?.priorities.length > 0) ? project?.value?.priorities[0] : 'Medium')
-const assigneeId = ref<number | null>(null)
+const assigneeIds = ref<number[]>([])
 const dueDate = ref<string | null>(null)
 const estimatedTime = ref<number | null>(null)
 const type = ref<string>((project?.value?.types && project?.value?.types.length > 0) ? project?.value?.types[0] : 'frontend')
@@ -144,7 +145,7 @@ const estimatedCost = ref<number | null>(null)
 const actualTime = ref<number | null>(null)
 const actualCost = ref<number | null>(null)
 const labelId = ref<number | null>(null)
-const tags = ref<string>('')
+const tags = ref<string[]>([])
 const customFields = ref<{ [name: string]: string }>({})
 const customFieldsStrict = ref<{ name: string; description: string; type: string }[]>([])
 
@@ -160,7 +161,7 @@ const createTask = async () => {
     status: status.value,
     priority: priority.value,
     projectId: parseInt(projectId),
-    assigneeId: assigneeId.value,
+    assigneeIds: assigneeIds.value,
     dueDate: dueDate.value ? new Date(dueDate.value) : null,
     estimatedTime: estimatedTime.value,
     type: type.value,
@@ -169,7 +170,7 @@ const createTask = async () => {
     actualTime: actualTime.value,
     labelId: labelId.value,
     customFields: customFields.value,
-    tags: tags.value.split(',').map(tag => tag.trim()) // Преобразование строки тегов в массив
+    tags: tags.value
   }
   await taskStore.createTask(parseInt(projectId), taskData)
   router.push(`/cabinet/projects/${projectId}`)

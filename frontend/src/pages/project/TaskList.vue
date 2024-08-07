@@ -68,7 +68,7 @@
                   @click="openTaskModal(task)"
                   class="task-row"
                 >
-                  <td v-for="column in visibleColumns" :key="column">{{ getColumnData(task, column) }}</td>
+                  <td v-for="column in visibleColumns" :key="column" v-html="getColumnData(task, column)"></td>
                 </tr>
                 </tbody>
               </table>
@@ -218,12 +218,14 @@ import TaskCard from '../../components/TaskCard.vue'
 import Tabs from '@/components/Tabs.vue'
 import PaginationComponent from "@/components/PaginationComponent.vue";
 import {useProjectStore} from '@/stores/projectStore'
+import type {User} from "@/stores/authStore";
 
 const taskStore = useTaskStore()
 const projectStore = useProjectStore()
 const route = useRoute()
 const projectId = route.params.projectId.toString()
 
+const users = ref<User[]>([])
 const search = ref('')
 const status = ref('')
 const priority = ref('')
@@ -267,6 +269,7 @@ onMounted(async () => {
   taskStore.subscribeToSocketEvents()
   await projectStore.fetchProject(Number(projectId))
   loadSavedFilters()
+  users.value = await projectStore.fetchUsers(Number(projectId))
 })
 
 const openTaskModal = (task: Task) => {
@@ -352,15 +355,15 @@ const groupedTasks = computed(() => {
   if (groupBy.value === 'none') {
     return { 'All Tasks': tasks }
   }
-  return tasks.reduce((acc: any, task: any) => {
+  return tasks.reduce((acc: any, task: Task) => {
     let groupKey = ''
     if (groupBy.value === 'priority') {
       groupKey = task.priority || 'No Priority'
     } else if (groupBy.value === 'status') {
       groupKey = task.status || 'No Status'
     } else if (groupBy.value === 'assignee') {
-      groupKey = task.User ? task.User.username : 'Unassigned'
-    } else {
+      groupKey = task.assigneeIds ? task.assigneeIds.join(', ') : 'Unassigned'
+    } else if (task.customFields) {
       groupKey = task.customFields[groupBy.value] || 'No ' + groupBy.value
     }
     if (!acc[groupKey]) {
@@ -374,6 +377,10 @@ const groupedTasks = computed(() => {
 const sortKey = ref('')
 const sortOrder = ref(1)
 
+function tagToBadge(tag: string) {
+  return `<span class="badge bg-primary mr-2">${tag}</span>`;
+}
+
 const sort = (key: string) => {
   if (sortKey.value === key) {
     sortOrder.value *= -1
@@ -384,7 +391,24 @@ const sort = (key: string) => {
   taskStore.tasks.sort((a, b) => {
     let result = 0
     if (key === 'assignee') {
-      result = (a.User?.username || '').localeCompare(b.User?.username || '')
+      const getUsernames = (task: Task) => {
+        const usernames: string[] = []
+        if (task.assigneeIds?.length) {
+          for (let i = 0; i < task.assigneeIds.length; i++) {
+            const userId = task.assigneeIds[i];
+            // @ts-ignore
+            if (users[userId]) {
+              // @ts-ignore
+              usernames.push(users[userId].username);
+            }
+          }
+        }
+        return usernames.sort().join(', ');
+      }
+
+      const usernamesA = getUsernames(a)
+      const usernamesB = getUsernames(b)
+      result = usernamesA.localeCompare(usernamesB)
     } else if (key === 'Label') {
       result = (a.Label?.name || '').localeCompare(b.Label?.name || '')
     } else if (key === 'Tags') {
@@ -410,6 +434,7 @@ const selectPage = (page: number) => {
 }
 
 const getColumnData = (task: Task, column: string) => {
+  let vals = [];
   switch (column) {
     case 'Title':
       return task.title
@@ -418,7 +443,16 @@ const getColumnData = (task: Task, column: string) => {
     case 'Label':
       return task.Label ? `<span class="badge" style="background-color: ${task.Label.color}">${task.Label.name}</span>` : ''
     case 'Assignee':
-      return task.User ? task.User.username : ''
+      vals = [];
+      if(task.assigneeIds?.length) {
+        for (let i in task.assigneeIds) {
+          const userId = task.assigneeIds[i]
+          if(users.value[userId]) {
+            vals.push(users.value[userId].username);
+          }
+        }
+      }
+      return vals.join(', ')
     case 'Due Date':
       return task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A'
     case 'Priority':
@@ -433,7 +467,7 @@ const getColumnData = (task: Task, column: string) => {
     case 'Actual Time':
       return task.actualTime
     case 'Tags':
-      return task.tags ? task.tags.join(', ') : ''
+      return (task.tags?.map(tagToBadge).join('') || '');
     default:
       // @ts-ignore
       return task.customFields[column]
