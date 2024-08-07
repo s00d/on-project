@@ -169,7 +169,7 @@ const removeUserFromProject = async (req: Request, res: Response) => {
 
 const updateProject = async (req: Request, res: Response) => {
   const { projectId } = req.params
-  const { name, description } = req.body
+  const { name, description, customFields } = req.body
 
   try {
     const project = await Project.findOne({
@@ -180,7 +180,7 @@ const updateProject = async (req: Request, res: Response) => {
     })
 
     if (project) {
-      await project.update({ name, description })
+      await project.update({ name, description, customFields: customFields ?? {} })
       res.json(project)
     } else {
       res.status(403).json({ error: 'Only the project owner can update the project' })

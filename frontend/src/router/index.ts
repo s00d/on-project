@@ -28,7 +28,6 @@ import PriorityDistributionReport from '../pages/report/PriorityDistributionRepo
 import ProgressReport from '../pages/report/ProgressReport.vue'
 import TeamWorkloadReport from '../pages/report/TeamWorkloadReport.vue'
 import CreateTask from '@/pages/project/CreateTask.vue'
-import ManageLabels from "@/pages/project/ManageLabels.vue";
 
 import Calendar from '../pages/CalendarPage.vue'
 import ImportExport from '../pages/ImportExport.vue'
@@ -171,7 +170,7 @@ const routes = [
     }
   },
   {
-    path: '/cabinet/projects/:id/edit',
+    path: '/cabinet/projects/:projectId/edit',
     component: EditProject,
     beforeEnter: (
       to: RouteLocationNormalized,
@@ -237,22 +236,6 @@ const routes = [
   {
     path: '/cabinet/projects/templates',
     component: TaskTemplates,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
-  },
-  {
-    path: '/cabinet/:projectId/labels',
-    component: ManageLabels,
     beforeEnter: (
       to: RouteLocationNormalized,
       from: RouteLocationNormalized,

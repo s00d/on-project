@@ -2,54 +2,45 @@
   <div class="admin-panel">
     <div class="content">
       <Tabs>
-        <div class="container mt-5">
-          <h1>Overdue Report</h1>
-          <form @submit.prevent="generateReport" class="mt-3">
-            <div class="mb-3">
-              <label for="projectId" class="form-label">Project ID</label>
-              <input
-                v-model="projectId"
-                type="number"
-                id="projectId"
-                class="form-control"
-                required
-              />
+        <div class="container-fluid">
+          <div class="row flex-nowrap">
+            <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0">
+              <ReportsLinks :project-id="projectId" />
             </div>
-            <button type="submit" class="btn btn-primary">Generate Report</button>
-          </form>
-          <div v-if="report" class="mt-3">
-            <h3>Overdue Tasks: {{ report.overdueTasks }}</h3>
+
+            <div class="col py-3">
+              <div class="container mt-5">
+                <h1>Overdue Report</h1>
+                <div v-if="report" class="mt-3">
+                  <h3>Overdue Tasks: {{ report.overdueTasks }}</h3>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+
       </Tabs>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue'
+<script lang="ts" setup>
+import {onMounted, ref} from 'vue'
 import axios from 'axios'
 import Tabs from '@/components/Tabs.vue'
+import ReportsLinks from "@/components/ReportsLinks.vue";
+import {useRoute} from "vue-router";
 
-export default defineComponent({
-  name: 'OverdueReport',
-  components: { Tabs },
-  setup() {
-    const projectId = ref<number | null>(null)
-    const report = ref<{ overdueTasks: number } | null>(null)
+const route = useRoute()
+const projectId = ref(route.params.projectId.toString())
+const report = ref<{ overdueTasks: number } | null>(null)
 
-    const generateReport = async () => {
-      if (projectId.value !== null) {
-        try {
-          const response = await axios.get(`/reports/project/${projectId.value}/overdue`)
-          report.value = response.data
-        } catch (error) {
-          console.error('Failed to generate report', error)
-        }
-      }
-    }
-
-    return { projectId, report, generateReport }
+onMounted(async () => {
+  try {
+    const response = await axios.get(`/reports/project/${projectId.value}/overdue`)
+    report.value = response.data
+  } catch (error) {
+    console.error('Failed to generate report', error)
   }
 })
 </script>

@@ -1,5 +1,9 @@
 <template>
-  <div>
+  <div class="modal-header">
+    <h5 class="modal-title" v-text="task.title"></h5>
+    <button type="button" class="btn-close" aria-label="Close" @click="$emit('close')"></button>
+  </div>
+  <div class="modal-body">
     <div class="mb-3">
       <label for="title" class="form-label">Title</label>
       <input type="text" v-model="task.title" id="title" class="form-control" />
@@ -69,7 +73,21 @@
       </select>
     </div>
 
-    <button @click="saveTask" class="btn btn-primary">Save</button>
+    <div class="mb-3" v-if="task.customFields">
+      <label for="customFields" class="form-label">Custom Fields</label>
+      <div v-for="(field, index) in customFieldsStrict" :key="index" class="mb-3">
+        <div class="d-flex align-items-center">
+          <label :for="field.name" class="form-label" v-text="field.name" style="padding: 8px 4px 0;"></label>
+          <input
+            v-model="task.customFields[field.name]"
+            :id="field.name"
+            :type="field.type"
+            class="form-control mr-2"
+            placeholder="Field Value"
+          />
+        </div>
+      </div>
+    </div>
 
     <div class="mt-3" v-if="showComments">
       <h5>Comments</h5>
@@ -92,11 +110,21 @@
       </form>
     </div>
   </div>
+  <div class="modal-footer">
+    <button @click="saveTask" class="btn btn-primary">Save</button>
+    <button
+      type="button"
+      class="btn btn-secondary"
+      @click="$emit('close')"
+    >
+      Close
+    </button>
+  </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed, onMounted } from 'vue'
-import {type Comment, type Label, type Task, useTaskStore} from '@/stores/taskStore'
+import {type Comment, type Task, useTaskStore} from '@/stores/taskStore'
 import {useAuthStore, type User} from '@/stores/authStore'
 import CommentCard from '@/components/CommentCard.vue'
 import {useProjectStore} from "@/stores/projectStore";
@@ -107,6 +135,8 @@ const props = defineProps<{
   showComments: boolean
 }>()
 
+defineEmits(['close'])
+
 const taskStore = useTaskStore()
 const authStore = useAuthStore()
 const projectStore = useProjectStore()
@@ -116,6 +146,7 @@ const newCommentContent = ref('')
 const attachment = ref<File | null>(null)
 const tagsString = ref(task.value.tags ? task.value.tags.join(', ') : '')
 const users = ref<User[]>([])
+const customFieldsStrict = ref<{ name: string; description: string; type: string }[]>([])
 
 const labels = computed(() => taskStore.labels)
 
@@ -170,6 +201,9 @@ const handleFileUpload = (event: Event) => {
 }
 
 onMounted(async () => {
+  await projectStore.fetchProject(parseInt(props.projectId))
+  customFieldsStrict.value = projectStore.project?.customFields ?? [];
+
   if (props.showComments) {
     await fetchComments()
   }

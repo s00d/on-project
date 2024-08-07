@@ -22,7 +22,7 @@ class Task extends Model {
   public plannedDate!: Date // Новое поле для плановой даты
   declare relatedTaskId: ForeignKey<Task['id']> // Новое поле для связанной задачи
   public tags!: string[] // Поле для массивов тегов
-
+  public customFields!: { [name: string]: string };
   public createdAt!: Date
   public updatedAt!: Date
 
@@ -102,6 +102,17 @@ Task.init(
       set(val: string[]) {
         this.setDataValue('tags', val.join(','))
       }
+    },
+    customFields: {
+      type: DataTypes.TEXT, // Хранить в виде строки
+      defaultValue: '{}',
+      get() {
+        const rawValue = this.getDataValue('customFields');
+        return rawValue ? JSON.parse(rawValue) : [];
+      },
+      set(val: { name: string; value: string }[]) {
+        this.setDataValue('customFields', JSON.stringify(val));
+      },
     },
     createdAt: {
       type: DataTypes.DATE,

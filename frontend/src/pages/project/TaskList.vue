@@ -124,28 +124,13 @@
           >
             <div class="modal-dialog modal-dialog-aside" role="document">
               <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title" v-text="selectedTask?.title"></h5>
-                  <button type="button" class="btn-close" aria-label="Close" @click="closeTaskModal"></button>
-                </div>
-                <div class="modal-body">
-                  <TaskCard
-                    v-if="isTaskModalOpen && selectedTask"
-                    :task="selectedTask"
-                    :project-id="projectId"
-                    @close="closeTaskModal"
-                    :show-comments="true"
-                  />
-                </div>
-                <div class="modal-footer">
-                  <button
-                    type="button"
-                    class="btn btn-secondary"
-                    @click="closeTaskModal"
-                  >
-                    Close
-                  </button>
-                </div>
+                <TaskCard
+                  v-if="isTaskModalOpen && selectedTask"
+                  :task="selectedTask"
+                  :project-id="projectId"
+                  :show-comments="true"
+                  @close="closeTaskModal"
+                />
               </div>
             </div>
           </div>

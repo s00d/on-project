@@ -2,24 +2,21 @@
   <div class="admin-panel">
     <div class="content">
       <Tabs>
-        <div class="container mt-5">
-          <h1>Progress Report</h1>
-          <form @submit.prevent="generateReport" class="mt-3">
-            <div class="mb-3">
-              <label for="projectId" class="form-label">Project ID</label>
-              <input
-                v-model="projectId"
-                type="number"
-                id="projectId"
-                class="form-control"
-                required
-              />
+        <div class="container-fluid">
+          <div class="row flex-nowrap">
+            <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0">
+              <ReportsLinks :project-id="projectId" />
             </div>
-            <button type="submit" class="btn btn-primary">Generate Report</button>
-          </form>
-          <div v-if="report" class="mt-3">
-            <h3>Task Progress</h3>
-            <canvas id="progressChart"></canvas>
+
+            <div class="col py-3">
+              <div class="container mt-5">
+                <h1>Progress Report</h1>
+                <div v-if="report" class="mt-3">
+                  <h3>Task Progress</h3>
+                  <canvas id="progressChart"></canvas>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </Tabs>
@@ -41,6 +38,8 @@ import {
 } from 'chart.js'
 import type { ChartConfiguration } from 'chart.js'
 import Tabs from '@/components/Tabs.vue'
+import {useRoute} from "vue-router";
+import ReportsLinks from "@/components/ReportsLinks.vue";
 
 Chart.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend)
 
@@ -51,21 +50,11 @@ interface ProgressData {
   }
 }
 
-const projectId = ref<number | null>(null)
+const route = useRoute()
+const projectId = ref(route.params.projectId.toString())
+
 const report = ref<ProgressData | null>(null)
 const progressChart = ref<Chart | null>(null)
-
-const generateReport = async () => {
-  if (projectId.value) {
-    try {
-      const response = await axios.get('/reports/project/${projectId.value}/progress')
-      report.value = response.data
-      createChart()
-    } catch (error) {
-      console.error('Failed to generate report', error)
-    }
-  }
-}
 
 const createChart = () => {
   if (progressChart.value) {
@@ -113,7 +102,16 @@ const createChart = () => {
   })
 }
 
-onMounted(() => {
+onMounted(async () => {
+  if (projectId.value) {
+    try {
+      const response = await axios.get(`/reports/project/${projectId.value}/progress`)
+      report.value = response.data
+      createChart()
+    } catch (error) {
+      console.error('Failed to generate report', error)
+    }
+  }
   if (report.value) {
     createChart()
   }

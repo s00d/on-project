@@ -93,6 +93,22 @@
               </select>
             </div>
 
+            <div class="mb-3">
+              <label for="customFields" class="form-label">Custom Fields</label>
+              <div v-for="(field, index) in customFieldsStrict" :key="index" class="mb-3" style="padding: 8px 4px 0;">
+                <div class="d-flex align-items-center">
+                  <label :for="field.name" class="form-label" v-text="field.name"></label>
+                  <input
+                    v-model="customFields[field.name]"
+                    :id="field.name"
+                    :type="field.type"
+                    class="form-control mr-2"
+                    placeholder="Field Value"
+                  />
+                </div>
+              </div>
+            </div>
+
             <button type="submit" class="btn btn-primary">Create Task</button>
           </form>
         </div>
@@ -103,7 +119,7 @@
 
 <script lang="ts" setup>
 import {ref, onMounted, computed} from 'vue'
-import {type Task, useTaskStore} from '@/stores/taskStore'
+import { type Task, useTaskStore } from '@/stores/taskStore'
 import { type User } from '@/stores/authStore'
 import { useRoute, useRouter } from 'vue-router'
 import { MdEditor } from 'md-editor-v3'
@@ -132,15 +148,13 @@ const actualTime = ref<number | null>(null)
 const actualCost = ref<number | null>(null)
 const labelId = ref<number | null>(null)
 const tags = ref<string>('')
+const customFields = ref<{ [name: string]: string }>({})
+const customFieldsStrict = ref<{ name: string; description: string; type: string }[]>([])
 
 const users = ref<User[]>([])
 const tasks = ref<Task[]>([])
 
 const labels = computed(() => taskStore.labels)
-
-const fetchUsers = async () => {
-  users.value = await projectStore.fetchUsers(parseInt(projectId))
-}
 
 const createTask = async () => {
   const taskData = {
@@ -157,6 +171,7 @@ const createTask = async () => {
     relatedTaskId: relatedTaskId.value,
     actualTime: actualTime.value,
     labelId: labelId.value,
+    customFields: customFields.value,
     tags: tags.value.split(',').map(tag => tag.trim()) // Преобразование строки тегов в массив
   }
   await taskStore.createTask(parseInt(projectId), taskData)
@@ -164,7 +179,9 @@ const createTask = async () => {
 }
 
 onMounted(async () => {
-  await fetchUsers()
+  await projectStore.fetchProject(parseInt(projectId))
+  customFieldsStrict.value = projectStore.project?.customFields ?? [];
+  users.value = await projectStore.fetchUsers(parseInt(projectId))
   await taskStore.fetchLabels(parseInt(projectId))
 })
 </script>

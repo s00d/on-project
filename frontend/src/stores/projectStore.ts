@@ -2,11 +2,12 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useAlertStore } from './alertStore'
 
-interface Project {
+export interface Project {
   id: number
   name: string
   description: string
   ownerId: number
+  customFields: { name: string; description: string; type: string }[]
 }
 
 interface ProjectState {
@@ -46,7 +47,7 @@ export const useProjectStore = defineStore('project', {
         useAlertStore().setAlert('Failed to create project', 'danger')
       }
     },
-    async updateProject(id: number, project: { name: string; description: string }) {
+    async updateProject(id: number, project: { name: string; description: string, customFields: { name: string; description: string; type: string }[] }) {
       try {
         const response = await axios.put(`/projects/${id}`, project)
         const index = this.projects.findIndex((p) => p.id === id)

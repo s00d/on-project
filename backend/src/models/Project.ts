@@ -7,6 +7,7 @@ class Project extends Model {
   public id!: number
   public name!: string
   public description!: string
+  public customFields!: { name: string; description: string; type: string }[];
   declare ownerId: ForeignKey<User['id']>
   public createdAt!: Date
   public updatedAt!: Date
@@ -29,6 +30,17 @@ Project.init(
     description: {
       type: DataTypes.TEXT,
       allowNull: true
+    },
+    customFields: {
+      type: DataTypes.TEXT, // Хранить в виде строки
+      defaultValue: '[]',
+      get() {
+        const rawValue = this.getDataValue('customFields');
+        return rawValue ? JSON.parse(rawValue) : [];
+      },
+      set(val: { name: string; description: string; type: string }[]) {
+        this.setDataValue('customFields', JSON.stringify(val));
+      },
     },
     ownerId: {
       type: DataTypes.INTEGER,

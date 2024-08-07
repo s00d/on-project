@@ -18,6 +18,7 @@ export interface TaskBase {
   relatedTaskId?: number | null
   actualTime?: number | null
   tags?: string[] | null
+  customFields?: { [name: string]: string }
 }
 
 export interface Task extends TaskBase {

@@ -2,26 +2,23 @@
   <div class="admin-panel">
     <div class="content">
       <Tabs>
-        <div class="container mt-5">
-          <h1>Project Report</h1>
-          <form @submit.prevent="generateReport" class="mt-3">
-            <div class="mb-3">
-              <label for="projectId" class="form-label">Project ID</label>
-              <input
-                v-model="projectId"
-                type="number"
-                id="projectId"
-                class="form-control"
-                required
-              />
+        <div class="container-fluid">
+          <div class="row flex-nowrap">
+            <div class="col-auto col-md-3 col-xl-2 px-sm-2 px-0">
+              <ReportsLinks :project-id="projectId" />
             </div>
-            <button type="submit" class="btn btn-primary">Generate Report</button>
-          </form>
-          <div v-if="report" class="mt-3">
-            <h3>{{ report.project }}</h3>
-            <p>{{ report.description }}</p>
-            <p>Completed Tasks: {{ report.completedTasks }}</p>
-            <p>Total Tasks: {{ report.totalTasks }}</p>
+
+            <div class="col py-3">
+              <div class="container mt-5">
+                <h1>Project Report</h1>
+                <div v-if="report" class="mt-3">
+                  <h3>{{ report.project }}</h3>
+                  <p>{{ report.description }}</p>
+                  <p>Completed Tasks: {{ report.completedTasks }}</p>
+                  <p>Total Tasks: {{ report.totalTasks }}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </Tabs>
@@ -30,9 +27,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue'
+import {onMounted, ref} from 'vue'
 import axios from 'axios'
 import Tabs from '@/components/Tabs.vue'
+import {useRoute} from "vue-router";
+import ReportsLinks from "@/components/ReportsLinks.vue";
 
 interface ProjectReport {
   project: string
@@ -41,17 +40,17 @@ interface ProjectReport {
   totalTasks: number
 }
 
-const projectId = ref<number | null>(null)
+const route = useRoute()
+
+const projectId = ref(route.params.projectId.toString())
 const report = ref<ProjectReport | null>(null)
 
-const generateReport = async () => {
-  if (projectId.value !== null) {
-    try {
-      const response = await axios.get<ProjectReport>(`/reports/project/${projectId.value}`)
-      report.value = response.data
-    } catch (error) {
-      console.error('Failed to generate report', error)
-    }
+onMounted(async () => {
+  try {
+    const response = await axios.get<ProjectReport>(`/reports/project/${projectId.value}`)
+    report.value = response.data
+  } catch (error) {
+    console.error('Failed to generate report', error)
   }
-}
+});
 </script>

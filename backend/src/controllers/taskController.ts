@@ -43,7 +43,7 @@ const getTask = async (req: Request, res: Response) => {
 
 const createTask = async (req: Request, res: Response) => {
   const { projectId } = req.params;
-  const { title, description, status, assigneeId, labelId, dueDate, priority, estimatedTime, type, plannedDate, relatedTaskId, actualTime, tags } = req.body;
+  const { title, description, status, assigneeId, labelId, dueDate, priority, estimatedTime, type, plannedDate, relatedTaskId, actualTime, tags, customFields } = req.body;
   const userId = req.session.user!.id;
 
   try {
@@ -61,7 +61,8 @@ const createTask = async (req: Request, res: Response) => {
       plannedDate,
       relatedTaskId,
       actualTime,
-      tags: tags ?? []
+      tags: tags ?? [],
+      customFields: customFields ?? {}
     });
     await logTaskHistory(task.id, userId, 'created');
     if (assigneeId) {
@@ -77,7 +78,7 @@ const createTask = async (req: Request, res: Response) => {
 
 const updateTask = async (req: Request, res: Response) => {
   const { projectId, id } = req.params;
-  const { title, description, status, assigneeId, labelId, dueDate, priority, estimatedTime, type, plannedDate, relatedTaskId, actualTime, tags } = req.body;
+  const { title, description, status, assigneeId, labelId, dueDate, priority, estimatedTime, type, plannedDate, relatedTaskId, actualTime, tags, customFields } = req.body;
   const userId = req.session.user!.id;
 
   try {
@@ -98,6 +99,7 @@ const updateTask = async (req: Request, res: Response) => {
       if (relatedTaskId !== undefined) updatedFields.relatedTaskId = relatedTaskId;
       if (actualTime !== undefined) updatedFields.actualTime = actualTime;
       if (tags !== undefined) updatedFields.tags = tags;
+      if (customFields !== undefined) updatedFields.customFields = customFields;
 
       await task.update(updatedFields);
       await logTaskHistory(task.id, userId, 'updated');

@@ -17,16 +17,8 @@
       <li class="nav-item">
         <router-link
           class="nav-link"
-          :class="{ active: isActive(`/cabinet/${projectId}/labels`) }"
-          :to="`/cabinet/${projectId}/labels`"
-          >Labels</router-link
-        >
-      </li>
-      <li class="nav-item">
-        <router-link
-          class="nav-link"
-          :class="{ active: isActive(`/cabinet/${projectId}/reports`) }"
-          :to="`/cabinet/${projectId}/reports`"
+          :class="{ active: isActive(`/cabinet/reports/${projectId}/overdue`) }"
+          :to="`/cabinet/reports/${projectId}/overdue`"
           >Reports</router-link
         >
       </li>
@@ -36,6 +28,14 @@
           :class="{ active: isActive(`/cabinet/${projectId}/kanban`) }"
           :to="`/cabinet/${projectId}/kanban`"
           >Kanban Board</router-link
+        >
+      </li>
+      <li class="nav-item">
+        <router-link
+          class="nav-link"
+          :class="{ active: isActive(`/cabinet/projects/${projectId}/edit`) }"
+          :to="`/cabinet/projects/${projectId}/edit`"
+        >Settings</router-link
         >
       </li>
     </ul>
@@ -52,5 +52,5 @@ const route = useRoute()
 
 const projectId = route.params.projectId.toString()
 
-const isActive = (path: string) => route.path.startsWith(path)
+const isActive = (path: string) => route.path === path
 </script>
