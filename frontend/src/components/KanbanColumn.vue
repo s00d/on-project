@@ -16,13 +16,13 @@
       @dragstart="(event) => onDragStart(event, task.id)"
     >
       <h5 class="card-title">{{ task.title }}</h5>
-      <p v-if="task.assignee">Assigned to: {{ task.assignee.username }}</p>
+      <p v-if="task.User">Assigned to: {{ task.User.username }}</p>
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, defineProps, defineEmits } from 'vue'
+import { ref, computed } from 'vue'
 import { useTaskStore } from '@/stores/taskStore'
 import type { Task } from '@/stores/taskStore'
 

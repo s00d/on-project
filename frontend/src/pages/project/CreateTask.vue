@@ -83,6 +83,16 @@
               <label for="tags" class="form-label">Tags (comma-separated)</label>
               <input v-model="tags" type="text" id="tags" class="form-control" />
             </div>
+
+            <div class="mb-3">
+              <label for="label" class="form-label">Label</label>
+              <select v-model="labelId" id="label" class="form-select">
+                <option v-for="label in labels" :key="label.id" :value="label.id">
+                  {{ label.name }}
+                </option>
+              </select>
+            </div>
+
             <button type="submit" class="btn btn-primary">Create Task</button>
           </form>
         </div>
@@ -92,7 +102,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
+import {ref, onMounted, computed} from 'vue'
 import {type Task, useTaskStore} from '@/stores/taskStore'
 import { type User } from '@/stores/authStore'
 import { useRoute, useRouter } from 'vue-router'
@@ -120,10 +130,13 @@ const relatedTaskId = ref<number | null>(null)
 const estimatedCost = ref<number | null>(null)
 const actualTime = ref<number | null>(null)
 const actualCost = ref<number | null>(null)
+const labelId = ref<number | null>(null)
 const tags = ref<string>('')
 
 const users = ref<User[]>([])
 const tasks = ref<Task[]>([])
+
+const labels = computed(() => taskStore.labels)
 
 const fetchUsers = async () => {
   users.value = await projectStore.fetchUsers(parseInt(projectId))
@@ -143,14 +156,16 @@ const createTask = async () => {
     plannedDate: plannedDate.value ? new Date(plannedDate.value) : null,
     relatedTaskId: relatedTaskId.value,
     actualTime: actualTime.value,
+    labelId: labelId.value,
     tags: tags.value.split(',').map(tag => tag.trim()) // Преобразование строки тегов в массив
   }
   await taskStore.createTask(parseInt(projectId), taskData)
   router.push(`/cabinet/projects/${projectId}`)
 }
 
-onMounted(() => {
-  fetchUsers()
+onMounted(async () => {
+  await fetchUsers()
+  await taskStore.fetchLabels(parseInt(projectId))
 })
 </script>
 

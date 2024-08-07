@@ -27,6 +27,8 @@ import TeamPerformanceReport from '../pages/report/TeamPerformanceReport.vue'
 import PriorityDistributionReport from '../pages/report/PriorityDistributionReport.vue'
 import ProgressReport from '../pages/report/ProgressReport.vue'
 import TeamWorkloadReport from '../pages/report/TeamWorkloadReport.vue'
+import CreateTask from '@/pages/project/CreateTask.vue'
+import ManageLabels from "@/pages/project/ManageLabels.vue";
 
 import Calendar from '../pages/CalendarPage.vue'
 import ImportExport from '../pages/ImportExport.vue'
@@ -35,7 +37,7 @@ import TaskTemplates from '../pages/project/TaskTemplates.vue'
 import { useAuthStore } from '@/stores/authStore'
 
 import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router'
-import CreateTask from '@/pages/project/CreateTask.vue'
+
 
 const routes = [
   { path: '/', component: Home },
@@ -235,6 +237,22 @@ const routes = [
   {
     path: '/cabinet/projects/templates',
     component: TaskTemplates,
+    beforeEnter: (
+      to: RouteLocationNormalized,
+      from: RouteLocationNormalized,
+      next: NavigationGuardNext
+    ) => {
+      const authStore = useAuthStore()
+      if (!authStore.isAuthenticated) {
+        next('/auth/login')
+      } else {
+        next()
+      }
+    }
+  },
+  {
+    path: '/cabinet/:projectId/labels',
+    component: ManageLabels,
     beforeEnter: (
       to: RouteLocationNormalized,
       from: RouteLocationNormalized,

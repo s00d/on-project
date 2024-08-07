@@ -106,11 +106,6 @@ const getProjectUsers = async (req: Request, res: Response) => {
 
     if (project) {
       const userRoles = await ProjectUser.findAll({ where: { projectId }, include: User })
-      console.log(
-        1111,
-        userRoles,
-        userRoles.map((ur) => ({ id: ur.User?.id, username: ur.User?.username }))
-      )
       res.json(userRoles.map((ur) => ({ id: ur.User?.id, username: ur.User?.username })))
     } else {
       res.status(403).json({ error: 'Only the project owner can view project users' })

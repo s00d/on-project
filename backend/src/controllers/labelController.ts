@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import { Label } from '../models'
+import {Label, TaskTemplate} from '../models'
 
 const getLabels = async (req: Request, res: Response) => {
   const labels = await Label.findAll()
@@ -8,8 +8,10 @@ const getLabels = async (req: Request, res: Response) => {
 
 const createLabel = async (req: Request, res: Response) => {
   const { name, color } = req.body
+  const userId = req.session.user!.id
+  const { projectId } = req.params
   try {
-    const label = await Label.create({ name, color })
+    const label = await Label.create({ name, color, projectId, userId })
     res.json(label)
   } catch (err: any) {
     const error = err as Error
@@ -18,10 +20,17 @@ const createLabel = async (req: Request, res: Response) => {
 }
 
 const updateLabel = async (req: Request, res: Response) => {
-  const { id } = req.params
+  const { id, projectId } = req.params
   const { name, color } = req.body
+  const userId = req.session.user!.id
   try {
-    const label = await Label.findByPk(id)
+    const label = await Label.findOne({
+      where: {
+        userId: userId,
+        projectId: projectId,
+        id: id
+      }
+    })
     if (label) {
       await label.update({ name, color })
       res.json(label)
@@ -35,9 +44,16 @@ const updateLabel = async (req: Request, res: Response) => {
 }
 
 const deleteLabel = async (req: Request, res: Response) => {
-  const { id } = req.params
+  const { id, projectId } = req.params
+  const userId = req.session.user!.id
   try {
-    const label = await Label.findByPk(id)
+    const label = await Label.findOne({
+      where: {
+        userId: userId,
+        projectId: projectId,
+        id: id
+      }
+    })
     if (label) {
       await label.destroy()
       res.status(204).end()

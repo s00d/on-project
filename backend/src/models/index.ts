@@ -38,6 +38,10 @@ Notification.belongsTo(User, { foreignKey: 'userId' })
 ProjectUser.belongsTo(User, { foreignKey: 'userId' })
 ProjectUser.belongsTo(Project, { foreignKey: 'projectId' })
 
+Label.belongsTo(User, { foreignKey: 'userId' })
+Label.belongsTo(Project, { foreignKey: 'projectId' })
+
+
 Roadmap.belongsTo(Project, { foreignKey: 'projectId' })
 Roadmap.hasMany(Sprint, { foreignKey: 'roadmapId' })
 

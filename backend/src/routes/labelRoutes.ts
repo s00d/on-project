@@ -4,9 +4,9 @@ import { authenticateAll } from '../middlewares/authMiddleware'
 
 const router = Router()
 
-router.get('/', authenticateAll, getLabels)
-router.post('/', authenticateAll, createLabel)
-router.put('/:id', authenticateAll, updateLabel)
-router.delete('/:id', authenticateAll, deleteLabel)
+router.get('/:projectId/', authenticateAll, getLabels)
+router.post('/:projectId/', authenticateAll, createLabel)
+router.put('/:projectId/:id', authenticateAll, updateLabel)
+router.delete('/:projectId/:id', authenticateAll, deleteLabel)
 
 export { router as labelRouter }

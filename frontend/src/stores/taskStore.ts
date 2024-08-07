@@ -4,26 +4,26 @@ import { useAlertStore } from './alertStore'
 import { socket } from '@/plugins/socketPlugin'
 
 export interface TaskBase {
-  title?: string|null
-  description?: string|null
-  status?: string|null
-  projectId?: number|null
-  assigneeId?: number|null
-  labelId?: number|null
-  dueDate?: Date|null
-  priority?: string|null
-  estimatedTime?: number|null
-  type?: string|null
-  plannedDate?: Date|null
-  relatedTaskId?: number|null
-  actualTime?: number|null
-  tags?: string[]|null
+  title?: string | null
+  description?: string | null
+  status?: string | null
+  projectId?: number | null
+  assigneeId?: number | null
+  labelId?: number | null
+  dueDate?: Date | null
+  priority?: string | null
+  estimatedTime?: number | null
+  type?: string | null
+  plannedDate?: Date | null
+  relatedTaskId?: number | null
+  actualTime?: number | null
+  tags?: string[] | null
 }
 
 export interface Task extends TaskBase {
   id: number
-  assignee?: { username: string; id: number }
-  label?: { name: string; color: string; id: number }
+  User?: { username: string; id: number }
+  Label?: { name: string; color: string; id: number }
 }
 
 export interface Label {
@@ -52,6 +52,8 @@ interface TaskFilters {
   search?: string
   status?: string
   priority?: string
+  pageSize?: number
+  page?: number
 }
 
 export const useTaskStore = defineStore('task', {
@@ -64,9 +66,10 @@ export const useTaskStore = defineStore('task', {
     async fetchTasks(projectId: number, filters: TaskFilters) {
       try {
         const response = await axios.get(`/tasks/${projectId}`, { params: filters })
-        this.tasks = response.data
+        return { tasks: response.data.tasks, total: response.data.total }
       } catch (error) {
         useAlertStore().setAlert('Failed to fetch tasks', 'danger')
+        return { tasks: [], total: 0 }
       }
     },
     async fetchTask(projectId: number, taskId: number) {
@@ -131,9 +134,9 @@ export const useTaskStore = defineStore('task', {
         useAlertStore().setAlert('Failed to create label', 'danger')
       }
     },
-    async updateLabel(labelId: number, label: { name: string; color: string }) {
+    async updateLabel(projectId: number, labelId: number, label: { name: string; color: string }) {
       try {
-        const response = await axios.put(`/labels/${labelId}`, label)
+        const response = await axios.put(`/labels/${projectId}/${labelId}`, label)
         const index = this.labels.findIndex((l) => l.id === labelId)
         if (index !== -1) {
           this.labels[index] = response.data
@@ -154,7 +157,7 @@ export const useTaskStore = defineStore('task', {
     },
     async fetchComments(taskId: number) {
       try {
-        const response = await axios.get(`/comments//${taskId}`)
+        const response = await axios.get(`/comments/${taskId}`)
         this.comments = response.data
       } catch (error) {
         useAlertStore().setAlert('Failed to fetch comments', 'danger')
@@ -229,6 +232,9 @@ export const useTaskStore = defineStore('task', {
       socket.on('comment:delete', ({ id }) => {
         this.comments = this.comments.filter((comment) => comment.id !== id)
       })
+    },
+    setTasks(tasks: Task[]) {
+      this.tasks = tasks
     }
   },
   getters: {

@@ -7,7 +7,8 @@ import { createNotification } from './notificationController'
 
 const getTasks = async (req: Request, res: Response) => {
   const { projectId } = req.params
-  const { status, priority, search } = req.query
+  const { status, priority, search, pageSize = 10, page = 1 } = req.query
+
   const whereClause: any = { projectId }
 
   if (status) whereClause.status = status
@@ -15,8 +16,13 @@ const getTasks = async (req: Request, res: Response) => {
   if (search) whereClause.title = { [Op.like]: `%${search}%` }
 
   try {
-    const tasks = await Task.findAll({ where: whereClause, include: [User, Label] })
-    res.json(tasks)
+    const { count, rows } = await Task.findAndCountAll({
+      where: whereClause,
+      include: [User, Label],
+      limit: Number(pageSize),
+      offset: (Number(page) - 1) * Number(pageSize)
+    })
+    res.json({ tasks: rows, total: count })
   } catch (err: any) {
     const error = err as Error
     res.status(400).json({ error: error.message })

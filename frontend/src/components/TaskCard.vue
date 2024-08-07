@@ -16,13 +16,17 @@
         <option value="Done">Done</option>
       </select>
     </div>
-    <div class="mb-3" v-if="task.assignee">
-      <label for="assignee" class="form-label">Assignee</label>
-      <input type="text" v-model="task.assignee.username" id="assignee" class="form-control" />
+    <div class="mb-3">
+      <label for="label" class="form-label">Assignee</label>
+      <select v-model="task.assigneeId" id="label" class="form-select">
+        <option v-for="user in users" :key="user.id" :value="user.id">
+          {{ user.username }}
+        </option>
+      </select>
     </div>
-    <div class="mb-3" v-if="task.label">
+    <div class="mb-3" v-if="task.Label">
       <label for="label" class="form-label">Label</label>
-      <input type="text" v-model="task.label.name" id="label" class="form-control" />
+      <input type="text" v-model="task.Label.name" id="label" class="form-control" />
     </div>
     <div class="mb-3">
       <label for="estimatedTime" class="form-label">Estimated Time (hours)</label>
@@ -38,6 +42,7 @@
         <option value="mixed">Mixed</option>
       </select>
     </div>
+
     <div class="mb-3">
       <label for="plannedDate" class="form-label">Planned Date</label>
       <input type="date" v-model="task.plannedDate" id="plannedDate" class="form-control" />
@@ -54,6 +59,16 @@
       <label for="tags" class="form-label">Tags (comma-separated)</label>
       <input type="text" v-model="tagsString" id="tags" class="form-control" />
     </div>
+
+    <div class="mb-3">
+      <label for="label" class="form-label">Label</label>
+      <select v-model="task.labelId" id="label" class="form-select">
+        <option v-for="label in labels" :key="label.id" :value="label.id">
+          {{ label.name }}
+        </option>
+      </select>
+    </div>
+
     <button @click="saveTask" class="btn btn-primary">Save</button>
 
     <div class="mt-3" v-if="showComments">
@@ -81,9 +96,10 @@
 
 <script lang="ts" setup>
 import { ref, computed, onMounted } from 'vue'
-import { type Comment, type Task, useTaskStore } from '@/stores/taskStore'
-import { useAuthStore } from '@/stores/authStore'
-import CommentCard from './CommentCard.vue'
+import {type Comment, type Label, type Task, useTaskStore} from '@/stores/taskStore'
+import {useAuthStore, type User} from '@/stores/authStore'
+import CommentCard from '@/components/CommentCard.vue'
+import {useProjectStore} from "@/stores/projectStore";
 
 const props = defineProps<{
   task: Task
@@ -93,12 +109,19 @@ const props = defineProps<{
 
 const taskStore = useTaskStore()
 const authStore = useAuthStore()
+const projectStore = useProjectStore()
 const task = ref({ ...props.task })
 const comments = ref<Comment[]>([])
 const newCommentContent = ref('')
 const attachment = ref<File | null>(null)
 const tagsString = ref(task.value.tags ? task.value.tags.join(', ') : '')
+const users = ref<User[]>([])
 
+const labels = computed(() => taskStore.labels)
+
+const fetchUsers = async () => {
+  users.value = await projectStore.fetchUsers(parseInt(props.projectId))
+}
 
 const saveTask = async () => {
   const projectId = parseInt(props.projectId)
@@ -106,8 +129,8 @@ const saveTask = async () => {
     title: task.value.title,
     description: task.value.description,
     status: task.value.status,
-    assigneeId: task.value.assignee?.id,
-    labelId: task.value.label?.id,
+    assigneeId: task.value.assigneeId,
+    labelId: task.value.labelId,
     dueDate: task.value.dueDate,
     estimatedTime: task.value.estimatedTime,
     type: task.value.type,
@@ -146,15 +169,14 @@ const handleFileUpload = (event: Event) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (props.showComments) {
-    fetchComments()
+    await fetchComments()
   }
+  await fetchUsers()
+  await taskStore.fetchLabels(parseInt(props.projectId))
   taskStore.subscribeToSocketEvents()
 })
-
-const canEditTask = computed(() => authStore.userId === task.value.assignee?.id)
-const canDeleteTask = computed(() => authStore.getUserRoles.includes('Developer'))
 </script>
 
 

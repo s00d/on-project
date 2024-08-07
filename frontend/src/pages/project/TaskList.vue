@@ -42,6 +42,16 @@
                 <option value="assignee">Assignee</option>
               </select>
             </div>
+            <div class="filter-item me-3">
+              <label for="pageSize" class="form-label">Tasks per page</label>
+              <select v-model="pageSize" @change="applyFilters" class="form-select">
+                <option value="50">50</option>
+                <option value="100">100</option>
+                <option value="250">250</option>
+                <option value="500">500</option>
+                <option value="1000">1000</option>
+              </select>
+            </div>
             <div class="ms-auto d-flex align-items-end">
               <router-link
                 :to="`/cabinet/projects/${projectId}/tasks/add`"
@@ -64,6 +74,10 @@
                     Status
                     <i v-if="sortKey === 'status'" :class="sortIconClass('status')"></i>
                   </th>
+                  <th @click="sort('label')">
+                    Label
+                    <i v-if="sortKey === 'label'" :class="sortIconClass('label')"></i>
+                  </th>
                   <th @click="sort('assignee')">
                     Assignee
                     <i v-if="sortKey === 'assignee'" :class="sortIconClass('assignee')"></i>
@@ -83,13 +97,16 @@
                 >
                   <td>{{ task.title }}</td>
                   <td>{{ task.status }}</td>
-                  <td>{{ task.assignee?.username }}</td>
+                  <td><span v-if="task.Label" class="badge" :style="{ backgroundColor: task.Label.color }">{{ task.Label.name }}</span></td>
+                  <td>{{ task.User?.username }}</td>
                   <td>{{ task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A' }}</td>
                 </tr>
                 </tbody>
               </table>
             </div>
           </div>
+
+          <PaginationComponent :total-pages="totalPages" :current-page="currentPage" @update:current-page="selectPage" />
 
           <!-- Task Modal -->
           <div
@@ -144,6 +161,7 @@ import { type Task, useTaskStore } from '@/stores/taskStore'
 import { useRoute } from 'vue-router'
 import TaskCard from '../../components/TaskCard.vue'
 import Tabs from '@/components/Tabs.vue'
+import PaginationComponent from "@/components/PaginationComponent.vue";
 
 const taskStore = useTaskStore()
 const route = useRoute()
@@ -153,6 +171,9 @@ const search = ref('')
 const status = ref('')
 const priority = ref('')
 const groupBy = ref('none')
+const pageSize = ref(100)
+const currentPage = ref(1)
+const totalPages = ref(1)
 const isTaskModalOpen = ref(false)
 const selectedTask = ref<null | Task>(null)
 
@@ -160,10 +181,14 @@ const applyFilters = async () => {
   const filters = {
     search: search.value,
     status: status.value,
-    priority: priority.value
+    priority: priority.value,
+    pageSize: pageSize.value,
+    page: currentPage.value
   }
   const pId = parseInt(projectId)
-  await taskStore.fetchTasks(pId, filters)
+  const { tasks, total } = await taskStore.fetchTasks(pId, filters)
+  totalPages.value = Math.ceil(total / pageSize.value)
+  taskStore.setTasks(tasks)
 }
 
 onMounted(() => {
@@ -216,8 +241,9 @@ const sort = (key: string) => {
   taskStore.tasks.sort((a, b) => {
     let result = 0
     if (key === 'assignee') {
-      result = (a.assignee?.username || '').localeCompare(b.assignee?.username || '')
+      result = (a.User?.username || '').localeCompare(b.User?.username || '')
     } else {
+      // @ts-ignore
       result = a[key] > b[key] ? 1 : -1
     }
     return result * sortOrder.value
@@ -229,6 +255,11 @@ const sortIconClass = (key: string) => {
     return sortOrder.value === 1 ? 'fas fa-sort-up' : 'fas fa-sort-down'
   }
   return 'fas fa-sort'
+}
+
+const selectPage = (page: number) => {
+  currentPage.value = page
+  applyFilters()
 }
 </script>
 

@@ -17,6 +17,14 @@
       <li class="nav-item">
         <router-link
           class="nav-link"
+          :class="{ active: isActive(`/cabinet/${projectId}/labels`) }"
+          :to="`/cabinet/${projectId}/labels`"
+          >Labels</router-link
+        >
+      </li>
+      <li class="nav-item">
+        <router-link
+          class="nav-link"
           :class="{ active: isActive(`/cabinet/${projectId}/reports`) }"
           :to="`/cabinet/${projectId}/reports`"
           >Reports</router-link
