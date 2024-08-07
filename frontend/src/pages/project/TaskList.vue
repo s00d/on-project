@@ -78,131 +78,85 @@
           <PaginationComponent :total-pages="totalPages" :current-page="currentPage" @update:current-page="selectPage" />
 
           <!-- Task Modal -->
-          <div
-            v-if="isTaskModalOpen"
-            class="modal-backdrop fade show"
-            @click="closeTaskModal"
-          ></div>
-          <div
-            v-if="isTaskModalOpen"
-            id="modal_aside_right"
-            class="modal fixed-left fade show"
-            tabindex="-1"
-            role="dialog"
-            style="display: block"
-          >
-            <div class="modal-dialog modal-dialog-aside" role="document">
-              <div class="modal-content">
-                <TaskCard
-                  v-if="isTaskModalOpen && selectedTask && project"
-                  :task="selectedTask"
-                  :project="project"
-                  :show-comments="true"
-                  @close="closeTaskModal"
-                />
-              </div>
-            </div>
-          </div>
+          <ModalComponent :isOpen="isTaskModalOpen" title="Task Details" @close="closeTaskModal" pos="fixed-left">
+            <template #body>
+              <TaskCard v-if="isTaskModalOpen && selectedTask && project" :task="selectedTask" :project="project" :show-comments="true" @close="closeTaskModal" />
+            </template>
+          </ModalComponent>
 
           <!-- Settings Modal -->
-          <div
-            v-if="isSettingsModalOpen"
-            class="modal fade show"
-            tabindex="-1"
-            role="dialog"
-            style="display: block"
-          >
-            <div class="modal-dialog" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title">Settings</h5>
-                  <button type="button" class="btn-close" @click="closeSettingsModal"></button>
-                </div>
-                <div class="modal-body">
-                  <div class="mb-3">
-                    <label for="status" class="form-label">Status</label>
-                    <select v-model="status" @change="applyFilters" class="form-select">
-                      <option value="">All</option>
-                      <option v-for="status in project?.statuses" :value="status" :key="status" v-text="status"></option>
-                    </select>
-                  </div>
-                  <div class="mb-3">
-                    <label for="priority" class="form-label">Priority</label>
-                    <select v-model="priority" @change="applyFilters" class="form-select">
-                      <option value="">All</option>
-                      <option v-for="priority in project?.priorities" :value="priority" :key="priority" v-text="priority"></option>
-                    </select>
-                  </div>
-                  <div class="mb-3">
-                    <label for="groupBy" class="form-label">Group By</label>
-                    <select v-model="groupBy" @change="applyFilters" class="form-select">
-                      <option value="none">None</option>
-                      <option value="priority">Priority</option>
-                      <option value="status">Status</option>
-                      <option value="assignee">Assignee</option>
-                      <option v-for="field in projectCustomFields" :key="field.name" :value="field.name">
-                        {{ field.name }}
-                      </option>
-                    </select>
-                  </div>
-                  <div class="mb-3">
-                    <label for="pageSize" class="form-label">Tasks per page</label>
-                    <select v-model="pageSize" @change="applyFilters" class="form-select">
-                      <option value="50">50</option>
-                      <option value="100">100</option>
-                      <option value="250">250</option>
-                      <option value="500">500</option>
-                      <option value="1000">1000</option>
-                    </select>
-                  </div>
-                  <div class="mb-3">
-                    <label for="columns" class="form-label">Columns</label>
-                    <select v-model="visibleColumns" @change="applyFilters" multiple class="form-select">
-                      <option v-for="column in allColumns" :key="column" :value="column">{{ column }}</option>
-                    </select>
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" @click="closeSettingsModal">Close</button>
-                  <button type="button" class="btn btn-primary" @click="applyFilters">Apply</button>
-                </div>
+          <ModalComponent :isOpen="isSettingsModalOpen" title="Settings" @close="closeSettingsModal" pos="center">
+            <template #body>
+              <!-- Settings Modal Body -->
+              <div class="mb-3">
+                <label for="status" class="form-label">Status</label>
+                <select v-model="status" @change="applyFilters" class="form-select">
+                  <option value="">All</option>
+                  <option v-for="status in project?.statuses" :value="status" :key="status" v-text="status"></option>
+                </select>
               </div>
-            </div>
-          </div>
+              <div class="mb-3">
+                <label for="priority" class="form-label">Priority</label>
+                <select v-model="priority" @change="applyFilters" class="form-select">
+                  <option value="">All</option>
+                  <option v-for="priority in project?.priorities" :value="priority" :key="priority" v-text="priority"></option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="tags" class="form-label">Tags</label>
+                <select v-model="selectedTags" @change="applyFilters" multiple class="form-select">
+                  <option v-for="tag in allTags" :value="tag" :key="tag">{{ tag }}</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="groupBy" class="form-label">Group By</label>
+                <select v-model="groupBy" @change="applyFilters" class="form-select">
+                  <option value="none">None</option>
+                  <option value="priority">Priority</option>
+                  <option value="status">Status</option>
+                  <option value="assignee">Assignee</option>
+                  <option v-for="field in projectCustomFields" :key="field.name" :value="field.name">{{ field.name }}</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="assignee" class="form-label">Assignee</label>
+                <select v-model="assignee" @change="applyFilters" class="form-select">
+                  <option value="">All</option>
+                  <option v-for="user in users" :value="user.id" :key="user.id">{{ user.username }}</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="pageSize" class="form-label">Tasks per page</label>
+                <select v-model="pageSize" @change="applyFilters" class="form-select">
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                  <option value="250">250</option>
+                  <option value="500">500</option>
+                  <option value="1000">1000</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="columns" class="form-label">Columns</label>
+                <select v-model="visibleColumns" @change="applyFilters" multiple class="form-select">
+                  <option v-for="column in allColumns" :key="column" :value="column">{{ column }}</option>
+                </select>
+              </div>
+            </template>
+          </ModalComponent>
 
           <!-- Save Filter Modal -->
-          <div
-            v-if="isSaveFilterModalOpen"
-            class="modal fade show"
-            tabindex="-1"
-            role="dialog"
-            style="display: block"
-          >
-            <div class="modal-dialog" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title">Save Filter</h5>
-                  <button type="button" class="btn-close" @click="closeSaveFilterModal"></button>
-                </div>
-                <div class="modal-body">
-                  <div class="mb-3">
-                    <label for="filterName" class="form-label">Filter Name</label>
-                    <input
-                      v-model="filterName"
-                      type="text"
-                      id="filterName"
-                      class="form-control"
-                      placeholder="Enter filter name"
-                    />
-                  </div>
-                </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" @click="closeSaveFilterModal">Close</button>
-                  <button type="button" class="btn btn-primary" @click="saveFilter">Save</button>
-                </div>
+          <ModalComponent :isOpen="isSaveFilterModalOpen" title="Save Filter" @close="closeSaveFilterModal" pos="center">
+            <template #body>
+              <div class="mb-3">
+                <label for="filterName" class="form-label">Filter Name</label>
+                <input v-model="filterName" type="text" id="filterName" class="form-control" placeholder="Enter filter name" />
               </div>
-            </div>
-          </div>
+            </template>
+            <template #footer>
+              <button type="button" class="btn btn-secondary" @click="closeSaveFilterModal">Close</button>
+              <button type="button" class="btn btn-primary" @click="saveFilter">Save</button>
+            </template>
+          </ModalComponent>
 
         </div>
       </Tabs>
@@ -219,6 +173,7 @@ import Tabs from '@/components/Tabs.vue'
 import PaginationComponent from "@/components/PaginationComponent.vue";
 import {useProjectStore} from '@/stores/projectStore'
 import type {User} from "@/stores/authStore";
+import ModalComponent from "@/components/ModalComponent.vue";
 
 const taskStore = useTaskStore()
 const projectStore = useProjectStore()
@@ -229,6 +184,7 @@ const users = ref<User[]>([])
 const search = ref('')
 const status = ref('')
 const priority = ref('')
+const assignee = ref<string[]>([])
 const groupBy = ref('none')
 const pageSize = ref(100)
 const currentPage = ref(1)
@@ -237,6 +193,8 @@ const isTaskModalOpen = ref(false)
 const isSettingsModalOpen = ref(false)
 const isSaveFilterModalOpen = ref(false)
 const selectedTask = ref<null | Task>(null)
+const allTags = ref<string[]>([])
+const selectedTags = ref<string[]>([])
 const filterName = ref('')
 const visibleColumns = ref<string[]>([
   'Title', 'Status', 'Label', 'Assignee', 'Due Date', 'Priority', 'Estimated Time', 'Type', 'Planned Date', 'Related Task', 'Actual Time', 'Tags'
@@ -254,6 +212,8 @@ const applyFilters = async () => {
     search: search.value,
     status: status.value,
     priority: priority.value,
+    assignee: assignee.value.join(','),
+    tags: selectedTags.value,
     pageSize: pageSize.value,
     page: currentPage.value
   }
@@ -261,7 +221,17 @@ const applyFilters = async () => {
   const { tasks, total } = await taskStore.fetchTasks(pId, filters)
   totalPages.value = Math.ceil(total / pageSize.value)
   taskStore.setTasks(tasks)
-  closeSettingsModal()
+  extractTags(tasks)
+}
+
+const extractTags = (tasks: Task[]) => {
+  const tagsSet = new Set<string>()
+  tasks.forEach(task => {
+    if (task.tags) {
+      task.tags.forEach(tag => tagsSet.add(tag))
+    }
+  })
+  allTags.value = Array.from(tagsSet)
 }
 
 onMounted(async () => {
@@ -307,6 +277,8 @@ const saveFilter = async () => {
     search: search.value,
     status: status.value,
     priority: priority.value,
+    assignee: assignee.value,
+    tags: selectedTags.value,
     groupBy: groupBy.value,
     pageSize: pageSize.value,
     visibleColumns: visibleColumns.value
@@ -332,6 +304,7 @@ const applySavedFilter = async (filter: any|null, index: number|null) => {
   search.value = filter?.filters?.search ?? ''
   status.value = filter?.filters?.status ?? ''
   priority.value = filter?.filters?.priority ?? ''
+  assignee.value = filter?.filters?.assignee ?? ''
   groupBy.value = filter?.filters?.groupBy ?? 'none'
   pageSize.value = filter?.filters?.pageSize ?? 100
   visibleColumns.value = filter?.filters?.visibleColumns ?? allColumns
@@ -551,45 +524,4 @@ const project = computed(() => {
   background-color: #f9f9f9;
 }
 
-.modal .modal-dialog-aside {
-  width: 500px;
-  max-width: 80%;
-  height: 100%;
-  margin: 0;
-  transform: translate(0);
-  transition: transform 0.3s ease-in-out;
-}
-
-.modal .modal-dialog-aside .modal-content {
-  height: inherit;
-  border: 0;
-  border-radius: 0;
-}
-
-.modal .modal-dialog-aside .modal-content .modal-body {
-  overflow-y: auto;
-}
-
-.modal.fixed-left .modal-dialog-aside {
-  margin-left: auto;
-  transform: translateX(100%);
-}
-
-.modal.fixed-right .modal-dialog-aside {
-  margin-right: auto;
-  transform: translateX(-100%);
-}
-
-.modal.show .modal-dialog-aside {
-  transform: translateX(0);
-}
-
-.modal.fade.show {
-  display: block;
-}
-
-.modal.fade.show .modal-dialog {
-  transition: transform 0.3s ease-out;
-  transform: translate(0, 0);
-}
 </style>

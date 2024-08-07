@@ -7,13 +7,45 @@ import { createNotification } from './notificationController'
 
 const getTasks = async (req: Request, res: Response) => {
   const { projectId } = req.params
-  const { status, priority, search, pageSize = 10, page = 1 } = req.query
+  const { status, priority, search, assignee, tags, pageSize = 10, page = 1 } = req.query
 
   const whereClause: any = { projectId }
 
   if (status) whereClause.status = status
   if (priority) whereClause.priority = priority
   if (search) whereClause.title = { [Op.like]: `%${search}%` }
+  if (search) whereClause.description = { [Op.like]: `%${search}%` }
+  if (search) whereClause.assigneeIds = { [Op.like]: `%${search}%` }
+  if (search) whereClause.status = { [Op.like]: `%${search}%` }
+
+
+
+  if (assignee) {
+    const assigneeIds = (assignee as string).split(',');
+    assigneeIds.forEach((assigneeId: string) => {
+      whereClause.assigneeIds = {
+        [Op.or]: [
+          { [Op.like]: `${assigneeId},%` }, // Начало строки
+          { [Op.like]: `%,${assigneeId},%` }, // В середине строки
+          { [Op.like]: `%,${assigneeId}` }, // Конец строки
+          { [Op.like]: `${assigneeId}` } // Точное совпадение
+        ]
+      };
+    })
+
+  }
+
+
+  if (tags) {
+    whereClause.tags = {
+      [Op.or]: [
+        { [Op.like]: `${tags},%` }, // Начало строки
+        { [Op.like]: `%,${tags},%` }, // В середине строки
+        { [Op.like]: `%,${tags}` }, // Конец строки
+        { [Op.like]: `${tags}` } // Точное совпадение
+      ]
+    };
+  }
 
   try {
     const { count, rows } = await Task.findAndCountAll({

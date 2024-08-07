@@ -52,6 +52,7 @@ interface TaskFilters {
   search?: string
   status?: string
   priority?: string
+  assignee?: string
   pageSize?: number
   page?: number
 }
