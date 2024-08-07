@@ -4,59 +4,48 @@
       <Tabs>
         <div class="container mt-5">
           <h1 class="mb-4">Task List</h1>
+          <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+              <a
+                class="nav-link"
+                :class="{ active: currentFilter === null }"
+                href="#"
+                @click.prevent="applySavedFilter(null, null)"
+              >
+                Default
+              </a>
+            </li>
+
+            <li class="nav-item" v-for="(filter, index) in savedFilters" :key="index">
+              <a
+                class="nav-link"
+                :class="{ active: currentFilter === index }"
+                href="#"
+                @click.prevent="applySavedFilter(filter, index)"
+              >
+                {{ filter.name }}
+
+                <span class="ml-5" style="cursor: pointer;" @click.stop.prevent="removeSavedFilter(index)">×</span>
+              </a>
+            </li>
+          </ul>
           <div class="filters d-flex mb-3">
             <div class="filter-item me-3">
-              <label for="search" class="form-label">Search</label>
               <input
                 v-model="search"
                 @input="applyFilters"
                 type="text"
                 id="search"
                 class="form-control"
+                placeholder="Search"
               />
             </div>
-            <div class="filter-item me-3">
-              <label for="status" class="form-label">Status</label>
-              <select v-model="status" @change="applyFilters" class="form-select">
-                <option value="">All</option>
-                <option value="To Do">To Do</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Done">Done</option>
-              </select>
-            </div>
-            <div class="filter-item me-3">
-              <label for="priority" class="form-label">Priority</label>
-              <select v-model="priority" @change="applyFilters" class="form-select">
-                <option value="">All</option>
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
-              </select>
-            </div>
-            <div class="filter-item me-3">
-              <label for="groupBy" class="form-label">Group By</label>
-              <select v-model="groupBy" @change="applyFilters" class="form-select">
-                <option value="none">None</option>
-                <option value="priority">Priority</option>
-                <option value="status">Status</option>
-                <option value="assignee">Assignee</option>
-              </select>
-            </div>
-            <div class="filter-item me-3">
-              <label for="pageSize" class="form-label">Tasks per page</label>
-              <select v-model="pageSize" @change="applyFilters" class="form-select">
-                <option value="50">50</option>
-                <option value="100">100</option>
-                <option value="250">250</option>
-                <option value="500">500</option>
-                <option value="1000">1000</option>
-              </select>
-            </div>
             <div class="ms-auto d-flex align-items-end">
+              <button @click="openSettingsModal" class="btn btn-secondary mb-3">Settings</button>
+              <button @click="openSaveFilterModal" class="btn btn-secondary mb-3 ms-3">Save Filter</button>
               <router-link
                 :to="`/cabinet/projects/${projectId}/tasks/add`"
-                class="btn btn-primary mb-3"
-                style="margin-top: 2rem"
+                class="btn btn-primary mb-3 ms-3"
               >Create Task</router-link>
             </div>
           </div>
@@ -66,25 +55,9 @@
               <table class="table table-hover table-sm">
                 <thead>
                 <tr>
-                  <th @click="sort('title')">
-                    Title
-                    <i v-if="sortKey === 'title'" :class="sortIconClass('title')"></i>
-                  </th>
-                  <th @click="sort('status')">
-                    Status
-                    <i v-if="sortKey === 'status'" :class="sortIconClass('status')"></i>
-                  </th>
-                  <th @click="sort('label')">
-                    Label
-                    <i v-if="sortKey === 'label'" :class="sortIconClass('label')"></i>
-                  </th>
-                  <th @click="sort('assignee')">
-                    Assignee
-                    <i v-if="sortKey === 'assignee'" :class="sortIconClass('assignee')"></i>
-                  </th>
-                  <th @click="sort('dueDate')">
-                    Due Date
-                    <i v-if="sortKey === 'dueDate'" :class="sortIconClass('dueDate')"></i>
+                  <th v-for="column in visibleColumns" @click="sort(column)" :key="column">
+                    {{ column }}
+                    <i v-if="sortKey === column" :class="sortIconClass(column)"></i>
                   </th>
                 </tr>
                 </thead>
@@ -95,11 +68,7 @@
                   @click="openTaskModal(task)"
                   class="task-row"
                 >
-                  <td>{{ task.title }}</td>
-                  <td>{{ task.status }}</td>
-                  <td><span v-if="task.Label" class="badge" :style="{ backgroundColor: task.Label.color }">{{ task.Label.name }}</span></td>
-                  <td>{{ task.User?.username }}</td>
-                  <td>{{ task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A' }}</td>
+                  <td v-for="column in visibleColumns" :key="column">{{ getColumnData(task, column) }}</td>
                 </tr>
                 </tbody>
               </table>
@@ -125,15 +94,116 @@
             <div class="modal-dialog modal-dialog-aside" role="document">
               <div class="modal-content">
                 <TaskCard
-                  v-if="isTaskModalOpen && selectedTask"
+                  v-if="isTaskModalOpen && selectedTask && project"
                   :task="selectedTask"
-                  :project-id="projectId"
+                  :project="project"
                   :show-comments="true"
                   @close="closeTaskModal"
                 />
               </div>
             </div>
           </div>
+
+          <!-- Settings Modal -->
+          <div
+            v-if="isSettingsModalOpen"
+            class="modal fade show"
+            tabindex="-1"
+            role="dialog"
+            style="display: block"
+          >
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Settings</h5>
+                  <button type="button" class="btn-close" @click="closeSettingsModal"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select v-model="status" @change="applyFilters" class="form-select">
+                      <option value="">All</option>
+                      <option v-for="status in project?.statuses" :value="status" :key="status" v-text="status"></option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label for="priority" class="form-label">Priority</label>
+                    <select v-model="priority" @change="applyFilters" class="form-select">
+                      <option value="">All</option>
+                      <option v-for="priority in project?.priorities" :value="priority" :key="priority" v-text="priority"></option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label for="groupBy" class="form-label">Group By</label>
+                    <select v-model="groupBy" @change="applyFilters" class="form-select">
+                      <option value="none">None</option>
+                      <option value="priority">Priority</option>
+                      <option value="status">Status</option>
+                      <option value="assignee">Assignee</option>
+                      <option v-for="field in projectCustomFields" :key="field.name" :value="field.name">
+                        {{ field.name }}
+                      </option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label for="pageSize" class="form-label">Tasks per page</label>
+                    <select v-model="pageSize" @change="applyFilters" class="form-select">
+                      <option value="50">50</option>
+                      <option value="100">100</option>
+                      <option value="250">250</option>
+                      <option value="500">500</option>
+                      <option value="1000">1000</option>
+                    </select>
+                  </div>
+                  <div class="mb-3">
+                    <label for="columns" class="form-label">Columns</label>
+                    <select v-model="visibleColumns" @change="applyFilters" multiple class="form-select">
+                      <option v-for="column in allColumns" :key="column" :value="column">{{ column }}</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" @click="closeSettingsModal">Close</button>
+                  <button type="button" class="btn btn-primary" @click="applyFilters">Apply</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Save Filter Modal -->
+          <div
+            v-if="isSaveFilterModalOpen"
+            class="modal fade show"
+            tabindex="-1"
+            role="dialog"
+            style="display: block"
+          >
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Save Filter</h5>
+                  <button type="button" class="btn-close" @click="closeSaveFilterModal"></button>
+                </div>
+                <div class="modal-body">
+                  <div class="mb-3">
+                    <label for="filterName" class="form-label">Filter Name</label>
+                    <input
+                      v-model="filterName"
+                      type="text"
+                      id="filterName"
+                      class="form-control"
+                      placeholder="Enter filter name"
+                    />
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" @click="closeSaveFilterModal">Close</button>
+                  <button type="button" class="btn btn-primary" @click="saveFilter">Save</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </Tabs>
     </div>
@@ -147,8 +217,10 @@ import { useRoute } from 'vue-router'
 import TaskCard from '../../components/TaskCard.vue'
 import Tabs from '@/components/Tabs.vue'
 import PaginationComponent from "@/components/PaginationComponent.vue";
+import {useProjectStore} from '@/stores/projectStore'
 
 const taskStore = useTaskStore()
+const projectStore = useProjectStore()
 const route = useRoute()
 const projectId = route.params.projectId.toString()
 
@@ -160,7 +232,20 @@ const pageSize = ref(100)
 const currentPage = ref(1)
 const totalPages = ref(1)
 const isTaskModalOpen = ref(false)
+const isSettingsModalOpen = ref(false)
+const isSaveFilterModalOpen = ref(false)
 const selectedTask = ref<null | Task>(null)
+const filterName = ref('')
+const visibleColumns = ref<string[]>([
+  'Title', 'Status', 'Label', 'Assignee', 'Due Date', 'Priority', 'Estimated Time', 'Type', 'Planned Date', 'Related Task', 'Actual Time', 'Tags'
+])
+
+const allColumns = [
+  'Title', 'Status', 'Label', 'Assignee', 'Due Date', 'Priority', 'Estimated Time', 'Type', 'Planned Date', 'Related Task', 'Actual Time', 'Tags'
+]
+
+const savedFilters = ref<any[]>([])
+const currentFilter = ref<number | null>(null)
 
 const applyFilters = async () => {
   const filters = {
@@ -174,11 +259,14 @@ const applyFilters = async () => {
   const { tasks, total } = await taskStore.fetchTasks(pId, filters)
   totalPages.value = Math.ceil(total / pageSize.value)
   taskStore.setTasks(tasks)
+  closeSettingsModal()
 }
 
-onMounted(() => {
-  applyFilters()
+onMounted(async () => {
+  await applyFilters()
   taskStore.subscribeToSocketEvents()
+  await projectStore.fetchProject(Number(projectId))
+  loadSavedFilters()
 })
 
 const openTaskModal = (task: Task) => {
@@ -189,6 +277,74 @@ const openTaskModal = (task: Task) => {
 const closeTaskModal = () => {
   isTaskModalOpen.value = false
   selectedTask.value = null
+}
+
+const openSettingsModal = () => {
+  isSettingsModalOpen.value = true
+}
+
+const closeSettingsModal = () => {
+  isSettingsModalOpen.value = false
+}
+
+const openSaveFilterModal = () => {
+  isSaveFilterModalOpen.value = true
+}
+
+const closeSaveFilterModal = () => {
+  isSaveFilterModalOpen.value = false
+}
+
+const saveFilter = async () => {
+  if (!filterName.value.trim()) {
+    alert('Filter name is required')
+    return
+  }
+  const filters = {
+    search: search.value,
+    status: status.value,
+    priority: priority.value,
+    groupBy: groupBy.value,
+    pageSize: pageSize.value,
+    visibleColumns: visibleColumns.value
+  }
+  const pId = parseInt(projectId.toString())
+  const savedFilters = [...projectStore.project?.savedFilters ?? [], { name: filterName.value, filters }]
+  await projectStore.updateProject(pId, { savedFilters })
+  filterName.value = ''
+  closeSaveFilterModal()
+  await projectStore.fetchProject(Number(projectId))
+  loadSavedFilters()
+}
+
+const loadSavedFilters = () => {
+  const project = projectStore.project
+  if (project) {
+    savedFilters.value = project.savedFilters
+  }
+}
+
+const applySavedFilter = async (filter: any|null, index: number|null) => {
+  currentFilter.value = index
+  search.value = filter?.filters?.search ?? ''
+  status.value = filter?.filters?.status ?? ''
+  priority.value = filter?.filters?.priority ?? ''
+  groupBy.value = filter?.filters?.groupBy ?? 'none'
+  pageSize.value = filter?.filters?.pageSize ?? 100
+  visibleColumns.value = filter?.filters?.visibleColumns ?? allColumns
+  await applyFilters()
+}
+
+const removeSavedFilter = async (index: number) => {
+  await applySavedFilter(null, null);
+
+  let savedFilters = [...projectStore.project?.savedFilters ?? []]
+  savedFilters.splice(index, 1);
+
+  const pId = parseInt(projectId.toString())
+  await projectStore.updateProject(pId, { savedFilters })
+  await projectStore.fetchProject(Number(projectId))
+  loadSavedFilters()
 }
 
 const groupedTasks = computed(() => {
@@ -203,7 +359,9 @@ const groupedTasks = computed(() => {
     } else if (groupBy.value === 'status') {
       groupKey = task.status || 'No Status'
     } else if (groupBy.value === 'assignee') {
-      groupKey = task.assignee ? task.assignee.username : 'Unassigned'
+      groupKey = task.User ? task.User.username : 'Unassigned'
+    } else {
+      groupKey = task.customFields[groupBy.value] || 'No ' + groupBy.value
     }
     if (!acc[groupKey]) {
       acc[groupKey] = []
@@ -227,6 +385,10 @@ const sort = (key: string) => {
     let result = 0
     if (key === 'assignee') {
       result = (a.User?.username || '').localeCompare(b.User?.username || '')
+    } else if (key === 'Label') {
+      result = (a.Label?.name || '').localeCompare(b.Label?.name || '')
+    } else if (key === 'Tags') {
+      result = (a.tags?.join(', ') || '').localeCompare(b.tags?.join(', ') || '')
     } else {
       // @ts-ignore
       result = a[key] > b[key] ? 1 : -1
@@ -246,6 +408,46 @@ const selectPage = (page: number) => {
   currentPage.value = page
   applyFilters()
 }
+
+const getColumnData = (task: Task, column: string) => {
+  switch (column) {
+    case 'Title':
+      return task.title
+    case 'Status':
+      return task?.status;
+    case 'Label':
+      return task.Label ? `<span class="badge" style="background-color: ${task.Label.color}">${task.Label.name}</span>` : ''
+    case 'Assignee':
+      return task.User ? task.User.username : ''
+    case 'Due Date':
+      return task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A'
+    case 'Priority':
+    case 'Estimated Time':
+      return task.estimatedTime
+    case 'Type':
+      return task.type
+    case 'Planned Date':
+      return task.plannedDate ? new Date(task.plannedDate).toLocaleDateString() : 'N/A'
+    case 'Related Task':
+      return task.relatedTaskId
+    case 'Actual Time':
+      return task.actualTime
+    case 'Tags':
+      return task.tags ? task.tags.join(', ') : ''
+    default:
+      // @ts-ignore
+      return task.customFields[column]
+  }
+}
+
+const projectCustomFields = computed(() => {
+  return projectStore.project?.customFields
+})
+
+const project = computed(() => {
+  return projectStore.project
+})
+
 </script>
 
 <style>
@@ -273,6 +475,7 @@ const selectPage = (page: number) => {
   margin-bottom: 2rem;
   border-collapse: collapse;
   border: 1px solid #f1f1f1;
+  overflow-x: auto;
 }
 
 .table th, .table td {
@@ -345,5 +548,14 @@ const selectPage = (page: number) => {
 
 .modal.show .modal-dialog-aside {
   transform: translateX(0);
+}
+
+.modal.fade.show {
+  display: block;
+}
+
+.modal.fade.show .modal-dialog {
+  transition: transform 0.3s ease-out;
+  transform: translate(0, 0);
 }
 </style>

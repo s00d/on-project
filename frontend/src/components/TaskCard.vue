@@ -12,12 +12,10 @@
       <label for="description" class="form-label">Description</label>
       <textarea v-model="task.description" id="description" class="form-control"></textarea>
     </div>
-    <div class="mb-3">
+    <div class="mb-3" v-if="project?.statuses">
       <label for="status" class="form-label">Status</label>
       <select v-model="task.status" id="status" class="form-select">
-        <option value="To Do">To Do</option>
-        <option value="In Progress">In Progress</option>
-        <option value="Done">Done</option>
+        <option v-for="status in project.statuses" :value="status"  :key="status" v-text="status"></option>
       </select>
     </div>
     <div class="mb-3">
@@ -36,14 +34,10 @@
       <label for="estimatedTime" class="form-label">Estimated Time (hours)</label>
       <input type="number" v-model="task.estimatedTime" id="estimatedTime" class="form-control" />
     </div>
-    <div class="mb-3">
+    <div class="mb-3" v-if="project?.types">
       <label for="type" class="form-label">Task Type</label>
       <select v-model="task.type" id="type" class="form-select">
-        <option value="frontend">Frontend</option>
-        <option value="backend">Backend</option>
-        <option value="test">Test</option>
-        <option value="deploy">Deploy</option>
-        <option value="mixed">Mixed</option>
+        <option v-for="type in project.types" :value="type" :key="type" v-text="type"></option>
       </select>
     </div>
 
@@ -95,7 +89,7 @@
         v-for="comment in comments"
         :key="comment.id"
         :comment="comment"
-        :project-id="projectId"
+        :project-id="project.id.toString()"
       />
       <form @submit.prevent="addComment" class="mt-3">
         <div class="mb-3">
@@ -127,15 +121,15 @@ import { ref, computed, onMounted } from 'vue'
 import {type Comment, type Task, useTaskStore} from '@/stores/taskStore'
 import {useAuthStore, type User} from '@/stores/authStore'
 import CommentCard from '@/components/CommentCard.vue'
-import {useProjectStore} from "@/stores/projectStore";
+import {type Project, useProjectStore} from "@/stores/projectStore";
 
 const props = defineProps<{
   task: Task
-  projectId: string
+  project: Project
   showComments: boolean
 }>()
 
-defineEmits(['close'])
+const emit = defineEmits(['close'])
 
 const taskStore = useTaskStore()
 const authStore = useAuthStore()
@@ -151,12 +145,11 @@ const customFieldsStrict = ref<{ name: string; description: string; type: string
 const labels = computed(() => taskStore.labels)
 
 const fetchUsers = async () => {
-  users.value = await projectStore.fetchUsers(parseInt(props.projectId))
+  users.value = await projectStore.fetchUsers(props.project.id)
 }
 
 const saveTask = async () => {
-  const projectId = parseInt(props.projectId)
-  await taskStore.updateTask(projectId, task.value.id, {
+  await taskStore.updateTask(props.project.id, task.value.id, {
     title: task.value.title,
     description: task.value.description,
     status: task.value.status,
@@ -170,11 +163,11 @@ const saveTask = async () => {
     actualTime: task.value.actualTime,
     tags: tagsString.value.split(',').map(tag => tag.trim())
   })
+  emit('close')
 }
 
 const deleteTask = async () => {
-  const projectId = parseInt(props.projectId)
-  await taskStore.deleteTask(projectId, task.value.id)
+  await taskStore.deleteTask(props.project.id, task.value.id)
 }
 
 const fetchComments = async () => {
@@ -201,14 +194,13 @@ const handleFileUpload = (event: Event) => {
 }
 
 onMounted(async () => {
-  await projectStore.fetchProject(parseInt(props.projectId))
-  customFieldsStrict.value = projectStore.project?.customFields ?? [];
+  customFieldsStrict.value = props.project?.customFields ?? [];
 
   if (props.showComments) {
     await fetchComments()
   }
   await fetchUsers()
-  await taskStore.fetchLabels(parseInt(props.projectId))
+  await taskStore.fetchLabels(props.project?.id)
   taskStore.subscribeToSocketEvents()
 })
 </script>

@@ -8,11 +8,27 @@ export interface Project {
   description: string
   ownerId: number
   customFields: { name: string; description: string; type: string }[]
+  savedFilters: { name: string; filters: any }[]
+  priorities?: string[],
+  statuses?: string[],
+  tags?: string[]
+  types?: string[]
 }
 
 interface ProjectState {
   projects: Project[]
   project: Project | null
+}
+
+interface updateProjectInterface {
+  name?: string;
+  description?: string,
+  savedFilters?: { name: string; filters: any }[],
+  customFields?: { name: string; description: string; type: string }[],
+  priorities?: string[],
+  statuses?: string[],
+  tags?: string[]
+  types?: string[]
 }
 
 export const useProjectStore = defineStore('project', {
@@ -47,7 +63,7 @@ export const useProjectStore = defineStore('project', {
         useAlertStore().setAlert('Failed to create project', 'danger')
       }
     },
-    async updateProject(id: number, project: { name: string; description: string, customFields: { name: string; description: string; type: string }[] }) {
+    async updateProject(id: number, project: updateProjectInterface) {
       try {
         const response = await axios.put(`/projects/${id}`, project)
         const index = this.projects.findIndex((p) => p.id === id)
@@ -71,6 +87,6 @@ export const useProjectStore = defineStore('project', {
     async fetchUsers(projectId: number) {
       const response = await axios.get(`/projects/${projectId}/users`)
       return response.data
-    }
+    },
   }
 })

@@ -8,6 +8,9 @@ class TaskTemplate extends Model {
   public title!: string
   public description!: string
   public priority!: string
+  public status!: string
+  public tag!: string
+  public type!: string
   public createdAt!: Date
   public updatedAt!: Date
 
@@ -37,6 +40,21 @@ TaskTemplate.init(
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: 'Medium'
+    },
+    status: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: ''
+    },
+    tag: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: ''
+    },
+    type: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: ''
     },
     createdAt: {
       type: DataTypes.DATE,

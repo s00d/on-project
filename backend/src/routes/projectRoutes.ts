@@ -25,4 +25,5 @@ router.get('/:projectId/users', authenticateAll, getProjectUsers)
 router.post('/users', authenticateAll, isProjectCreator, addUserToProject)
 router.delete('/:projectId/users/:userId', authenticateAll, isProjectCreator, removeUserFromProject)
 
+
 export { router as projectRouter }

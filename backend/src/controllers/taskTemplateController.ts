@@ -17,10 +17,10 @@ const getTemplates = async (req: Request, res: Response) => {
 }
 
 const createTemplate = async (req: Request, res: Response) => {
-  const { title, description, priority } = req.body
+  const { title, description, priority, status, tag, type } = req.body
   const userId = req.session.user!.id
   try {
-    const template = await TaskTemplate.create({ title, description, priority, userId })
+    const template = await TaskTemplate.create({ title, description, priority, userId, status, tag, type })
     res.json(template)
   } catch (err: any) {
     const error = err as Error

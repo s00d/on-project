@@ -63,9 +63,11 @@ export const useAuthStore = defineStore('auth', {
     async fetchUser() {
       try {
         const response = await axios.get('/users/me')
-        this.user = { ...response.data }
-        this.userId = response.data.user.id
-        this.isUserLoaded = true
+        if(response.data.user) {
+          this.user = { ...response.data }
+          this.userId = response.data.user.id
+          this.isUserLoaded = true
+        }
       } catch (error) {
         this.isUserLoaded = false
         console.error('Failed to fetch user', error)

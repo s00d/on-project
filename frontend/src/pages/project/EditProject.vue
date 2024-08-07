@@ -3,17 +3,17 @@
     <div class="content">
       <div class="container mt-5">
         <h1>Edit Project</h1>
-        <form @submit.prevent="updateProject" class="mt-3">
+        <div class="mt-3">
           <div class="mb-3">
             <label for="name" class="form-label">Project Name</label>
             <input v-model="name" type="text" id="name" class="form-control" required />
           </div>
           <div class="mb-3">
             <label for="description" class="form-label">Description</label>
-            <MdEditor v-model="description" language="en-US" />
+            <MdEditor v-model="description" language="en-US" previewTheme="github" noMermaid :preview="false" />
           </div>
 
-          <h3>Manage Custom Fuild</h3>
+          <h3>Manage Custom Fields</h3>
 
           <div v-for="(field, index) in customFields" :key="index" class="mb-3">
             <div class="d-flex align-items-center">
@@ -44,7 +44,6 @@
                 <option value="range">Range</option>
                 <option value="password">Password</option>
                 <option value="textarea">Textarea</option>
-                <!-- Добавьте другие типы по необходимости -->
               </select>
               <button type="button" class="btn btn-danger" @click="removeCustomField(index)">
                 Remove
@@ -54,6 +53,19 @@
           <button type="button" class="btn btn-primary" @click="addCustomField">
             Add Custom Field
           </button>
+
+          <hr>
+
+          <h3>Manage Priorities</h3>
+          <TagsInput v-model="priorities" placeholder="Add a priority" />
+
+          <h3>Manage Statuses</h3>
+          <TagsInput v-model="statuses" placeholder="Add a status" />
+
+          <h3>Manage Tags</h3>
+          <TagsInput v-model="tags" placeholder="Add a tag" />
+          <h3>Manage Types</h3>
+          <TagsInput v-model="types" placeholder="Add a type" />
 
           <hr>
 
@@ -97,22 +109,23 @@
 
           <hr>
 
-
-          <button type="submit" class="btn btn-primary ">Update Project</button>
+          <button type="button" class="btn btn-primary" @click.prevent="updateProject">Update Project</button>
           <button type="button" class="btn btn-warning" style="margin-left: 10px;" @click="close">Close</button>
-        </form>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, computed} from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useProjectStore } from '@/stores/projectStore'
-import {type Label, useTaskStore} from "@/stores/taskStore";
+import { type Label, useTaskStore } from "@/stores/taskStore"
 import { useRoute, useRouter } from 'vue-router'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
+import TagsInput from "@/components/TagsInput.vue";
+
 const projectStore = useProjectStore()
 const route = useRoute()
 const router = useRouter()
@@ -124,6 +137,11 @@ const customFields = ref<{ name: string; description: string; type: string }[]>(
 const labelName = ref('')
 const labelColor = ref('#000000')
 
+const priorities = ref<string[]>([])
+const statuses = ref<string[]>([])
+const tags = ref<string[]>([])
+const types = ref<string[]>([])
+
 const projectId = route.params.projectId.toString()
 
 const labels = computed(() => taskStore.labels)
@@ -134,6 +152,10 @@ const fetchProject = async () => {
     name.value = project.name
     description.value = project.description
     customFields.value = project.customFields
+    if(project.priorities) priorities.value = project.priorities
+    if(project.statuses) statuses.value = project.statuses
+    if(project.tags) tags.value = project.tags
+    if(project.types) types.value = project.types
   }
 }
 
@@ -149,11 +171,14 @@ const updateProject = async () => {
   await projectStore.updateProject(Number(projectId), {
     name: name.value,
     description: description.value,
-    customFields: customFields.value
+    customFields: customFields.value,
+    priorities: priorities.value,
+    statuses: statuses.value,
+    tags: tags.value,
+    types: types.value
   })
   router.push('/cabinet')
 }
-
 
 const fetchLabels = async () => {
   await taskStore.fetchLabels(parseInt(projectId))
@@ -187,3 +212,4 @@ onMounted(async () => {
   await fetchLabels()
 })
 </script>
+

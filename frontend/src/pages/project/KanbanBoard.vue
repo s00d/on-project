@@ -6,7 +6,7 @@
           <h1>Kanban Board</h1>
           <div class="kanban-columns">
             <KanbanColumn
-              v-for="status in statuses"
+              v-for="status in project?.statuses"
               :key="status"
               :status="status"
               :project-id="projectId"
@@ -20,25 +20,32 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from 'vue'
+import {ref, onMounted, computed} from 'vue'
 import KanbanColumn from '../../components/KanbanColumn.vue'
 import { useTaskStore } from '@/stores/taskStore'
 import { useRoute } from 'vue-router'
 import Tabs from '@/components/Tabs.vue'
+import {useProjectStore} from "@/stores/projectStore";
+
+const projectStore = useProjectStore()
 
 const route = useRoute()
 const projectId = route.params.projectId.toString()
-const statuses = ref(['To Do', 'In Progress', 'Done'])
 const taskStore = useTaskStore()
 
 onMounted(async () => {
   const pId = parseInt(projectId.toString())
+  await projectStore.fetchProject(parseInt(projectId))
   await taskStore.fetchTasks(pId, {})
 })
 
 const onTaskDropped = async (taskId: number, newStatus: string) => {
   await taskStore.updateTask(parseInt(projectId), taskId, { status: newStatus })
 }
+
+const project = computed(() => {
+  return projectStore.project
+})
 </script>
 
 <style>

@@ -13,20 +13,16 @@
               <label for="description" class="form-label">Description</label>
               <MdEditor v-model="description" language="en-US" />
             </div>
-            <div class="mb-3">
+            <div class="mb-3" v-if="project?.statuses">
               <label for="status" class="form-label">Status</label>
               <select v-model="status" id="status" class="form-select" required>
-                <option value="To Do">To Do</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Done">Done</option>
+                <option v-for="status in project.statuses" :value="status" :key="status" v-text="status"></option>
               </select>
             </div>
-            <div class="mb-3">
+            <div class="mb-3" v-if="project?.priorities">
               <label for="priority" class="form-label">Priority</label>
               <select v-model="priority" id="priority" class="form-select" required>
-                <option value="Low">Low</option>
-                <option value="Medium">Medium</option>
-                <option value="High">High</option>
+                <option v-for="priority in project.priorities" :value="priority" :key="priority" v-text="priority"></option>
               </select>
             </div>
             <div class="mb-3">
@@ -45,14 +41,10 @@
               <label for="estimatedTime" class="form-label">Estimated Time (hours)</label>
               <input v-model="estimatedTime" type="number" id="estimatedTime" class="form-control" />
             </div>
-            <div class="mb-3">
+            <div class="mb-3" v-if="project?.types">
               <label for="type" class="form-label">Task Type</label>
               <select v-model="type" id="type" class="form-select">
-                <option value="frontend">Frontend</option>
-                <option value="backend">Backend</option>
-                <option value="test">Test</option>
-                <option value="deploy">Deploy</option>
-                <option value="mixed">Mixed</option>
+                <option v-for="type in project.types" :value="type" :key="type" v-text="type"></option>
               </select>
             </div>
             <div class="mb-3">
@@ -133,14 +125,19 @@ const route = useRoute()
 const router = useRouter()
 
 const projectId = route.params.projectId.toString()
+
+const project = computed(() => {
+  return projectStore.project
+})
+
 const title = ref('')
 const description = ref('')
-const status = ref('To Do')
-const priority = ref('Medium')
+const status = ref((project?.value?.statuses && project?.value?.statuses.length > 0) ? project?.value?.statuses[0] : 'To Do')
+const priority = ref((project?.value?.priorities && project?.value?.priorities.length > 0) ? project?.value?.priorities[0] : 'Medium')
 const assigneeId = ref<number | null>(null)
 const dueDate = ref<string | null>(null)
 const estimatedTime = ref<number | null>(null)
-const type = ref<string>('frontend')
+const type = ref<string>((project?.value?.types && project?.value?.types.length > 0) ? project?.value?.types[0] : 'frontend')
 const plannedDate = ref<string | null>(null)
 const relatedTaskId = ref<number | null>(null)
 const estimatedCost = ref<number | null>(null)

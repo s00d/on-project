@@ -234,7 +234,7 @@ const routes = [
     }
   },
   {
-    path: '/cabinet/projects/templates',
+    path: '/cabinet/projects/:projectId/templates',
     component: TaskTemplates,
     beforeEnter: (
       to: RouteLocationNormalized,
