@@ -67,6 +67,7 @@ export const useTaskStore = defineStore('task', {
     async fetchTasks(projectId: number, filters: TaskFilters) {
       try {
         const response = await axios.get(`/tasks/${projectId}`, { params: filters })
+        this.tasks = response.data.tasks;
         return { tasks: response.data.tasks, total: response.data.total }
       } catch (error) {
         useAlertStore().setAlert('Failed to fetch tasks', 'danger')

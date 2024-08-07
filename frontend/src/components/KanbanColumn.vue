@@ -35,13 +35,12 @@ import type {User} from "@/stores/authStore";
 interface Props {
   status: string
   projectId: string
-  users: User[]
+  users: {[key: string]: User}
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits(['task-dropped'])
 const taskStore = useTaskStore()
-const users = ref<User[]>([])
 
 const isDragOver = ref(false)
 
@@ -55,7 +54,6 @@ const onDragStart = (event: DragEvent, taskId: number) => {
 
 const onDrop = (event: DragEvent) => {
   const taskId = event.dataTransfer?.getData('text/plain')
-  console.log(111, taskId)
   if (taskId) {
     const newStatus = props.status
     emit('task-dropped', Number(taskId), newStatus)

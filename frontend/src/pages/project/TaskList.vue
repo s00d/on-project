@@ -220,7 +220,6 @@ const applyFilters = async () => {
   const pId = parseInt(projectId)
   const { tasks, total } = await taskStore.fetchTasks(pId, filters)
   totalPages.value = Math.ceil(total / pageSize.value)
-  taskStore.setTasks(tasks)
   extractTags(tasks)
 }
 

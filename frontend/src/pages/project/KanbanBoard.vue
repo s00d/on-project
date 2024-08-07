@@ -35,7 +35,7 @@ const route = useRoute()
 const projectId = route.params.projectId.toString()
 const taskStore = useTaskStore()
 
-const users = ref<User[]>([])
+const users = ref<{[key: string]: User}>({})
 
 onMounted(async () => {
   const pId = parseInt(projectId.toString())
