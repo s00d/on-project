@@ -29,8 +29,8 @@ import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
 const router = useRouter()
-const email = ref('')
-const password = ref('')
+const email = ref('admin@admin.ru')
+const password = ref('admin@admin.ru')
 const error = ref('')
 
 const login = async () => {

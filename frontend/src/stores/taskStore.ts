@@ -3,16 +3,25 @@ import axios from 'axios'
 import { useAlertStore } from './alertStore'
 import { socket } from '@/plugins/socketPlugin'
 
-export interface Task {
+export interface TaskBase {
+  title?: string|null
+  description?: string|null
+  status?: string|null
+  projectId?: number|null
+  assigneeId?: number|null
+  labelId?: number|null
+  dueDate?: Date|null
+  priority?: string|null
+  estimatedTime?: number|null
+  type?: string|null
+  plannedDate?: Date|null
+  relatedTaskId?: number|null
+  actualTime?: number|null
+  tags?: string[]|null
+}
+
+export interface Task extends TaskBase {
   id: number
-  title: string
-  description: string
-  status: string
-  projectId: number
-  assigneeId?: number
-  labelId?: number
-  dueDate?: Date
-  priority: string
   assignee?: { username: string; id: number }
   label?: { name: string; color: string; id: number }
 }
@@ -78,14 +87,7 @@ export const useTaskStore = defineStore('task', {
     },
     async createTask(
       projectId: number,
-      task: {
-        title: string
-        description?: string
-        status: string
-        projectId: number
-        assigneeId?: number | null
-        labelId?: number
-      }
+      task: TaskBase
     ) {
       try {
         const response = await axios.post(`/tasks/${projectId}`, task)
@@ -98,14 +100,7 @@ export const useTaskStore = defineStore('task', {
     async updateTask(
       projectId: number,
       taskId: number,
-      task: {
-        title?: string
-        description?: string
-        status?: string
-        assigneeId?: number
-        labelId?: number
-        dueDate?: Date
-      }
+      task: TaskBase
     ) {
       try {
         const response = await axios.put(`/tasks/${projectId}/${taskId}`, task)

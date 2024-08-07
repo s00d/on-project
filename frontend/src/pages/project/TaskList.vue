@@ -3,9 +3,9 @@
     <div class="content">
       <Tabs>
         <div class="container mt-5">
-          <h1>Task List</h1>
-          <div class="d-flex mb-3">
-            <div class="me-3">
+          <h1 class="mb-4">Task List</h1>
+          <div class="filters d-flex mb-3">
+            <div class="filter-item me-3">
               <label for="search" class="form-label">Search</label>
               <input
                 v-model="search"
@@ -15,7 +15,7 @@
                 class="form-control"
               />
             </div>
-            <div class="me-3">
+            <div class="filter-item me-3">
               <label for="status" class="form-label">Status</label>
               <select v-model="status" @change="applyFilters" class="form-select">
                 <option value="">All</option>
@@ -24,7 +24,7 @@
                 <option value="Done">Done</option>
               </select>
             </div>
-            <div class="me-3">
+            <div class="filter-item me-3">
               <label for="priority" class="form-label">Priority</label>
               <select v-model="priority" @change="applyFilters" class="form-select">
                 <option value="">All</option>
@@ -33,7 +33,7 @@
                 <option value="High">High</option>
               </select>
             </div>
-            <div class="me-3">
+            <div class="filter-item me-3">
               <label for="groupBy" class="form-label">Group By</label>
               <select v-model="groupBy" @change="applyFilters" class="form-select">
                 <option value="none">None</option>
@@ -47,36 +47,45 @@
                 :to="`/cabinet/projects/${projectId}/tasks/add`"
                 class="btn btn-primary mb-3"
                 style="margin-top: 2rem"
-                >Create Task</router-link
-              >
+              >Create Task</router-link>
             </div>
           </div>
           <div class="task-list mt-3 table-responsive">
             <div v-for="(tasks, group) in groupedTasks" :key="group">
-              <h3>{{ group }}</h3>
-              <table class="table table-bordered">
+              <h3 class="task-group-title">{{ group }}</h3>
+              <table class="table table-hover table-sm">
                 <thead>
-                  <tr>
-                    <th @click="sort('title')">Title</th>
-                    <th @click="sort('status')">Status</th>
-                    <th @click="sort('assignee')">Assignee</th>
-                    <th @click="sort('dueDate')">Due Date</th>
-                  </tr>
+                <tr>
+                  <th @click="sort('title')">
+                    Title
+                    <i v-if="sortKey === 'title'" :class="sortIconClass('title')"></i>
+                  </th>
+                  <th @click="sort('status')">
+                    Status
+                    <i v-if="sortKey === 'status'" :class="sortIconClass('status')"></i>
+                  </th>
+                  <th @click="sort('assignee')">
+                    Assignee
+                    <i v-if="sortKey === 'assignee'" :class="sortIconClass('assignee')"></i>
+                  </th>
+                  <th @click="sort('dueDate')">
+                    Due Date
+                    <i v-if="sortKey === 'dueDate'" :class="sortIconClass('dueDate')"></i>
+                  </th>
+                </tr>
                 </thead>
                 <tbody>
-                  <tr
-                    v-for="task in tasks"
-                    :key="task.id"
-                    @click="openTaskModal(task)"
-                    style="cursor: pointer"
-                  >
-                    <td>{{ task.title }}</td>
-                    <td>{{ task.status }}</td>
-                    <td>{{ task.assignee?.username }}</td>
-                    <td>
-                      {{ task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A' }}
-                    </td>
-                  </tr>
+                <tr
+                  v-for="task in tasks"
+                  :key="task.id"
+                  @click="openTaskModal(task)"
+                  class="task-row"
+                >
+                  <td>{{ task.title }}</td>
+                  <td>{{ task.status }}</td>
+                  <td>{{ task.assignee?.username }}</td>
+                  <td>{{ task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A' }}</td>
+                </tr>
                 </tbody>
               </table>
             </div>
@@ -100,6 +109,7 @@
               <div class="modal-content">
                 <div class="modal-header">
                   <h5 class="modal-title" v-text="selectedTask?.title"></h5>
+                  <button type="button" class="btn-close" aria-label="Close" @click="closeTaskModal"></button>
                 </div>
                 <div class="modal-body">
                   <TaskCard
@@ -114,7 +124,6 @@
                   <button
                     type="button"
                     class="btn btn-secondary"
-                    data-dismiss="modal"
                     @click="closeTaskModal"
                   >
                     Close
@@ -214,41 +223,110 @@ const sort = (key: string) => {
     return result * sortOrder.value
   })
 }
+
+const sortIconClass = (key: string) => {
+  if (sortKey.value === key) {
+    return sortOrder.value === 1 ? 'fas fa-sort-up' : 'fas fa-sort-down'
+  }
+  return 'fas fa-sort'
+}
 </script>
 
 <style>
-.container .d-flex > * {
+.container {
+  max-width: 1200px;
+}
+
+.filters {
+  gap: 1rem;
+}
+
+.filter-item {
   flex: 1;
 }
 
-.table-responsive {
-  overflow-x: auto;
+.task-group-title {
+  margin-top: 2rem;
+  font-size: 1.5rem;
+  color: #333;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 0.5rem;
+}
+
+.table {
+  margin-bottom: 2rem;
+  border-collapse: collapse;
+  border: 1px solid #f1f1f1;
+}
+
+.table th, .table td {
+  vertical-align: middle;
+  padding: 0.5rem;
+}
+
+.table th {
+  cursor: pointer;
+  position: relative;
+  background-color: #f3f3f3 !important;
+}
+
+.table th:hover {
+  background-color: #e7e7e7;
+}
+
+.table th.sortable-column {
+  padding-right: 1.5rem;
+}
+
+.table th i {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #888;
+}
+
+.table th i:hover {
+  color: #000;
+}
+
+.table tr {
+  transition: background-color 0.2s ease;
+}
+
+.table tr:hover {
+  background-color: #f9f9f9;
 }
 
 .modal .modal-dialog-aside {
-  width: 550px;
+  width: 500px;
   max-width: 80%;
   height: 100%;
   margin: 0;
   transform: translate(0);
-  transition: transform 0.2s;
+  transition: transform 0.3s ease-in-out;
 }
+
 .modal .modal-dialog-aside .modal-content {
   height: inherit;
   border: 0;
   border-radius: 0;
 }
+
 .modal .modal-dialog-aside .modal-content .modal-body {
   overflow-y: auto;
 }
+
 .modal.fixed-left .modal-dialog-aside {
   margin-left: auto;
   transform: translateX(100%);
 }
+
 .modal.fixed-right .modal-dialog-aside {
   margin-right: auto;
   transform: translateX(-100%);
 }
+
 .modal.show .modal-dialog-aside {
   transform: translateX(0);
 }
