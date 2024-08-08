@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken'
 import speakeasy from 'speakeasy'
 import qrcode from 'qrcode'
 import { Op } from 'sequelize'
-import { transporter } from '../../config/nodemailer'
+import { transporter } from '../config/nodemailer'
 import crypto from 'crypto'
 import { v4 as uuidv4 } from 'uuid'
 

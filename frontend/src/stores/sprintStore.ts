@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import { socket } from '@/plugins/socketPlugin'
 import { useAlertStore } from './alertStore'
+import type {User} from "@/stores/authStore";
 
 export interface Sprint {
   id: number
@@ -21,15 +22,15 @@ export const useSprintStore = defineStore('sprint', {
     sprints: []
   }),
   actions: {
-    async fetchSprints(roadmapId: number) {
+    async fetchSprints(projectId: number, roadmapId: number) {
       try {
-        const response = await axios.get(`/sprints/${roadmapId}`)
+        const response = await axios.get(`/sprints/${projectId}/${roadmapId}`)
         this.sprints = response.data
       } catch (error) {
         useAlertStore().setAlert('Failed to fetch sprints', 'danger')
       }
     },
-    async createSprint(sprint: {
+    async createSprint(projectId: number, sprint: {
       title: string
       description?: string
       startDate: Date
@@ -37,7 +38,7 @@ export const useSprintStore = defineStore('sprint', {
       roadmapId: number
     }) {
       try {
-        const response = await axios.post('/sprints', sprint)
+        const response = await axios.post(`/sprints/${projectId}`, sprint)
         this.sprints.push(response.data)
         useAlertStore().setAlert('Sprint created successfully', 'success')
       } catch (error) {
@@ -45,11 +46,12 @@ export const useSprintStore = defineStore('sprint', {
       }
     },
     async updateSprint(
+      projectId: number,
       sprintId: number,
       sprint: { title: string; description?: string; startDate: Date; endDate: Date }
     ) {
       try {
-        const response = await axios.put(`/sprints/${sprintId}`, sprint)
+        const response = await axios.put(`/sprints/${projectId}/${sprintId}`, sprint)
         const index = this.sprints.findIndex((s) => s.id === sprintId)
         if (index !== -1) {
           this.sprints[index] = response.data
@@ -59,9 +61,9 @@ export const useSprintStore = defineStore('sprint', {
         useAlertStore().setAlert('Failed to update sprint', 'danger')
       }
     },
-    async deleteSprint(sprintId: number) {
+    async deleteSprint(projectId: number, sprintId: number) {
       try {
-        await axios.delete(`/sprints/${sprintId}`)
+        await axios.delete(`/sprints/${projectId}/${sprintId}`)
         this.sprints = this.sprints.filter((s) => s.id !== sprintId)
         useAlertStore().setAlert('Sprint deleted successfully', 'success')
       } catch (error) {
@@ -82,5 +84,8 @@ export const useSprintStore = defineStore('sprint', {
         this.sprints = this.sprints.filter((sprint) => sprint.id !== id)
       })
     }
+  },
+  getters: {
+    getSprints: (state) => state.sprints,
   }
 })

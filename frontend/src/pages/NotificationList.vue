@@ -27,27 +27,21 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, onMounted } from 'vue'
+<script lang="ts" setup>
+import {computed, onMounted} from 'vue'
 import { useNotificationStore } from '@/stores/notificationStore'
 import Tabs from '@/components/Tabs.vue'
 
-export default defineComponent({
-  name: 'NotificationList',
-  components: { Tabs },
-  setup() {
-    const notificationStore = useNotificationStore()
+const notificationStore = useNotificationStore()
 
-    onMounted(() => {
-      notificationStore.fetchNotifications()
-      notificationStore.subscribeToSocketEvents()
-    })
+const notifications = computed(() => notificationStore.getNotifications)
 
-    const markAsRead = async (notificationId: number) => {
-      await notificationStore.markAsRead(notificationId)
-    }
-
-    return { notifications: notificationStore.notifications, markAsRead }
-  }
+onMounted(() => {
+  notificationStore.fetchNotifications()
+  notificationStore.subscribeToSocketEvents()
 })
+
+const markAsRead = async (notificationId: number) => {
+  await notificationStore.markAsRead(notificationId)
+}
 </script>

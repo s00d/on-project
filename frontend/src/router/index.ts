@@ -6,7 +6,7 @@ import TwoFactorAuth from '../pages/auth/TwoFactorAuth.vue'
 import RequestPasswordReset from '../pages/auth/RequestPasswordReset.vue'
 import ResetPassword from '../pages/auth/ResetPassword.vue'
 
-import Profile from '../pages/Profile.vue'
+import ProfilePage from '../pages/ProfilePage.vue'
 import ProjectList from '../pages/project/ProjectList.vue'
 import AddProject from '../pages/project/AddProject.vue'
 import EditProject from '../pages/project/EditProject.vue'
@@ -16,9 +16,6 @@ import SprintList from '../pages/project/SprintList.vue'
 import TaskList from '../pages/project/TaskList.vue'
 
 import InviteUser from '../pages/InviteUser.vue'
-import RoleList from '../pages/permission/RoleList.vue'
-import PermissionList from '../pages/permission/PermissionList.vue'
-import AssignRole from '../pages/permission/AssignRole.vue'
 
 import ProjectReport from '../pages/report/ProjectReport.vue'
 import PriorityReport from '../pages/report/PriorityReport.vue'
@@ -139,7 +136,7 @@ const routes = [
   },
   {
     path: '/cabinet/profile',
-    component: Profile,
+    component: ProfilePage,
     beforeEnter: (
       to: RouteLocationNormalized,
       from: RouteLocationNormalized,
@@ -411,54 +408,6 @@ const routes = [
       }
     }
   },
-  {
-    path: '/cabinet/roles',
-    component: RoleList,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
-  },
-  {
-    path: '/cabinet/roles/:roleId/permissions',
-    component: PermissionList,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
-  },
-  {
-    path: '/cabinet/assign-role',
-    component: AssignRole,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated || !authStore.getUserRoles.includes('Project Creator')) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
-  }
 ]
 
 const router = createRouter({

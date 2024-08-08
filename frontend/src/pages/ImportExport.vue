@@ -16,39 +16,27 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script lang="ts" setup>
 import axios from 'axios'
 import GitHubImport from '../components/GitHubImport.vue'
 import Tabs from '@/components/Tabs.vue'
 
-export default defineComponent({
-  name: 'ImportExport',
-  components: {
-    Tabs,
-    GitHubImport
-  },
-  setup() {
-    const handleFileImport = async (event: Event) => {
-      const file = (event.target as HTMLInputElement).files?.[0]
-      if (file) {
-        const formData = new FormData()
-        formData.append('file', file)
-        await axios.post('/api/import', formData)
-      }
-    }
-
-    const exportData = async () => {
-      const response = await axios.get('/api/import-export/export', { responseType: 'blob' })
-      const url = window.URL.createObjectURL(new Blob([response.data]))
-      const link = document.createElement('a')
-      link.href = url
-      link.setAttribute('download', 'data.json')
-      document.body.appendChild(link)
-      link.click()
-    }
-
-    return { handleFileImport, exportData }
+const handleFileImport = async (event: Event) => {
+  const file = (event.target as HTMLInputElement).files?.[0]
+  if (file) {
+    const formData = new FormData()
+    formData.append('file', file)
+    await axios.post('/api/import', formData)
   }
-})
+}
+
+const exportData = async () => {
+  const response = await axios.get('/api/import-export/export', { responseType: 'blob' })
+  const url = window.URL.createObjectURL(new Blob([response.data]))
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', 'data.json')
+  document.body.appendChild(link)
+  link.click()
+}
 </script>

@@ -10,15 +10,11 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import HeaderComponent from '@/components/HeaderComponent.vue'
-import Sidebar from '@/components/Sidebar.vue'
 import Tabs from '@/components/Tabs.vue'
 
 export default defineComponent({
   name: 'AdminPanel',
   components: {
-    HeaderComponent,
-    Sidebar,
     Tabs
   }
 })

@@ -36,57 +36,44 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue'
-import { useRoadmapStore } from '@/stores/roadmapStore'
+<script lang="ts" setup>
+import { ref, onMounted, computed } from 'vue'
+import {type Roadmap, useRoadmapStore} from '@/stores/roadmapStore'
 import { useRoute } from 'vue-router'
 import Tabs from '@/components/Tabs.vue'
 
-export default defineComponent({
-  name: 'RoadmapList',
-  components: { Tabs },
-  setup() {
-    const roadmapStore = useRoadmapStore()
-    const route = useRoute()
-    const newRoadmapTitle = ref('')
-    const newRoadmapDescription = ref('')
-    const projectId = Number(route.params.projectId)
+const roadmapStore = useRoadmapStore()
+const route = useRoute()
+const newRoadmapTitle = ref('')
+const newRoadmapDescription = ref('')
+const projectId = Number(route.params.projectId)
 
-    const fetchRoadmaps = async () => {
-      await roadmapStore.fetchRoadmaps(projectId)
-    }
+const roadmaps = computed(() => roadmapStore.getRoadmaps)
 
-    const addRoadmap = async () => {
-      await roadmapStore.createRoadmap({
-        title: newRoadmapTitle.value,
-        description: newRoadmapDescription.value,
-        projectId
-      })
-      newRoadmapTitle.value = ''
-      newRoadmapDescription.value = ''
-    }
+const fetchRoadmaps = async () => {
+  await roadmapStore.fetchRoadmaps(projectId)
+}
 
-    const deleteRoadmap = async (roadmapId: number) => {
-      await roadmapStore.deleteRoadmap(roadmapId)
-    }
+const addRoadmap = async () => {
+  await roadmapStore.createRoadmap(projectId, {
+    title: newRoadmapTitle.value,
+    description: newRoadmapDescription.value,
+    projectId
+  })
+  newRoadmapTitle.value = ''
+  newRoadmapDescription.value = ''
+}
 
-    const editRoadmap = async (roadmap) => {
-      // Implement edit roadmap logic here
-    }
+const deleteRoadmap = async (roadmapId: number) => {
+  await roadmapStore.deleteRoadmap(projectId, roadmapId)
+}
 
-    onMounted(() => {
-      fetchRoadmaps()
-      roadmapStore.subscribeToSocketEvents()
-    })
+const editRoadmap = async (roadmap: Roadmap) => {
+  await roadmapStore.createRoadmap(projectId, roadmap)
+}
 
-    return {
-      roadmaps: roadmapStore.roadmaps,
-      newRoadmapTitle,
-      newRoadmapDescription,
-      addRoadmap,
-      deleteRoadmap,
-      editRoadmap
-    }
-  }
+onMounted(() => {
+  fetchRoadmaps()
+  roadmapStore.subscribeToSocketEvents()
 })
 </script>

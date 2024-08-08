@@ -34,7 +34,7 @@
               <p>Start Date: {{ sprint.startDate }}</p>
               <p>End Date: {{ sprint.endDate }}</p>
               <button @click="deleteSprint(sprint.id)" class="btn btn-danger">Delete</button>
-              <button @click="editSprint(sprint)" class="btn btn-secondary">Edit</button>
+              <button @click="editSprint(sprint.id, sprint)" class="btn btn-secondary">Edit</button>
             </li>
           </ul>
         </div>
@@ -43,65 +43,51 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue'
-import { useSprintStore } from '@/stores/sprintStore'
+<script lang="ts" setup>
+import {ref, onMounted, computed} from 'vue'
+import {type Sprint, useSprintStore} from '@/stores/sprintStore'
 import { useRoute } from 'vue-router'
 import Tabs from '@/components/Tabs.vue'
 
-export default defineComponent({
-  name: 'SprintList',
-  components: { Tabs },
-  setup() {
-    const sprintStore = useSprintStore()
-    const route = useRoute()
-    const newSprintTitle = ref('')
-    const newSprintDescription = ref('')
-    const newSprintStartDate = ref('')
-    const newSprintEndDate = ref('')
-    const roadmapId = Number(route.params.roadmapId)
+const sprintStore = useSprintStore()
+const route = useRoute()
+const newSprintTitle = ref('')
+const newSprintDescription = ref('')
+const newSprintStartDate = ref('')
+const newSprintEndDate = ref('')
+const roadmapId = Number(route.params.roadmapId)
+const projectId = Number(route.params.projectId)
 
-    const fetchSprints = async () => {
-      await sprintStore.fetchSprints(roadmapId)
-    }
+const sprints = computed(() => sprintStore.getSprints)
 
-    const addSprint = async () => {
-      await sprintStore.createSprint({
-        title: newSprintTitle.value,
-        description: newSprintDescription.value,
-        startDate: new Date(newSprintStartDate.value),
-        endDate: new Date(newSprintEndDate.value),
-        roadmapId
-      })
-      newSprintTitle.value = ''
-      newSprintDescription.value = ''
-      newSprintStartDate.value = ''
-      newSprintEndDate.value = ''
-    }
+const fetchSprints = async () => {
+  await sprintStore.fetchSprints(projectId, roadmapId)
+}
 
-    const deleteSprint = async (sprintId: number) => {
-      await sprintStore.deleteSprint(sprintId)
-    }
+const addSprint = async () => {
+  await sprintStore.createSprint(projectId, {
+    title: newSprintTitle.value,
+    description: newSprintDescription.value,
+    startDate: new Date(newSprintStartDate.value),
+    endDate: new Date(newSprintEndDate.value),
+    roadmapId
+  })
+  newSprintTitle.value = ''
+  newSprintDescription.value = ''
+  newSprintStartDate.value = ''
+  newSprintEndDate.value = ''
+}
 
-    const editSprint = async (sprint) => {
-      // Implement edit sprint logic here
-    }
+const deleteSprint = async (sprintId: number) => {
+  await sprintStore.deleteSprint(projectId, sprintId)
+}
 
-    onMounted(() => {
-      fetchSprints()
-      sprintStore.subscribeToSocketEvents()
-    })
+const editSprint = async (sprintId: number, sprint: Sprint) => {
+  await sprintStore.updateSprint(projectId, sprintId, sprint)
+}
 
-    return {
-      sprints: sprintStore.sprints,
-      newSprintTitle,
-      newSprintDescription,
-      newSprintStartDate,
-      newSprintEndDate,
-      addSprint,
-      deleteSprint,
-      editSprint
-    }
-  }
+onMounted(() => {
+  fetchSprints()
+  sprintStore.subscribeToSocketEvents()
 })
 </script>

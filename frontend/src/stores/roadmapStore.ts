@@ -3,7 +3,7 @@ import axios from 'axios'
 import { socket } from '@/plugins/socketPlugin'
 import { useAlertStore } from './alertStore'
 
-interface Roadmap {
+export interface Roadmap {
   id: number
   title: string
   description: string
@@ -27,18 +27,18 @@ export const useRoadmapStore = defineStore('roadmap', {
         useAlertStore().setAlert('Failed to fetch roadmaps', 'danger')
       }
     },
-    async createRoadmap(roadmap: { title: string; description?: string; projectId: number }) {
+    async createRoadmap(projectId: number, roadmap: { title: string; description?: string; projectId: number }) {
       try {
-        const response = await axios.post('/roadmaps', roadmap)
+        const response = await axios.post(`/roadmaps/${projectId}`, roadmap)
         this.roadmaps.push(response.data)
         useAlertStore().setAlert('Roadmap created successfully', 'success')
       } catch (error) {
         useAlertStore().setAlert('Failed to create roadmap', 'danger')
       }
     },
-    async updateRoadmap(roadmapId: number, roadmap: { title: string; description?: string }) {
+    async updateRoadmap(projectId: number, roadmapId: number, roadmap: { title: string; description?: string }) {
       try {
-        const response = await axios.put(`/roadmaps/${roadmapId}`, roadmap)
+        const response = await axios.put(`/roadmaps/${projectId}/${roadmapId}`, roadmap)
         const index = this.roadmaps.findIndex((r) => r.id === roadmapId)
         if (index !== -1) {
           this.roadmaps[index] = response.data
@@ -48,9 +48,9 @@ export const useRoadmapStore = defineStore('roadmap', {
         useAlertStore().setAlert('Failed to update roadmap', 'danger')
       }
     },
-    async deleteRoadmap(roadmapId: number) {
+    async deleteRoadmap(projectId: number, roadmapId: number) {
       try {
-        await axios.delete(`/roadmaps/${roadmapId}`)
+        await axios.delete(`/roadmaps/${projectId}/${roadmapId}`)
         this.roadmaps = this.roadmaps.filter((r) => r.id !== roadmapId)
         useAlertStore().setAlert('Roadmap deleted successfully', 'success')
       } catch (error) {
@@ -71,5 +71,8 @@ export const useRoadmapStore = defineStore('roadmap', {
         this.roadmaps = this.roadmaps.filter((roadmap) => roadmap.id !== id)
       })
     }
+  },
+  getters: {
+    getRoadmaps: (state) => state.roadmaps,
   }
 })
