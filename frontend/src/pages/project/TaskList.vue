@@ -174,6 +174,7 @@ import PaginationComponent from "@/components/PaginationComponent.vue";
 import {useProjectStore} from '@/stores/projectStore'
 import type {User} from "@/stores/authStore";
 import ModalComponent from "@/components/ModalComponent.vue";
+import {useAlertStore} from "@/stores/alertStore";
 
 const taskStore = useTaskStore()
 const projectStore = useProjectStore()
@@ -269,7 +270,7 @@ const closeSaveFilterModal = () => {
 
 const saveFilter = async () => {
   if (!filterName.value.trim()) {
-    alert('Filter name is required')
+    useAlertStore().setAlert('Filter name is required', 'danger')
     return
   }
   const filters = {

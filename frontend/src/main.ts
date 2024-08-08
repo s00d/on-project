@@ -11,9 +11,18 @@ import '@fortawesome/fontawesome-free/css/all.css'
 
 axios.defaults.baseURL = import.meta.env.VITE_API_URL
 
-const app = createApp(App)
-app.use(createPinia())
-app.use(router)
-app.use(authPlugin)
-app.use(socketPlugin)
-app.mount('#app')
+async function initializeApp() {
+  const app = createApp(App)
+
+  app.use(createPinia())
+  // Инициализируем плагин
+  await authPlugin.install(app)
+
+  // Устанавливаем роутер и хранилище после инициализации плагина
+  app.use(router)
+  app.use(socketPlugin)
+  app.mount('#app')
+}
+
+
+initializeApp()

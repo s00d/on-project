@@ -86,6 +86,12 @@ const inviteUser = async (req: Request, res: Response) => {
     });
 
     if (existingProjectUser) {
+      if (!existingProjectUser.active) {
+        await existingProjectUser.update({
+          active: true,
+        })
+        res.json({ message: 'User invited successfully' })
+      }
       return res.status(400).json({ error: 'User is already a member of the project' });
     }
 
@@ -139,30 +145,7 @@ const getProjectUsers = async (req: Request, res: Response) => {
   }
 }
 
-const addUserToProject = async (req: Request, res: Response) => {
-  const { userId, projectId } = req.body
-
-  try {
-    const project = await Project.findOne({
-      where: {
-        id: projectId,
-        ownerId: req.session.user!.id
-      }
-    })
-
-    if (project) {
-      const userRole = await ProjectUser.create({ userId, projectId })
-      res.json(userRole)
-    } else {
-      res.status(403).json({ error: 'Only the project owner can add users to the project' })
-    }
-  } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
-  }
-}
-
-const removeUserFromProject = async (req: Request, res: Response) => {
+const DeActiveUser = async (req: Request, res: Response) => {
   const { userId, projectId } = req.params
 
   try {
@@ -174,9 +157,9 @@ const removeUserFromProject = async (req: Request, res: Response) => {
     })
 
     if (project) {
-      const userRole = await ProjectUser.findOne({ where: { userId, projectId } })
-      if (userRole) {
-        await userRole.destroy()
+      const existingProjectUser = await ProjectUser.findOne({ where: { userId, projectId } })
+      if (existingProjectUser) {
+        await existingProjectUser.destroy()
         res.status(204).end()
       } else {
         res.status(404).json({ error: 'User not found in project' })
@@ -252,8 +235,7 @@ export {
   createProject,
   inviteUser,
   getProjectUsers,
-  addUserToProject,
-  removeUserFromProject,
+  DeActiveUser,
   updateProject,
   deleteProject
 }

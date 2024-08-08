@@ -35,6 +35,7 @@
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'vue-router'
+import {useAlertStore} from "@/stores/alertStore";
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -49,10 +50,10 @@ const register = async () => {
       email: email.value,
       password: password.value
     })
-    alert('Registration successful')
+    useAlertStore().setAlert('Registration successful', 'success')
     router.push('/auth/login')
   } catch (error) {
-    alert('Registration failed')
+    useAlertStore().setAlert('Registration failed', 'danger')
   }
 }
 </script>

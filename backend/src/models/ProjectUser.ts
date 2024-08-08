@@ -6,6 +6,7 @@ import { Project } from './Project'
 class ProjectUser extends Model {
   declare projectId: ForeignKey<Project['id']>
   declare userId: ForeignKey<User['id']>
+  declare active: boolean
   public createdAt!: Date
   public updatedAt!: Date
 
@@ -22,6 +23,10 @@ ProjectUser.init(
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false
+    },
+    active: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -43,7 +48,12 @@ ProjectUser.init(
       { fields: ['userId'] },
       { fields: ['createdAt'] },
       { fields: ['updatedAt'] }
-    ]
+    ],
+    defaultScope: {
+      where: {
+        active: true
+      }
+    }
   }
 )
 

@@ -2,6 +2,7 @@ import { Router } from 'express'
 import {
   register,
   login,
+  logout,
   getMe,
   enable2FA,
   verify2FA,
@@ -15,7 +16,8 @@ const router = Router()
 
 router.post('/register', register)
 router.post('/login', login)
-router.get('/me', getMe)
+router.post('/logout', logout)
+router.get('/me', authenticateAll, getMe)
 router.post('/2fa/enable', authenticateAll, enable2FA)
 router.post('/2fa/verify', authenticateAll, verify2FA)
 router.post('/2fa/disable', authenticateAll, disable2FA)

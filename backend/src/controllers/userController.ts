@@ -31,19 +31,27 @@ const login = async (req: Request, res: Response) => {
 
   if (user && (await bcrypt.compare(password, user.password))) {
     if (user.twoFactorEnabled) {
-      const token = jwt.sign(
-        { id: user.id, twoFactorRequired: true },
-        process.env.JWT_SECRET as string,
-        { expiresIn: '5m' }
-      )
-      req.session.user = user
-      res.json({ token, twoFactorRequired: true })
+      res.json({ auth: false, twoFactorRequired: true })
     } else {
-      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string)
-      res.json({ token })
+      req.session.user = user
+      res.json({ auth: true })
     }
   } else {
     res.status(401).json({ error: 'Invalid credentials' })
+  }
+}
+
+const logout = async (req: Request, res: Response) => {
+  try {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ error: 'Failed to logout' })
+      }
+      res.json({ success: true })
+    })
+  } catch (err: any) {
+    const error = err as Error
+    res.status(500).json({ error: error.message })
   }
 }
 
@@ -185,6 +193,7 @@ export {
   createUser,
   register,
   login,
+  logout,
   getMe,
   enable2FA,
   verify2FA,

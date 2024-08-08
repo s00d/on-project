@@ -6,9 +6,7 @@ import {
   deleteProject,
   inviteUser,
   getProjectUsers,
-  addUserToProject,
-  removeUserFromProject,
-  getProject
+  getProject, DeActiveUser
 } from '../controllers/projectController'
 import { authenticateAll } from '../middlewares/authMiddleware'
 import { isProjectCreator } from '../middlewares/roleMiddleware'
@@ -22,8 +20,8 @@ router.put('/:projectId', authenticateAll, isProjectCreator, updateProject)
 router.delete('/:projectId', authenticateAll, isProjectCreator, deleteProject)
 router.post('/:projectId/invite', authenticateAll, isProjectCreator, inviteUser)
 router.get('/:projectId/users', authenticateAll, getProjectUsers)
-router.post('/users', authenticateAll, isProjectCreator, addUserToProject)
-router.delete('/:projectId/users/:userId', authenticateAll, isProjectCreator, removeUserFromProject)
+router.post('/:projectId/users', authenticateAll, isProjectCreator)
+router.delete('/:projectId/users/:userId', authenticateAll, isProjectCreator, DeActiveUser)
 
 
 export { router as projectRouter }

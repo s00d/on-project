@@ -30,383 +30,148 @@ import Calendar from '../pages/CalendarPage.vue'
 import ImportExport from '../pages/ImportExport.vue'
 import TaskTemplates from '../pages/project/TaskTemplates.vue'
 
-import { useAuthStore } from '@/stores/authStore'
-
-import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router'
-
+import {authGuard} from "@/middleware/authGuard";
+import {guestGuard} from "@/middleware/guestGuard";
 
 const routes = [
-  { path: '/', component: Home },
+  { path: '/', component: Home, name: 'Home' },
   {
     path: '/auth/login',
     component: LoginPage,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next()
-      } else {
-        next('/cabinet')
-      }
-    }
+    name: 'Login',
+    beforeEnter: guestGuard
   },
   {
     path: '/auth/register',
     component: RegisterPage,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next()
-      } else {
-        next('/cabinet')
-      }
-    }
+    name: 'Register',
+    beforeEnter: guestGuard
   },
   {
     path: '/auth/2fa',
     component: TwoFactorAuth,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'TwoFactorAuth',
+    beforeEnter: guestGuard
   },
   {
     path: '/auth/request-password-reset',
     component: RequestPasswordReset,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next()
-      } else {
-        next('/cabinet')
-      }
-    }
+    name: 'RequestPasswordReset',
+    beforeEnter: guestGuard
   },
   {
     path: '/auth/reset-password',
     component: ResetPassword,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next()
-      } else {
-        next('/cabinet')
-      }
-    }
+    name: 'ResetPassword',
+    beforeEnter: guestGuard
   },
-
   {
     path: '/cabinet',
     component: ProjectList,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'ProjectList',
+    beforeEnter: authGuard
   },
   {
     path: '/cabinet/profile',
     component: ProfilePage,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'ProfilePage',
+    beforeEnter: authGuard
   },
   {
     path: '/cabinet/projects/add',
     component: AddProject,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'AddProject',
+    beforeEnter: authGuard
   },
   {
     path: '/cabinet/projects/:projectId/edit',
     component: EditProject,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'EditProject',
+    beforeEnter: authGuard
   },
   {
     path: '/cabinet/projects/:projectId/invite',
     component: InviteUser,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'InviteUser',
+    beforeEnter: authGuard
   },
   {
     path: '/cabinet/projects/:projectId',
     component: TaskList,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'TaskList',
+    beforeEnter: authGuard
   },
   {
     path: '/cabinet/projects/:projectId/tasks/add',
     component: CreateTask,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'CreateTask',
+    beforeEnter: authGuard
   },
   {
     path: '/cabinet/projects/:projectId/templates',
     component: TaskTemplates,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'TaskTemplates',
+    beforeEnter: authGuard
   },
   {
     path: '/cabinet/reports/:projectId/priority',
     component: PriorityReport,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'PriorityReport',
+    beforeEnter: authGuard
   },
   {
     path: '/cabinet/reports/:projectId/report',
     component: ProjectReport,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'ProjectReport',
+    beforeEnter: authGuard
   },
   {
     path: '/cabinet/reports/:projectId/overdue',
     component: OverdueReport,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'OverdueReport',
+    beforeEnter: authGuard
   },
   {
     path: '/cabinet/reports/:projectId/performance',
     component: TeamPerformanceReport,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'TeamPerformanceReport',
+    beforeEnter: authGuard
   },
-
   {
     path: '/cabinet/reports/:projectId/priority-distribution',
     component: PriorityDistributionReport,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'PriorityDistributionReport',
+    beforeEnter: authGuard
   },
   {
     path: '/cabinet/reports/:projectId/progress',
     component: ProgressReport,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'ProgressReport',
+    beforeEnter: authGuard
   },
   {
     path: '/cabinet/reports/:projectId/workload',
     component: TeamWorkloadReport,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'TeamWorkloadReport',
+    beforeEnter: authGuard
   },
-
   {
     path: '/cabinet/:projectId/kanban',
     component: KanbanBoard,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'KanbanBoard',
+    beforeEnter: authGuard
   },
   {
     path: '/cabinet/projects/:projectId/roadmaps',
     component: RoadmapList,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'RoadmapList',
+    beforeEnter: authGuard
   },
   {
     path: '/cabinet/roadmaps/:roadmapId/sprints',
     component: SprintList,
-    beforeEnter: (
-      to: RouteLocationNormalized,
-      from: RouteLocationNormalized,
-      next: NavigationGuardNext
-    ) => {
-      const authStore = useAuthStore()
-      if (!authStore.isAuthenticated) {
-        next('/auth/login')
-      } else {
-        next()
-      }
-    }
+    name: 'SprintList',
+    beforeEnter: authGuard
   },
 ]
 

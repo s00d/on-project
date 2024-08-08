@@ -2,7 +2,7 @@
   <div class="sidebar">
     <ul class="list-group">
       <li class="list-group-item" v-for="link in links" :key="link.name">
-        <router-link :to="`/cabinet/reports/${projectId}/${link.path}`">{{ link.name }}</router-link>
+        <router-link :to="{ name: link.routeName, params: { projectId: projectId }}">{{ link.name }}</router-link>
       </li>
     </ul>
   </div>
@@ -14,13 +14,13 @@ const props = defineProps<{
 }>()
 
 const links = [
-  { name: 'Overdue Report', path: 'overdue' },
-  { name: 'Priority Distribution Report', path: 'priority-distribution' },
-  { name: 'Priority Report', path: 'priority' },
-  { name: 'Progress Report', path: 'progress' },
-  { name: 'Project Report', path: 'report' },
-  { name: 'Team Performance Report', path: 'performance' },
-  { name: 'Team Workload Report', path: 'workload' }
+  { name: 'Overdue Report', routeName: 'OverdueReport' },
+  { name: 'Priority Distribution Report', routeName: 'PriorityDistributionReport' },
+  { name: 'Priority Report', routeName: 'PriorityReport' },
+  { name: 'Progress Report', routeName: 'ProgressReport' },
+  { name: 'Project Report', routeName: 'ProjectReport' },
+  { name: 'Team Performance Report', routeName: 'TeamPerformanceReport' },
+  { name: 'Team Workload Report', routeName: 'TeamWorkloadReport' }
 ]
 </script>
 

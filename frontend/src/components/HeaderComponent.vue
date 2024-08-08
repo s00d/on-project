@@ -1,7 +1,7 @@
 <template>
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-      <router-link class="navbar-brand" to="/">Project Manager</router-link>
+      <router-link class="navbar-brand" :to="{ name: 'Home' }">Project Manager</router-link>
       <button
         class="navbar-toggler"
         type="button"
@@ -19,20 +19,20 @@
             <NotificationDropdown />
           </li>
           <li class="nav-item" v-if="isAuthenticated">
-            <router-link class="nav-link" to="/cabinet/profile">Profile</router-link>
+            <router-link class="nav-link" :to="{ name: 'ProfilePage' }">Profile</router-link>
           </li>
           <li class="nav-item" v-if="isAuthenticated">
-            <router-link class="nav-link" to="/cabinet">Cabinet</router-link>
+            <router-link class="nav-link" :to="{ name: 'ProjectList' }">Cabinet</router-link>
           </li>
 
           <li class="nav-item" v-if="isAuthenticated">
             <a class="nav-link" @click="logout">Logout</a>
           </li>
           <li class="nav-item" v-if="!isAuthenticated">
-            <router-link class="nav-link" to="/auth/login">Login</router-link>
+            <router-link class="nav-link" :to="{ name: 'Login' }">Login</router-link>
           </li>
           <li class="nav-item" v-if="!isAuthenticated">
-            <router-link class="nav-link" to="/auth/register">Register</router-link>
+            <router-link class="nav-link" :to="{ name: 'Register' }">Register</router-link>
           </li>
         </ul>
       </div>
@@ -53,6 +53,6 @@ const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 const logout = () => {
   authStore.logout()
-  router.push('/auth/login')
+  router.push({ name: 'Login' })
 }
 </script>

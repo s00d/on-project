@@ -15,7 +15,6 @@ export interface Role {
 }
 
 interface AuthState {
-  token: string
   userId: number | null
   user: User | null
   roles: Role[]
@@ -24,7 +23,6 @@ interface AuthState {
 
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
-    token: localStorage.getItem('token') || '',
     userId: null,
     user: null,
     roles: [],
@@ -34,21 +32,22 @@ export const useAuthStore = defineStore('auth', {
     async login(user: { email: string; password: string }) {
       try {
         const response = await axios.post('/users/login', user)
-        const { token, twoFactorRequired } = response.data
+        const { twoFactorRequired, auth } = response.data
+        if (auth) {
+          await this.fetchUser()
+          useAlertStore().setAlert('Login successful', 'success')
+          return;
+        }
+
         if (twoFactorRequired) {
-          localStorage.setItem('token', token)
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
           useAlertStore().setAlert('2FA required', 'warning')
           return { twoFactorRequired: true }
         }
 
-        localStorage.setItem('token', token)
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-        this.token = token
-        await this.fetchUser()
-        useAlertStore().setAlert('Login successful', 'success')
-      } catch (error) {
         console.error('Login failed', 'danger')
+        useAlertStore().setAlert('Login failed', 'danger')
+      } catch (error) {
+        console.error('Login failed', error)
         useAlertStore().setAlert('Login failed', 'danger')
       }
     },
@@ -61,16 +60,15 @@ export const useAuthStore = defineStore('auth', {
       }
     },
     async fetchUser() {
-      try {
-        const response = await axios.get('/users/me')
-        if(response.data.user) {
-          this.user = { ...response.data }
-          this.userId = response.data.user.id
-          this.isUserLoaded = true
-        }
-      } catch (error) {
+      const response = await axios.get('/users/me')
+      console.log(1111, response)
+      if(response.data.user) {
+        this.user = { ...response.data }
+        this.userId = response.data.user.id
+        this.isUserLoaded = true
+      } else {
         this.isUserLoaded = false
-        console.error('Failed to fetch user', error)
+        throw new Error('Failed to fetch user')
       }
     },
 
@@ -93,19 +91,17 @@ export const useAuthStore = defineStore('auth', {
       await axios.post('/users/2fa/disable')
       await this.fetchUser()
     },
-    logout() {
-      this.token = ''
+    async logout() {
       this.user = null
       this.roles = []
       this.isUserLoaded = false
       this.userId = null
-      localStorage.removeItem('token')
-      delete axios.defaults.headers.common['Authorization']
+      await axios.post('/users/logout')
       useAlertStore().setAlert('Logged out successfully', 'success')
     }
   },
   getters: {
-    isAuthenticated: (state): boolean => !!state.token,
+    isAuthenticated: (state): boolean => !!state.userId,
     getUser: (state): User | null => state.user,
     getUserId: (state): number | null => state.userId,
     getUserRoles: (state): string[] => state.roles.map((role) => role.name)

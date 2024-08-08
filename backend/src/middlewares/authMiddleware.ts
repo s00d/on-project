@@ -16,6 +16,7 @@ const authenticateJWT = async (req: Request): Promise<any> => {
 }
 
 const authenticateSession = async (req: Request): Promise<any> => {
+  console.log(11111, req.session)
   if (req.session && req.session.user) {
     return req.session.user
   }
@@ -42,6 +43,7 @@ const authenticateTokenInDB = async (req: Request): Promise<any> => {
 }
 
 const authenticateAll = async (req: Request, res: Response, next: NextFunction) => {
+
   const err = null
   try {
     req.session.user = await authenticateSession(req)

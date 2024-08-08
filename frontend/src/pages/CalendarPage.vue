@@ -25,6 +25,7 @@ import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
 import Tabs from '@/components/Tabs.vue'
+import {useAlertStore} from "@/stores/alertStore";
 
 const events = ref([])
 
@@ -48,9 +49,7 @@ const fetchTasks = async () => {
 }
 
 const handleEventClick = (info: any) => {
-  alert(
-    `Task: ${info.event.title}\nStatus: ${info.event.extendedProps.status}\nPriority: ${info.event.extendedProps.priority}`
-  )
+  useAlertStore().setAlert(`Task: ${info.event.title}\nStatus: ${info.event.extendedProps.status}\nPriority: ${info.event.extendedProps.priority}`, 'success')
 }
 
 onMounted(fetchTasks)
