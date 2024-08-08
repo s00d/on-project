@@ -1,0 +1,49 @@
+<template>
+  <div class="filters d-flex mb-3">
+    <div class="filter-item me-3">
+      <input
+        :value="search"
+        @input="updateSearch"
+        type="text"
+        id="search"
+        class="form-control"
+        placeholder="Search"
+      />
+    </div>
+    <div class="ms-auto d-flex align-items-end">
+      <button @click="$emit('open-settings-modal')" class="btn btn-secondary mb-3">Settings</button>
+      <button @click="$emit('open-save-filter-modal')" class="btn btn-secondary mb-3 ms-3">Save Filter</button>
+      <router-link
+        :to="`/cabinet/projects/${projectId}/tasks/add`"
+        class="btn btn-primary mb-3 ms-3"
+      >Create Task</router-link>
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+import { defineProps, defineEmits } from 'vue'
+
+const props = defineProps<{
+  projectId: string
+  search: string
+}>()
+
+const emit = defineEmits(['update:search', 'apply-filters', 'open-settings-modal', 'open-save-filter-modal'])
+
+const updateSearch = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  emit('update:search', target.value)
+  emit('apply-filters')
+}
+</script>
+
+<style scoped>
+.filters {
+  gap: 1rem;
+}
+
+.filter-item {
+  flex: 1;
+}
+</style>

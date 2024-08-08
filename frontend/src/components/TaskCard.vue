@@ -18,12 +18,19 @@
         <option v-for="status in project.statuses" :value="status"  :key="status" v-text="status"></option>
       </select>
     </div>
+
     <div class="mb-3">
       <label for="assignees" class="form-label">Assignee</label>
       <select v-model="task.assignees" id="assignees" class="form-select" multiple>
         <option v-for="user in users" :key="user.id" :value="user.id">
           {{ user.username }}
         </option>
+      </select>
+    </div>
+    <div class="mb-3" v-if="project?.priorities">
+      <label for="priority" class="form-label">Priority</label>
+      <select v-model="task.priority" id="priority" class="form-select" required>
+        <option v-for="priority in project.priorities" :value="priority" :key="priority" v-text="priority"></option>
       </select>
     </div>
     <div class="mb-3" v-if="task.Label">

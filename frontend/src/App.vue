@@ -29,4 +29,12 @@ export default defineComponent({
   color: #2c3e50;
   padding-bottom: 100px;
 }
+
+.circle {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
 </style>

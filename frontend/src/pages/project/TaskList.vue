@@ -4,77 +4,26 @@
       <Tabs>
         <div class="container mt-5">
           <h1 class="mb-4">Task List</h1>
-          <ul class="nav nav-tabs mb-3">
-            <li class="nav-item">
-              <a
-                class="nav-link"
-                :class="{ active: currentFilter === null }"
-                href="#"
-                @click.prevent="applySavedFilter(null, null)"
-              >
-                Default
-              </a>
-            </li>
-
-            <li class="nav-item" v-for="(filter, index) in savedFilters" :key="index">
-              <a
-                class="nav-link"
-                :class="{ active: currentFilter === index }"
-                href="#"
-                @click.prevent="applySavedFilter(filter, index)"
-              >
-                {{ filter.name }}
-
-                <span class="ml-5" style="cursor: pointer;" @click.stop.prevent="removeSavedFilter(index)">×</span>
-              </a>
-            </li>
-          </ul>
-          <div class="filters d-flex mb-3">
-            <div class="filter-item me-3">
-              <input
-                v-model="search"
-                @input="applyFilters"
-                type="text"
-                id="search"
-                class="form-control"
-                placeholder="Search"
-              />
-            </div>
-            <div class="ms-auto d-flex align-items-end">
-              <button @click="openSettingsModal" class="btn btn-secondary mb-3">Settings</button>
-              <button @click="openSaveFilterModal" class="btn btn-secondary mb-3 ms-3">Save Filter</button>
-              <router-link
-                :to="`/cabinet/projects/${projectId}/tasks/add`"
-                class="btn btn-primary mb-3 ms-3"
-              >Create Task</router-link>
-            </div>
-          </div>
-          <div class="task-list mt-3 table-responsive">
-            <div v-for="(tasks, group) in groupedTasks" :key="group">
-              <h3 class="task-group-title">{{ group }}</h3>
-              <table class="table table-hover table-sm">
-                <thead>
-                <tr>
-                  <th v-for="column in visibleColumns" @click="sort(column)" :key="column">
-                    {{ column }}
-                    <i v-if="sortKey === column" :class="sortIconClass(column)"></i>
-                  </th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr
-                  v-for="task in tasks"
-                  :key="task.id"
-                  @click="openTaskModal(task)"
-                  class="task-row"
-                >
-                  <td v-for="column in visibleColumns" :key="column" v-html="getColumnData(task, column)"></td>
-                </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
+          <TabsComponent
+            :savedFilters="savedFilters"
+            :currentFilter="currentFilter"
+            @apply-saved-filter="applySavedFilter"
+            @remove-saved-filter="removeSavedFilter"
+          />
+          <Filters
+            :projectId="projectId"
+            :search="search"
+            @apply-filters="applyFilters"
+            @open-settings-modal="openSettingsModal"
+            @open-save-filter-modal="openSaveFilterModal"
+          />
+          <TaskTable
+            :tasks="taskStore.tasks"
+            :visibleColumns="visibleColumns"
+            :groupBy="groupBy"
+            :users="users"
+            @open-task-modal="openTaskModal"
+          />
           <PaginationComponent :total-pages="totalPages" :current-page="currentPage" @update:current-page="selectPage" />
 
           <!-- Task Modal -->
@@ -87,60 +36,21 @@
           <!-- Settings Modal -->
           <ModalComponent :isOpen="isSettingsModalOpen" title="Settings" @close="closeSettingsModal" pos="center">
             <template #body>
-              <!-- Settings Modal Body -->
-              <div class="mb-3">
-                <label for="status" class="form-label">Status</label>
-                <select v-model="status" @change="applyFilters" class="form-select">
-                  <option value="">All</option>
-                  <option v-for="status in project?.statuses" :value="status" :key="status" v-text="status"></option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="priority" class="form-label">Priority</label>
-                <select v-model="priority" @change="applyFilters" class="form-select">
-                  <option value="">All</option>
-                  <option v-for="priority in project?.priorities" :value="priority" :key="priority" v-text="priority"></option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="tags" class="form-label">Tags</label>
-                <select v-model="selectedTags" @change="applyFilters" multiple class="form-select">
-                  <option v-for="tag in allTags" :value="tag" :key="tag">{{ tag }}</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="groupBy" class="form-label">Group By</label>
-                <select v-model="groupBy" @change="applyFilters" class="form-select">
-                  <option value="none">None</option>
-                  <option value="priority">Priority</option>
-                  <option value="status">Status</option>
-                  <option value="assignee">Assignee</option>
-                  <option v-for="field in projectCustomFields" :key="field.name" :value="field.name">{{ field.name }}</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="assignee" class="form-label">Assignee</label>
-                <select v-model="assignee" @change="applyFilters" class="form-select">
-                  <option value="">All</option>
-                  <option v-for="user in users" :value="user.id" :key="user.id">{{ user.username }}</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="pageSize" class="form-label">Tasks per page</label>
-                <select v-model="pageSize" @change="applyFilters" class="form-select">
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                  <option value="250">250</option>
-                  <option value="500">500</option>
-                  <option value="1000">1000</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="columns" class="form-label">Columns</label>
-                <select v-model="visibleColumns" @change="applyFilters" multiple class="form-select">
-                  <option v-for="column in allColumns" :key="column" :value="column">{{ column }}</option>
-                </select>
-              </div>
+              <SettingsModalContent
+                :status="status"
+                :priority="priority"
+                :selectedTags="selectedTags"
+                :groupBy="groupBy"
+                :assignee="assignee"
+                :pageSize="pageSize"
+                :visibleColumns="visibleColumns"
+                :allTags="allTags"
+                :allColumns="allColumns"
+                :users="users"
+                :project="project"
+                :projectCustomFields="projectCustomFields"
+                @apply-filters="applySettingsFilters"
+              />
             </template>
           </ModalComponent>
 
@@ -157,7 +67,6 @@
               <button type="button" class="btn btn-primary" @click="saveFilter">Save</button>
             </template>
           </ModalComponent>
-
         </div>
       </Tabs>
     </div>
@@ -166,15 +75,19 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, computed } from 'vue'
-import { type Task, useTaskStore } from '@/stores/taskStore'
+import {type Task, useTaskStore} from '@/stores/taskStore'
 import { useRoute } from 'vue-router'
+import { useProjectStore } from '@/stores/projectStore'
 import TaskCard from '../../components/TaskCard.vue'
 import Tabs from '@/components/Tabs.vue'
-import PaginationComponent from "@/components/PaginationComponent.vue";
-import {useProjectStore} from '@/stores/projectStore'
+import PaginationComponent from "@/components/PaginationComponent.vue"
+import TabsComponent from '@/components/tasks/TabsComponent.vue'
+import Filters from '@/components/tasks/FiltersComponent.vue'
+import TaskTable from '@/components/tasks/TaskTable.vue'
+import ModalComponent from "@/components/ModalComponent.vue"
+import SettingsModalContent from '@/components/tasks/SettingsModalContent.vue'
+import { useAlertStore } from "@/stores/alertStore"
 import type {User} from "@/stores/authStore";
-import ModalComponent from "@/components/ModalComponent.vue";
-import {useAlertStore} from "@/stores/alertStore";
 
 const taskStore = useTaskStore()
 const projectStore = useProjectStore()
@@ -205,7 +118,21 @@ const allColumns = [
   'Title', 'Status', 'Label', 'Assignee', 'Due Date', 'Priority', 'Estimated Time', 'Type', 'Planned Date', 'Related Task', 'Actual Time', 'Tags'
 ]
 
-const savedFilters = ref<any[]>([])
+export interface Filter {
+  name: string
+  filters: {
+    search: string
+    status: string
+    priority: string
+    assignee: string[]
+    tags: string[]
+    groupBy: string
+    pageSize: number
+    visibleColumns: string[]
+  }
+}
+
+const savedFilters = ref<Filter[]>([])
 const currentFilter = ref<number | null>(null)
 
 const applyFilters = async () => {
@@ -300,12 +227,23 @@ const loadSavedFilters = () => {
   }
 }
 
-const applySavedFilter = async (filter: any|null, index: number|null) => {
+const applySettingsFilters = (filters: any) => {
+  status.value = filters.status
+  priority.value = filters.priority
+  selectedTags.value = filters.selectedTags
+  groupBy.value = filters.groupBy
+  assignee.value = filters.assignee
+  pageSize.value = filters.pageSize
+  visibleColumns.value = filters.visibleColumns
+  applyFilters()
+}
+
+const applySavedFilter = async (filter: Filter | null, index: number | null) => {
   currentFilter.value = index
   search.value = filter?.filters?.search ?? ''
   status.value = filter?.filters?.status ?? ''
   priority.value = filter?.filters?.priority ?? ''
-  assignee.value = filter?.filters?.assignee ?? ''
+  assignee.value = filter?.filters?.assignee ?? []
   groupBy.value = filter?.filters?.groupBy ?? 'none'
   pageSize.value = filter?.filters?.pageSize ?? 100
   visibleColumns.value = filter?.filters?.visibleColumns ?? allColumns
@@ -313,216 +251,32 @@ const applySavedFilter = async (filter: any|null, index: number|null) => {
 }
 
 const removeSavedFilter = async (index: number) => {
-  await applySavedFilter(null, null);
-
-  let savedFilters = [...projectStore.project?.savedFilters ?? []]
-  savedFilters.splice(index, 1);
-
+  await applySavedFilter(null, null)
+  let filters = [...savedFilters.value]
+  filters.splice(index, 1)
   const pId = parseInt(projectId.toString())
-  await projectStore.updateProject(pId, { savedFilters })
+  await projectStore.updateProject(pId, { savedFilters: filters })
   await projectStore.fetchProject(Number(projectId))
   loadSavedFilters()
 }
 
-const groupedTasks = computed(() => {
-  const tasks = taskStore.tasks
-  if (groupBy.value === 'none') {
-    return { 'All Tasks': tasks }
-  }
-  return tasks.reduce((acc: any, task: Task) => {
-    let groupKey = ''
-    if (groupBy.value === 'priority') {
-      groupKey = task.priority || 'No Priority'
-    } else if (groupBy.value === 'status') {
-      groupKey = task.status || 'No Status'
-    } else if (groupBy.value === 'assignee') {
-      groupKey = task.assignees ? task.assignees.join(', ') : 'Unassigned'
-    } else if (task.customFields) {
-      groupKey = task.customFields[groupBy.value] || 'No ' + groupBy.value
-    }
-    if (!acc[groupKey]) {
-      acc[groupKey] = []
-    }
-    acc[groupKey].push(task)
-    return acc
-  }, {})
-})
-
-const sortKey = ref('')
-const sortOrder = ref(1)
-
-function tagToBadge(tag: string) {
-  return `<span class="badge bg-primary mr-2">${tag}</span>`;
-}
-
-const sort = (key: string) => {
-  if (sortKey.value === key) {
-    sortOrder.value *= -1
-  } else {
-    sortKey.value = key
-    sortOrder.value = 1
-  }
-  taskStore.tasks.sort((a, b) => {
-    let result = 0
-    if (key === 'assignee') {
-      const getUsernames = (task: Task) => {
-        const usernames: string[] = []
-        if (task.assignees?.length) {
-          for (let i = 0; i < task.assignees.length; i++) {
-            const userId = task.assignees[i];
-            // @ts-ignore
-            if (users[userId]) {
-              // @ts-ignore
-              usernames.push(users[userId].username);
-            }
-          }
-        }
-        return usernames.sort().join(', ');
-      }
-
-      const usernamesA = getUsernames(a)
-      const usernamesB = getUsernames(b)
-      result = usernamesA.localeCompare(usernamesB)
-    } else if (key === 'Label') {
-      result = (a.Label?.name || '').localeCompare(b.Label?.name || '')
-    } else if (key === 'Tags') {
-      result = (a.tags?.join(', ') || '').localeCompare(b.tags?.join(', ') || '')
-    } else {
-      // @ts-ignore
-      result = a[key] > b[key] ? 1 : -1
-    }
-    return result * sortOrder.value
-  })
-}
-
-const sortIconClass = (key: string) => {
-  if (sortKey.value === key) {
-    return sortOrder.value === 1 ? 'fas fa-sort-up' : 'fas fa-sort-down'
-  }
-  return 'fas fa-sort'
-}
 
 const selectPage = (page: number) => {
   currentPage.value = page
   applyFilters()
 }
 
-const getColumnData = (task: Task, column: string) => {
-  let vals = [];
-  switch (column) {
-    case 'Title':
-      return task.title
-    case 'Status':
-      return task?.status;
-    case 'Label':
-      return task.Label ? `<span class="badge" style="background-color: ${task.Label.color}">${task.Label.name}</span>` : ''
-    case 'Assignee':
-      vals = [];
-      if(task.assignees?.length) {
-        for (let i in task.assignees) {
-          const userId = task.assignees[i]
-          if(users.value[userId]) {
-            vals.push(users.value[userId].username);
-          }
-        }
-      }
-      return vals.join(', ')
-    case 'Due Date':
-      return task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'N/A'
-    case 'Priority':
-    case 'Estimated Time':
-      return task.estimatedTime
-    case 'Type':
-      return task.type
-    case 'Planned Date':
-      return task.plannedDate ? new Date(task.plannedDate).toLocaleDateString() : 'N/A'
-    case 'Related Task':
-      return task.relatedTaskId
-    case 'Actual Time':
-      return task.actualTime
-    case 'Tags':
-      return (task.tags?.map(tagToBadge).join('') || '');
-    default:
-      // @ts-ignore
-      return task.customFields[column]
-  }
-}
-
 const projectCustomFields = computed(() => {
-  return projectStore.project?.customFields
+  return projectStore.project?.customFields || []
 })
 
 const project = computed(() => {
   return projectStore.project
 })
-
 </script>
 
-<style>
+<style scoped>
 .container {
   max-width: 1200px;
 }
-
-.filters {
-  gap: 1rem;
-}
-
-.filter-item {
-  flex: 1;
-}
-
-.task-group-title {
-  margin-top: 2rem;
-  font-size: 1.5rem;
-  color: #333;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 0.5rem;
-}
-
-.table {
-  margin-bottom: 2rem;
-  border-collapse: collapse;
-  border: 1px solid #f1f1f1;
-  overflow-x: auto;
-}
-
-.table th, .table td {
-  vertical-align: middle;
-  padding: 0.5rem;
-}
-
-.table th {
-  cursor: pointer;
-  position: relative;
-  background-color: #f3f3f3 !important;
-}
-
-.table th:hover {
-  background-color: #e7e7e7;
-}
-
-.table th.sortable-column {
-  padding-right: 1.5rem;
-}
-
-.table th i {
-  position: absolute;
-  right: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #888;
-}
-
-.table th i:hover {
-  color: #000;
-}
-
-.table tr {
-  transition: background-color 0.2s ease;
-}
-
-.table tr:hover {
-  background-color: #f9f9f9;
-}
-
 </style>
