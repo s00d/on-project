@@ -1,150 +1,90 @@
-import { Model, DataTypes, ForeignKey, NonAttribute } from 'sequelize'
-import { sequelize } from '../sequelize'
-import { User } from './User'
-import { Project } from './Project'
-import { Label } from './Label'
-import { Comment } from './Comment'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  ManyToMany,
+  JoinTable,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany, AfterLoad
+} from 'typeorm';
+import { Project } from './Project';
+import { User } from './User';
+import { Label } from './Label';
+import { Comment } from './Comment';
+import {TaskAttachment} from "./TaskAttachment";
+import {TaskHistory} from "./TaskHistory";
 
-class Task extends Model {
-  public id!: number
-  public title!: string
-  public description!: string
-  public status!: string
-  declare projectId: ForeignKey<Project['id']>
-  public assigneeIds!: number[]
-  declare labelId: ForeignKey<Label['id']>
-  public dueDate!: Date
-  public priority!: string
+@Entity('tasks')
+export class Task {
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-  public estimatedTime!: number // Новое поле для оценочного времени
-  public actualTime!: number
-  public type!: string // Новое поле для типа задачи
-  public plannedDate!: Date // Новое поле для плановой даты
-  declare relatedTaskId: ForeignKey<Task['id']> // Новое поле для связанной задачи
-  public tags!: string[] // Поле для массивов тегов
-  public customFields!: { [name: string]: string };
-  public createdAt!: Date
-  public updatedAt!: Date
+  @Column({ length: 128 })
+  title!: string;
 
-  declare Comments?: NonAttribute<Comment[]>
-  declare Assignees?: NonAttribute<User[]>
-  declare Label?: NonAttribute<Label>
-  declare RelatedTask?: NonAttribute<Task>
+  @Column('text', { nullable: true })
+  description!: string;
+
+  @Column({ length: 128 })
+  status!: string;
+
+  @ManyToOne(() => Project, project => project.tasks, { nullable: false })
+  project!: Project;
+
+  @ManyToMany(() => User, user => user.tasks)
+  @JoinTable()
+  assignees!: User[];
+
+  @ManyToOne(() => Label, label => label.tasks, { nullable: true })
+  label!: Label;
+
+  @Column('date', { nullable: true })
+  dueDate!: Date;
+
+  @Column({ length: 128, default: 'Medium' })
+  priority!: string;
+
+  @Column('int', { nullable: true })
+  estimatedTime!: number;
+
+  @Column('int', { nullable: true })
+  actualTime!: number;
+
+  @Column('simple-array', { nullable: true })
+  assigneeIds!: number[];
+
+  @Column({ length: 128, nullable: true })
+  type!: string;
+
+  @Column('date', { nullable: true })
+  plannedDate!: Date;
+
+  @ManyToOne(() => Task, task => task.relatedTasks, { nullable: true })
+  relatedTask!: Task;
+
+  @ManyToOne(() => Project, project => project.tasks, { nullable: true })
+  relatedTasks!: Task[];
+
+  @Column('simple-array', { nullable: true })
+  tags!: string[];
+
+  @Column('simple-json', { nullable: true })
+  customFields!: { [name: string]: string };
+
+  @OneToMany(() => Comment, comment => comment.task)
+  comments!: Comment[];
+
+  @OneToMany(() => TaskAttachment, attachment => attachment.task)
+  attachments!: TaskAttachment[];
+
+  @OneToMany(() => TaskHistory, history => history.task)
+  history!: TaskHistory[];
+
+  @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt!: Date;
 }
-
-Task.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true
-    },
-    title: {
-      type: DataTypes.STRING(128),
-      allowNull: false
-    },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    status: {
-      type: DataTypes.STRING(128),
-      allowNull: false
-    },
-    projectId: {
-      type: DataTypes.INTEGER,
-      allowNull: false
-    },
-    assigneeIds: {
-      type: DataTypes.STRING, // Хранить как строку, разделенную запятыми
-      defaultValue: '',
-      get() {
-        const rawValue = this.getDataValue('assigneeIds')
-        return rawValue ? rawValue.split(',').map(Number) : []
-      },
-      set(val: number[]) {
-        this.setDataValue('assigneeIds', val.join(','))
-      }
-    },
-    labelId: {
-      type: DataTypes.INTEGER,
-      allowNull: true
-    },
-    dueDate: {
-      type: DataTypes.DATE,
-      allowNull: true
-    },
-    priority: {
-      type: DataTypes.STRING(128),
-      allowNull: true,
-      defaultValue: 'Medium'
-    },
-    estimatedTime: {
-      type: DataTypes.INTEGER, // Время в минутах
-      allowNull: true
-    },
-    actualTime: {
-      type: DataTypes.INTEGER,
-      allowNull: true
-    },
-    type: {
-      type: DataTypes.STRING(128),
-      allowNull: true
-    },
-    plannedDate: {
-      type: DataTypes.DATE,
-      allowNull: true
-    },
-    relatedTaskId: {
-      type: DataTypes.INTEGER,
-      allowNull: true
-    },
-    tags: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      get() {
-        const rawValue = this.getDataValue('tags')
-        return rawValue ? rawValue.split(',') : []
-      },
-      set(val: string[]) {
-        this.setDataValue('tags', val.join(','))
-      }
-    },
-    customFields: {
-      type: DataTypes.TEXT, // Хранить в виде строки
-      defaultValue: '{}',
-      get() {
-        const rawValue = this.getDataValue('customFields');
-        return rawValue ? JSON.parse(rawValue) : [];
-      },
-      set(val: { name: string; value: string }[]) {
-        this.setDataValue('customFields', JSON.stringify(val));
-      },
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    }
-  },
-  {
-    sequelize,
-    tableName: 'tasks',
-    timestamps: true,
-    indexes: [
-      { fields: ['projectId'] },
-      { fields: ['assigneeIds'] },
-      { fields: ['relatedTaskId'] },
-      { fields: ['labelId'] },
-      { fields: ['createdAt'] },
-      { fields: ['updatedAt'] }
-    ]
-  }
-)
-
-export { Task }

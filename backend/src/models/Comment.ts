@@ -1,65 +1,29 @@
-import { Model, DataTypes, ForeignKey, NonAttribute } from 'sequelize'
-import { sequelize } from '../sequelize'
-import { User } from './User'
-import { Task } from './Task'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { User } from './User';
+import { Task } from './Task';
 
-class Comment extends Model {
-  public id!: number
-  public content!: string
-  public attachment!: string | null
-  declare taskId: ForeignKey<Task['id']>
-  declare userId: ForeignKey<User['id']>
-  public createdAt!: Date
-  public updatedAt!: Date
+@Entity('comments')
+export class Comment {
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-  declare task?: NonAttribute<Task>
-  declare user?: NonAttribute<User>
+  @Column('text')
+  content!: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  attachment!: string | null;
+
+  @ManyToOne(() => Task, task => task.comments, { nullable: false })
+  @JoinColumn({ name: 'taskId' })
+  task!: Task;
+
+  @ManyToOne(() => User, user => user.comments, { nullable: false })
+  @JoinColumn({ name: 'userId' })
+  user!: User;
+
+  @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt!: Date;
 }
-
-Comment.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true
-    },
-    content: {
-      type: DataTypes.TEXT,
-      allowNull: false
-    },
-    taskId: {
-      type: DataTypes.INTEGER,
-      allowNull: false
-    },
-    userId: {
-      type: DataTypes.INTEGER,
-      allowNull: false
-    },
-    attachment: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    }
-  },
-  {
-    sequelize,
-    tableName: 'comments',
-    indexes: [
-      { fields: ['taskId'] },
-      { fields: ['userId'] },
-      { fields: ['createdAt'] },
-      { fields: ['updatedAt'] }
-    ]
-  }
-)
-
-export { Comment }

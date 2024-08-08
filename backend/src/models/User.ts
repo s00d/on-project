@@ -1,102 +1,87 @@
-import { Model, DataTypes, NonAttribute } from 'sequelize'
-import { sequelize } from '../sequelize'
-import { Task } from './Task'
-import { Project } from './Project'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToMany,
+  ManyToMany,
+  JoinTable,
+  UpdateDateColumn,
+  CreateDateColumn
+} from 'typeorm';
+import { Project } from './Project';
+import { Notification } from './Notification';
+import { Comment } from './Comment';
+import { Task } from './Task';
+import { ProjectUser } from './ProjectUser';
+import { TaskHistory } from './TaskHistory';
+import { TaskTemplate } from './TaskTemplate';
+import { Label } from './Label';
+import { Exclude } from 'class-transformer';
 
-class User extends Model {
-  public id!: number
-  public apikey!: string
-  public username!: string
-  public email!: string
-  public password!: string
-  public twoFactorEnabled!: boolean
-  public twoFactorSecret!: string | null
-  public resetPasswordToken!: string | null
-  public resetPasswordExpires!: Date | null
-  public createdAt!: Date
-  public updatedAt!: Date
+@Entity()
+export class User {
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-  declare project?: NonAttribute<Project>
+  @Column({ unique: true, nullable: true })
+  apikey!: string;
 
-  public toJSON(): object {
-    const values = Object.assign({}, this.get())
+  @Column({ unique: true })
+  username!: string;
 
-    // Удаляем приватные поля
-    delete values.password
-    delete values.twoFactorSecret
-    delete values.resetPasswordToken
-    delete values.resetPasswordExpires
-    delete values.apikey
+  @Column({ unique: true })
+  email!: string;
 
-    return values
-  }
+  @Column()
+  @Exclude()
+  password!: string;
+
+  @Column({ default: false })
+  twoFactorEnabled!: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  @Exclude()
+  twoFactorSecret!: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  @Exclude()
+  resetPasswordToken!: string | null;
+
+  @Column({ type: 'datetime', nullable: true })
+  @Exclude()
+  resetPasswordExpires!: Date | null;
+
+  @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt!: Date;
+
+  @OneToMany(() => Project, (project) => project.owner)
+  projects!: Project[];
+
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notifications!: Notification[];
+
+  @OneToMany(() => Comment, (comment) => comment.user)
+  comments!: Comment[];
+
+  @ManyToMany(() => Project, (project) => project.users)
+  @JoinTable()
+  joinedProjects!: Project[];
+
+  @ManyToMany(() => Task, task => task.assignees)
+  tasks!: Task[];
+
+  @OneToMany(() => ProjectUser, projectUser => projectUser.user)
+  projectUsers!: ProjectUser[];
+
+  @OneToMany(() => TaskHistory, history => history.user)
+  history!: TaskHistory[];
+
+  @OneToMany(() => TaskTemplate, taskTemplate => taskTemplate.user)
+  taskTemplates!: TaskTemplate[];
+
+  @OneToMany(() => Label, label => label.user)
+  labels!: Label[];
 }
-
-User.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true
-    },
-    apikey: {
-      type: DataTypes.STRING(128),
-      allowNull: false,
-      unique: true
-    },
-    username: {
-      type: DataTypes.STRING(128),
-      allowNull: false,
-      unique: true
-    },
-    email: {
-      type: DataTypes.STRING(128),
-      allowNull: false,
-      unique: true
-    },
-    password: {
-      type: DataTypes.STRING(128),
-      allowNull: false
-    },
-    twoFactorEnabled: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
-    },
-    twoFactorSecret: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    resetPasswordToken: {
-      type: DataTypes.STRING,
-      allowNull: true
-    },
-    resetPasswordExpires: {
-      type: DataTypes.DATE,
-      allowNull: true
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    }
-  },
-  {
-    sequelize,
-    tableName: 'users',
-    timestamps: true,
-    indexes: [
-      { fields: ['apikey'] },
-      { fields: ['username'] },
-      { fields: ['email'] },
-      { fields: ['createdAt'] },
-      { fields: ['updatedAt'] }
-    ]
-  }
-)
-
-export { User }

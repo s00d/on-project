@@ -46,6 +46,7 @@ onMounted(async () => {
 
 const onTaskDropped = async (taskId: number, newStatus: string) => {
   await taskStore.updateTask(parseInt(projectId), taskId, { status: newStatus })
+  await taskStore.fetchTasks(parseInt(projectId), {})
 }
 
 const project = computed(() => {

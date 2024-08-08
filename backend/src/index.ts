@@ -1,14 +1,14 @@
+import 'reflect-metadata';
+
 import express from 'express'
 import bodyParser from 'body-parser'
 import session from 'express-session'
-// import formidable from "express-formidable";
 import connect_sqlite3 from 'connect-sqlite3'
 import morgan from 'morgan'
 import { errorReporter } from 'express-youch'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
-import { sequelize } from './sequelize'
 import { userRouter } from './routes/userRoutes'
 import { projectRouter } from './routes/projectRoutes'
 import { taskRouter } from './routes/taskRoutes'
@@ -24,8 +24,9 @@ import { taskTemplateRouter } from './routes/taskTemplateRoutes'
 import { importExportRouter } from './routes/importExportRoutes'
 import dotenv from 'dotenv'
 import path from 'path'
-import { User } from './models'
-import { createUser } from './controllers/userController'
+import { AppDataSource } from './ormconfig';
+import {User} from "./models/User";
+import {createUser} from "./controllers/userController";
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -51,7 +52,6 @@ const SQLiteStore = connect_sqlite3(session)
 
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
-// app.use(formidable());
 app.use(
   session({
     store: new SQLiteStore({
@@ -105,24 +105,30 @@ io.on('connection', (socket) => {
 
 app.set('io', io)
 
-sequelize.sync().then(async () => {
-  const adminUsername = process.env.DEFAULT_ADMIN ?? 'admin'
-  const adminUser = await User.findOne({ where: { username: adminUsername } })
-  if (!adminUser) {
-    const email = process.env.DEFAULT_ADMIN_EMAIL || 'admin@admin.ru'
-    const pass = process.env.DEFAULT_ADMIN_EMAIL || 'password'
-    await createUser(adminUsername, email, pass)
-    console.log('Admin user created')
-  } else {
-    console.log('Admin user already exists')
-  }
+AppDataSource.initialize()
+  .then(async () => {
+    console.log('Data Source has been initialized!');
 
-  const PORT = parseInt(process.env.PORT || '3000')
-  const HOST = process.env.HOST || 'localhost'
+    const adminUsername = process.env.DEFAULT_ADMIN ?? 'admin';
+    const adminUser = await AppDataSource.getRepository(User).findOneBy({ username: adminUsername });
+    if (!adminUser) {
+      const email = process.env.DEFAULT_ADMIN_EMAIL || 'admin@admin.ru';
+      const pass = process.env.DEFAULT_ADMIN_EMAIL || 'password';
+      await createUser(adminUsername, email, pass)
+      console.log('Admin user created');
+    } else {
+      console.log('Admin user already exists');
+    }
 
-  server.listen(PORT, HOST, () => {
-    console.log(`Server is running on port http://${HOST}:${PORT}`)
+    const PORT = parseInt(process.env.PORT || '3000');
+    const HOST = process.env.HOST || 'localhost';
+
+    server.listen(PORT, HOST, () => {
+      console.log(`Server is running on port http://${HOST}:${PORT}`);
+    });
   })
-})
+  .catch((err) => {
+    console.error('Error during Data Source initialization:', err);
+  });
 
 export { io }

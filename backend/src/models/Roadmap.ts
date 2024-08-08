@@ -1,54 +1,35 @@
-import { Model, DataTypes, ForeignKey, NonAttribute } from 'sequelize'
-import { sequelize } from '../sequelize'
-import { Project } from './Project'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany
+} from 'typeorm';
+import { Project } from './Project';
+import {Sprint} from "./Sprint";
 
-class Roadmap extends Model {
-  public id!: number
-  public title!: string
-  public description!: string
-  public createdAt!: Date
-  public updatedAt!: Date
+@Entity('roadmaps')
+export class Roadmap {
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-  declare projectId: ForeignKey<Project['id']>
-  declare project?: NonAttribute<Project>
+  @Column({ length: 128 })
+  title!: string;
+
+  @Column('text', { nullable: true })
+  description!: string;
+
+  @ManyToOne(() => Project, project => project.roadmaps, { nullable: false })
+  project!: Project;
+
+  @OneToMany(() => Sprint, sprint => sprint.roadmap)
+  sprints!: Sprint[];
+
+  @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt!: Date;
 }
-
-Roadmap.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true
-    },
-    title: {
-      type: DataTypes.STRING(128),
-      allowNull: false
-    },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    projectId: {
-      type: DataTypes.INTEGER,
-      allowNull: false
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    }
-  },
-  {
-    sequelize,
-    tableName: 'roadmaps',
-    timestamps: true,
-    indexes: [{ fields: ['projectId'] }, { fields: ['createdAt'] }, { fields: ['updatedAt'] }]
-  }
-)
-
-export { Roadmap }

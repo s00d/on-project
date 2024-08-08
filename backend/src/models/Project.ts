@@ -1,128 +1,106 @@
-import { Model, DataTypes, ForeignKey, NonAttribute } from 'sequelize'
-import { sequelize } from '../sequelize'
-import { User } from './User'
-import { Task } from './Task'
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToMany,
+  JoinTable,
+  JoinColumn,
+  RelationId,
+  BeforeInsert,
+  BeforeUpdate, AfterLoad
+} from 'typeorm';
+import { User } from './User';
+import { Task } from './Task';
+import { Label } from './Label';
+import { ProjectUser } from './ProjectUser';
+import { Roadmap } from './Roadmap';
+import { Exclude } from "class-transformer";
 
-class Project extends Model {
-  public id!: number
-  public name!: string
-  public description!: string
-  public savedFilters!: { name: string; filters: any }[];
-  public customFields!: { name: string; description: string; type: string }[];
-  public priorities!: string[]
-  public statuses!: string[]
-  public tags!: string[]
-  public types!: string[]
-  declare ownerId: ForeignKey<User['id']>
-  public createdAt!: Date
-  public updatedAt!: Date
+@Entity('projects')
+export class Project {
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-  declare owner?: NonAttribute<User>
-  declare tasks?: NonAttribute<Task[]>
-}
+  @Column({ length: 128 })
+  name!: string;
 
-Project.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true
-    },
-    name: {
-      type: DataTypes.STRING(128),
-      allowNull: false
-    },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    savedFilters: {
-      type: DataTypes.TEXT,
-      defaultValue: '[]',
-      get() {
-        const rawValue = this.getDataValue('savedFilters');
-        return rawValue ? JSON.parse(rawValue) : [];
-      },
-      set(val: { name: string; filters: any }[]) {
-        this.setDataValue('savedFilters', JSON.stringify(val));
-      },
-    },
-    customFields: {
-      type: DataTypes.TEXT, // Хранить в виде строки
-      defaultValue: '[]',
-      get() {
-        const rawValue = this.getDataValue('customFields');
-        return rawValue ? JSON.parse(rawValue) : [];
-      },
-      set(val: { name: string; description: string; type: string }[]) {
-        this.setDataValue('customFields', JSON.stringify(val));
-      },
-    },
-    priorities: {
-      type: DataTypes.TEXT,
-      defaultValue: '["Low", "Medium", "High"]',
-      get() {
-        const rawValue = this.getDataValue('priorities')
-        return rawValue ? JSON.parse(rawValue) : []
-      },
-      set(val: string[]) {
-        this.setDataValue('priorities', JSON.stringify(val))
-      },
-    },
-    statuses: {
-      type: DataTypes.TEXT,
-      defaultValue: '["To Do", "In Progress", "Done"]',
-      get() {
-        const rawValue = this.getDataValue('statuses')
-        return rawValue ? JSON.parse(rawValue) : []
-      },
-      set(val: string[]) {
-        this.setDataValue('statuses', JSON.stringify(val))
-      },
-    },
-    tags: {
-      type: DataTypes.TEXT,
-      defaultValue: '["tag1", "tag2"]',
-      get() {
-        const rawValue = this.getDataValue('tags')
-        return rawValue ? JSON.parse(rawValue) : []
-      },
-      set(val: string[]) {
-        this.setDataValue('tags', JSON.stringify(val))
-      },
-    },
-    types: {
-      type: DataTypes.TEXT,
-      defaultValue: '["Frontend", "Backend", "Test", "Deploy", "Mixed"]',
-      get() {
-        const rawValue = this.getDataValue('types')
-        return rawValue ? JSON.parse(rawValue) : []
-      },
-      set(val: string[]) {
-        this.setDataValue('types', JSON.stringify(val))
-      },
-    },
-    ownerId: {
-      type: DataTypes.INTEGER,
-      allowNull: false
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    }
-  },
-  {
-    sequelize,
-    tableName: 'projects',
-    timestamps: true,
-    indexes: [{ fields: ['ownerId'] }, { fields: ['createdAt'] }, { fields: ['updatedAt'] }]
+  @Column('text', { nullable: true })
+  description!: string;
+
+  @Column('text', { default: '[]' })
+  savedFilters!: string;
+
+  @Column('text', { default: '[]' })
+  @Exclude()
+  customFields!: string;
+
+  @Column('text', { default: '["Low", "Medium", "High"]' })
+  @Exclude()
+  priorities!: string;
+
+  @Column('text', { default: '["To Do", "In Progress", "Done"]' })
+  @Exclude()
+  statuses!: string;
+
+  @Column('text', { default: '["tag1", "tag2"]' })
+  @Exclude()
+  tags!: string;
+
+  @Column('text', { default: '["Frontend", "Backend", "Test", "Deploy", "Mixed"]' })
+  @Exclude()
+  types!: string;
+
+  @ManyToOne(() => User, user => user.projects, { nullable: false })
+  @JoinColumn({ name: 'ownerId' })
+  owner!: User;
+
+  @RelationId((project: Project) => project.owner)
+  ownerId!: number;
+
+  @OneToMany(() => Task, task => task.project)
+  tasks!: Task[];
+
+  @OneToMany(() => Label, label => label.project)
+  labels!: Label[];
+
+  @OneToMany(() => ProjectUser, projectUser => projectUser.project)
+  projectUsers!: ProjectUser[];
+
+  @OneToMany(() => Roadmap, roadmap => roadmap.project)
+  roadmaps!: Roadmap[];
+
+  @ManyToMany(() => User, user => user.joinedProjects)
+  @JoinTable()
+  users!: User[];
+
+  @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt!: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  serializeFields() {
+    this.savedFilters = JSON.stringify(this.savedFilters);
+    this.customFields = JSON.stringify(this.customFields);
+    this.priorities = JSON.stringify(this.priorities);
+    this.statuses = JSON.stringify(this.statuses);
+    this.tags = JSON.stringify(this.tags);
+    this.types = JSON.stringify(this.types);
   }
-)
 
-export { Project }
+  @AfterLoad()
+  deserializeFields() {
+    this.savedFilters = JSON.parse(this.savedFilters || '[]');
+    this.customFields = JSON.parse(this.customFields || '[]');
+    this.priorities = JSON.parse(this.priorities || '[]');
+    this.statuses = JSON.parse(this.statuses || '[]');
+    this.tags = JSON.parse(this.tags || '[]');
+    this.types = JSON.parse(this.types || '[]');
+  }
+}

@@ -1,233 +1,228 @@
-import { Request, Response } from 'express'
-import { Project, User } from '../models'
-import { ProjectUser } from '../models'
+import { Request, Response } from 'express';
+import { Project } from '../models/Project';
+import { ProjectUser } from '../models/ProjectUser';
+import { AppDataSource } from '../ormconfig';
+import {User} from "../models/User";
 
 const getProjects = async (req: Request, res: Response) => {
   try {
-    const userId = req.session.user!.id
-    const projects = await Project.findAll({
-      include: [
-        {
-          model: ProjectUser,
-          where: { userId },
-          attributes: [] // не включаем атрибуты из ProjectUser
-        }
-      ]
-    })
-    res.json(projects)
+    const userId = req.session.user!.id;
+    const projectRepository = AppDataSource.getRepository(Project);
+
+    const projects = await projectRepository.createQueryBuilder('project')
+      // .leftJoinAndSelect('project.owner', 'owner')
+      .innerJoin('project.projectUsers', 'projectUser', 'projectUser.userId = :userId', { userId })
+      .getMany();
+
+    res.json(projects);
   } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
   }
-}
+};
 
 const getProject = async (req: Request, res: Response) => {
-  const { projectId } = req.params
+  const { projectId } = req.params;
 
   try {
-    const userId = req.session.user!.id
+    const userId = req.session.user!.id;
+    const projectRepository = AppDataSource.getRepository(Project);
 
-    const project = await Project.findOne({
-      where: {
-        id: projectId,
-      },
-      include: [
-        {
-          model: ProjectUser,
-          where: { userId },
-          attributes: [] // не включаем атрибуты из ProjectUser
-        }
-      ]
-    })
+    const project = await projectRepository.createQueryBuilder('project')
+      .innerJoin('project.projectUsers', 'projectUser', 'projectUser.userId = :userId', { userId })
+      .where('project.id = :projectId', { projectId })
+      .getOne();
 
     if (project) {
-      res.json(project)
+      res.json(project);
     } else {
-      res.status(404).json({ error: 'Project not found or you do not have access' })
+      res.status(404).json({ error: 'Project not found or you do not have access' });
     }
   } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
   }
-}
+};
 
 const createProject = async (req: Request, res: Response) => {
-  const { name, description } = req.body
-  const ownerId = req.session.user!.id
+  const { name, description } = req.body;
+  const ownerId = req.session.user!.id;
 
   try {
-    const project = await Project.create({ name, description, ownerId })
-    await ProjectUser.create({ projectId: project.id, userId: ownerId })
+    const projectRepository = AppDataSource.getRepository(Project);
+    const projectUserRepository = AppDataSource.getRepository(ProjectUser);
 
-    res.json(project)
+    const project = projectRepository.create({ name, description, owner: { id: ownerId } });
+    await projectRepository.save(project);
+
+    const projectUser = projectUserRepository.create({ project: project, user: { id: ownerId } });
+    await projectUserRepository.save(projectUser);
+
+    res.json(project);
   } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
   }
-}
+};
 
 const inviteUser = async (req: Request, res: Response) => {
-  const { userId } = req.body
-  const { projectId } = req.params
+  const { userId } = req.body;
+  const { projectId } = req.params;
 
   try {
-    const project = await Project.findOne({
-      where: {
-        id: projectId,
-        ownerId: req.session.user!.id
-      }
-    })
+    const projectRepository = AppDataSource.getRepository(Project);
+    const projectUserRepository = AppDataSource.getRepository(ProjectUser);
+    const userRepository = AppDataSource.getRepository(User);
 
-    const existingProjectUser = await ProjectUser.findOne({
-      where: {
-        projectId,
-        userId
-      }
+    const project = await projectRepository.findOne({
+      where: { id: parseInt(projectId), owner: { id: req.session.user!.id } }
+    });
+
+    const user = await userRepository.findOne({ where: { id: parseInt(userId) } });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const existingProjectUser = await projectUserRepository.findOne({
+      where: { project: { id: parseInt(projectId) }, user: user }
     });
 
     if (existingProjectUser) {
-      if (!existingProjectUser.active) {
-        await existingProjectUser.update({
-          active: true,
-        })
-        res.json({ message: 'User invited successfully' })
-      }
-      return res.status(400).json({ error: 'User is already a member of the project' });
-    }
-
-    if (project) {
-      await ProjectUser.create({ projectId, userId })
-      res.json({ message: 'User invited successfully' })
+      res.status(400).json({ error: 'User is already a member of the project' });
+    } else if (project) {
+      const projectUser = projectUserRepository.create({ project: project, user: user });
+      await projectUserRepository.save(projectUser);
+      res.json({ message: 'User invited successfully' });
     } else {
-      res.status(403).json({ error: 'Only the project owner can invite users' })
+      res.status(403).json({ error: 'Only the project owner can invite users' });
     }
   } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+    const error = err as Error;
+    res.status(400).json({ error: error.message, stack: error.stack });
   }
-}
+};
 
 const getProjectUsers = async (req: Request, res: Response) => {
-  const { projectId } = req.params
+  const { projectId } = req.params;
 
   try {
-    const project = await Project.findOne({
-      include: [
-        {
-          model: ProjectUser,
-          where: { userId: req.session.user!.id },
-          attributes: [] // не включаем атрибуты из ProjectUser
-        }
-      ]
-    })
+    const projectRepository = AppDataSource.getRepository(Project);
+    const projectUserRepository = AppDataSource.getRepository(ProjectUser);
+
+    const project = await projectRepository.findOne({
+      where: { id: parseInt(projectId), owner: { id: req.session.user!.id } },
+      relations: ['owner', 'projectUsers', 'projectUsers.user']
+    });
 
     if (project) {
-      const userRoles = await ProjectUser.findAll({ where: { projectId }, include: User });
+      const userRoles = await projectUserRepository.find({
+        where: { project: { id: parseInt(projectId) } },
+        relations: ['user']
+      });
 
       // Формируем объект с ключами по ID пользователя
       const usersById: Record<number, { id: number; username: string }> = {};
       userRoles.forEach((ur) => {
-        if (ur.User) {
-          usersById[ur.User.id] = {
-            id: ur.User.id,
-            username: ur.User.username
+        if (ur.user) {
+          usersById[ur.user.id] = {
+            id: ur.user.id,
+            username: ur.user.username
           };
         }
       });
 
       res.json(usersById);
     } else {
-      res.status(403).json({ error: 'Only the project owner can view project users' })
+      res.status(403).json({ error: 'Only the project owner can view project users' });
     }
   } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
   }
-}
+};
 
 const DeActiveUser = async (req: Request, res: Response) => {
-  const { userId, projectId } = req.params
+  const { userId, projectId } = req.params;
 
   try {
-    const project = await Project.findOne({
-      where: {
-        id: projectId,
-        ownerId: req.session.user!.id
-      }
-    })
+    const projectRepository = AppDataSource.getRepository(Project);
+    const projectUserRepository = AppDataSource.getRepository(ProjectUser);
+
+    const project = await projectRepository.findOne({
+      where: { id: parseInt(projectId), owner: { id: req.session.user!.id } }
+    });
 
     if (project) {
-      const existingProjectUser = await ProjectUser.findOne({ where: { userId, projectId } })
+      const existingProjectUser = await projectUserRepository.findOne({ where: { user: { id: parseInt(userId) }, project: { id: parseInt(projectId) } } });
       if (existingProjectUser) {
-        await existingProjectUser.destroy()
-        res.status(204).end()
+        await projectUserRepository.remove(existingProjectUser);
+        res.status(204).end();
       } else {
-        res.status(404).json({ error: 'User not found in project' })
+        res.status(404).json({ error: 'User not found in project' });
       }
     } else {
-      res.status(403).json({ error: 'Only the project owner can remove users from the project' })
+      res.status(403).json({ error: 'Only the project owner can remove users from the project' });
     }
   } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
   }
-}
+};
 
 const updateProject = async (req: Request, res: Response) => {
-  const { projectId } = req.params
-  const { name, description, customFields, savedFilters, priorities, statuses, tags, types } = req.body
+  const { projectId } = req.params;
+  const { name, description, customFields, savedFilters, priorities, statuses, tags, types } = req.body;
 
   try {
-    const project = await Project.findOne({
-      where: {
-        id: projectId,
-        ownerId: req.session.user!.id
-      }
-    })
+    const projectRepository = AppDataSource.getRepository(Project);
+
+    const project = await projectRepository.findOne({
+      where: { id: parseInt(projectId), owner: { id: req.session.user!.id } }
+    });
 
     if (project) {
-      await project.update({
-        name: name ?? project.name,
-        description: description ?? project.description,
-        customFields: customFields ?? project.customFields,
-        priorities: priorities ?? project.priorities,
-        statuses: statuses ?? project.statuses,
-        tags: tags ?? project.tags,
-        types: tags ?? project.types,
-        savedFilters: savedFilters ?? project.savedFilters,
-      })
-      res.json(project)
+      project.name = name ?? project.name;
+      project.description = description ?? project.description;
+      project.customFields = customFields ?? project.customFields;
+      project.priorities = priorities ?? project.priorities;
+      project.statuses = statuses ?? project.statuses;
+      project.tags = tags ?? project.tags;
+      project.types = types ?? project.types;
+      project.savedFilters = savedFilters ?? project.savedFilters;
+
+      await projectRepository.save(project);
+      res.json(project);
     } else {
-      res.status(403).json({ error: 'Only the project owner can update the project' })
+      res.status(403).json({ error: 'Only the project owner can update the project' });
     }
   } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
   }
-}
+};
 
 const deleteProject = async (req: Request, res: Response) => {
-  const { projectId } = req.params
+  const { projectId } = req.params;
 
   try {
-    const project = await Project.findOne({
-      where: {
-        id: projectId,
-        ownerId: req.session.user!.id
-      }
-    })
+    const projectRepository = AppDataSource.getRepository(Project);
+
+    const project = await projectRepository.findOne({
+      where: { id: parseInt(projectId), owner: { id: req.session.user!.id } }
+    });
 
     if (project) {
-      await project.destroy()
-      res.status(204).end()
+      await projectRepository.remove(project);
+      res.status(204).end();
     } else {
-      res.status(403).json({ error: 'Only the project owner can delete the project' })
+      res.status(403).json({ error: 'Only the project owner can delete the project' });
     }
   } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+    const error = err as Error;
+    res.status(400).json({ error: error.message });
   }
-}
+};
 
 export {
   getProjects,
@@ -238,4 +233,4 @@ export {
   DeActiveUser,
   updateProject,
   deleteProject
-}
+};

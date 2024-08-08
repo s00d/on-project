@@ -1,53 +1,39 @@
-import {Model, DataTypes, ForeignKey, NonAttribute} from 'sequelize'
-import { sequelize } from '../sequelize'
-import {Project} from "./Project";
-import {User} from "./User";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany
+} from 'typeorm';
+import { Project } from './Project';
+import { User } from './User';
+import {Task} from "./Task";
 
-class Label extends Model {
-  public id!: number
-  declare projectId: ForeignKey<Project['id']>
-  declare userId: ForeignKey<User['id']>
-  public name!: string
-  public color!: string
-  public createdAt!: Date
-  public updatedAt!: Date
+@Entity('labels')
+export class Label {
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-  declare Project?: NonAttribute<Project>
-  declare User?: NonAttribute<User>
+  @ManyToOne(() => Project, project => project.labels, { nullable: false })
+  project!: Project;
+
+  @ManyToOne(() => User, user => user.labels, { nullable: false })
+  user!: User;
+
+  @OneToMany(() => Task, task => task.label)
+  tasks!: Task[];
+
+  @Column({ length: 128 })
+  name!: string;
+
+  @Column({ length: 7 })
+  color!: string;
+
+  @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt!: Date;
 }
-
-Label.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true
-    },
-    name: {
-      type: DataTypes.STRING(128),
-      allowNull: false
-    },
-    color: {
-      type: DataTypes.STRING(7),
-      allowNull: false
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    }
-  },
-  {
-    sequelize,
-    timestamps: true,
-    tableName: 'labels',
-    indexes: [{ fields: ['createdAt'] }, { fields: ['updatedAt'] }]
-  }
-)
-
-export { Label }

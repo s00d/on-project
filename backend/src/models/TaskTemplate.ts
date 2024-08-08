@@ -1,78 +1,35 @@
-import { Model, DataTypes, ForeignKey, NonAttribute } from 'sequelize'
-import { sequelize } from '../sequelize'
-import { User } from './User'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { User } from './User';
 
-class TaskTemplate extends Model {
-  public id!: number
-  declare userId: ForeignKey<User['id']>
-  public title!: string
-  public description!: string
-  public priority!: string
-  public status!: string
-  public tag!: string
-  public type!: string
-  public createdAt!: Date
-  public updatedAt!: Date
+@Entity('task_templates')
+export class TaskTemplate {
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-  declare user?: NonAttribute<User>
+  @ManyToOne(() => User, user => user.taskTemplates, { nullable: false })
+  user!: User;
+
+  @Column()
+  title!: string;
+
+  @Column('text', { nullable: true })
+  description!: string;
+
+  @Column({ default: 'Medium' })
+  priority!: string;
+
+  @Column({ default: '' })
+  status!: string;
+
+  @Column({ default: '' })
+  tag!: string;
+
+  @Column({ default: '' })
+  type!: string;
+
+  @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  updatedAt!: Date;
 }
-
-TaskTemplate.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true
-    },
-    userId: {
-      type: DataTypes.INTEGER,
-      allowNull: false
-    },
-    title: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true
-    },
-    priority: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: 'Medium'
-    },
-    status: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: ''
-    },
-    tag: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: ''
-    },
-    type: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: ''
-    },
-    createdAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      allowNull: false,
-      defaultValue: DataTypes.NOW
-    }
-  },
-  {
-    sequelize,
-    timestamps: true,
-    tableName: 'task_templates',
-    indexes: [{ fields: ['userId'] }, { fields: ['createdAt'] }, { fields: ['updatedAt'] }]
-  }
-)
-
-export { TaskTemplate }

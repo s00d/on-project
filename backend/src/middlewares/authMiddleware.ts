@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
-import { User } from '../models'
+import { User } from '../models/User'
+import {AppDataSource} from "../ormconfig";
 
 const authenticateJWT = async (req: Request): Promise<any> => {
   const token = req.header('Authorization')?.split(' ')[1]
@@ -16,7 +17,6 @@ const authenticateJWT = async (req: Request): Promise<any> => {
 }
 
 const authenticateSession = async (req: Request): Promise<any> => {
-  console.log(11111, req.session)
   if (req.session && req.session.user) {
     return req.session.user
   }
@@ -24,23 +24,24 @@ const authenticateSession = async (req: Request): Promise<any> => {
 }
 
 const authenticateTokenInDB = async (req: Request): Promise<any> => {
-  const apikey = req.header('Authorization')?.split(' ')[1]
+  const apikey = req.header('Authorization')?.split(' ')[1];
 
   if (apikey) {
     try {
-      const user = await User.findOne({ where: { apikey } })
+      const userRepository = AppDataSource.getRepository(User);
+      const user = await userRepository.findOne({ where: { apikey } });
 
       if (!user) {
-        throw new Error('User not found in DB')
+        throw new Error('User not found in DB');
       }
 
-      return user
+      return user;
     } catch (err) {
-      throw new Error('Invalid token')
+      throw new Error('Invalid token');
     }
   }
-  throw new Error('No token provided')
-}
+  throw new Error('No token provided');
+};
 
 const authenticateAll = async (req: Request, res: Response, next: NextFunction) => {
 
