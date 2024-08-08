@@ -17,6 +17,19 @@ class User extends Model {
   public updatedAt!: Date
 
   declare project?: NonAttribute<Project>
+
+  public toJSON(): object {
+    const values = Object.assign({}, this.get())
+
+    // Удаляем приватные поля
+    delete values.password
+    delete values.twoFactorSecret
+    delete values.resetPasswordToken
+    delete values.resetPasswordExpires
+    delete values.apikey
+
+    return values
+  }
 }
 
 User.init(
