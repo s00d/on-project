@@ -247,9 +247,10 @@ const openTaskModal = (task: Task) => {
   isTaskModalOpen.value = true
 }
 
-const closeTaskModal = () => {
+const closeTaskModal = async () => {
   isTaskModalOpen.value = false
   selectedTask.value = null
+  await applyFilters()
 }
 
 const openSettingsModal = () => {
@@ -335,7 +336,7 @@ const groupedTasks = computed(() => {
     } else if (groupBy.value === 'status') {
       groupKey = task.status || 'No Status'
     } else if (groupBy.value === 'assignee') {
-      groupKey = task.assigneeIds ? task.assigneeIds.join(', ') : 'Unassigned'
+      groupKey = task.assignees ? task.assignees.join(', ') : 'Unassigned'
     } else if (task.customFields) {
       groupKey = task.customFields[groupBy.value] || 'No ' + groupBy.value
     }
@@ -366,9 +367,9 @@ const sort = (key: string) => {
     if (key === 'assignee') {
       const getUsernames = (task: Task) => {
         const usernames: string[] = []
-        if (task.assigneeIds?.length) {
-          for (let i = 0; i < task.assigneeIds.length; i++) {
-            const userId = task.assigneeIds[i];
+        if (task.assignees?.length) {
+          for (let i = 0; i < task.assignees.length; i++) {
+            const userId = task.assignees[i];
             // @ts-ignore
             if (users[userId]) {
               // @ts-ignore
@@ -417,9 +418,9 @@ const getColumnData = (task: Task, column: string) => {
       return task.Label ? `<span class="badge" style="background-color: ${task.Label.color}">${task.Label.name}</span>` : ''
     case 'Assignee':
       vals = [];
-      if(task.assigneeIds?.length) {
-        for (let i in task.assigneeIds) {
-          const userId = task.assigneeIds[i]
+      if(task.assignees?.length) {
+        for (let i in task.assignees) {
+          const userId = task.assignees[i]
           if(users.value[userId]) {
             vals.push(users.value[userId].username);
           }

@@ -83,7 +83,7 @@ const generateTeamPerformanceReport = async (req: Request, res: Response) => {
     const projectRepository = AppDataSource.getRepository(Project);
     const project = await projectRepository.findOne({
       where: { id: parseInt(projectId) },
-      relations: ['tasks'],
+      relations: ['tasks', 'tasks.assignees'],
     });
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
@@ -92,16 +92,13 @@ const generateTeamPerformanceReport = async (req: Request, res: Response) => {
 
     const performance = tasks?.reduce(
       (acc, task) => {
-        const assigneeIds = task.assigneeIds;
-
-        assigneeIds.forEach((assigneeId: number) => {
-          acc[assigneeId] = acc[assigneeId] || { total: 0, completed: 0 };
-          acc[assigneeId].total += 1;
+        task.assignees.forEach((assignee) => {
+          acc[assignee.id] = acc[assignee.id] || { total: 0, completed: 0 };
+          acc[assignee.id].total += 1;
           if (task.status === 'Done') {
-            acc[assigneeId].completed += 1;
+            acc[assignee.id].completed += 1;
           }
         });
-
         return acc;
       },
       {} as Record<number, { total: number; completed: number }>
@@ -179,7 +176,7 @@ const generateTeamWorkloadReport = async (req: Request, res: Response) => {
     const projectRepository = AppDataSource.getRepository(Project);
     const project = await projectRepository.findOne({
       where: { id: parseInt(projectId) },
-      relations: ['tasks'],
+      relations: ['tasks', 'tasks.assignees'],
     });
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
@@ -187,12 +184,11 @@ const generateTeamWorkloadReport = async (req: Request, res: Response) => {
     const tasks = project.tasks;
     const workload = tasks?.reduce(
       (acc, task) => {
-        const assigneeIds = task.assigneeIds || ['Unassigned'];
-        assigneeIds.forEach((assigneeId: number | string) => {
-          if (!acc[assigneeId]) {
-            acc[assigneeId] = 0;
+        task.assignees.forEach((assignee) => {
+          if (!acc[assignee.id]) {
+            acc[assignee.id] = 0;
           }
-          acc[assigneeId] += 1;
+          acc[assignee.id] += 1;
         });
         return acc;
       },

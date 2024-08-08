@@ -16,10 +16,10 @@
       @dragstart="(event) => onDragStart(event, task.id)"
     >
       <h5 class="card-title">{{ task.title }}</h5>
-      <p v-if="task.assigneeIds">
+      <p v-if="task.assignees">
         Assigned to:
-        <span v-for="assigneeId in task.assigneeIds" :key="assigneeId">
-          <span v-if="users[assigneeId]" v-text="users[assigneeId].username"></span>
+        <span v-for="assignee in task.assignees" :key="assignee">
+          <span v-if="users[assignee]" v-text="users[assignee].username"></span>
         </span>
       </p>
     </div>

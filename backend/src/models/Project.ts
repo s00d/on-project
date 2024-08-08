@@ -11,7 +11,7 @@ import {
   JoinColumn,
   RelationId,
   BeforeInsert,
-  BeforeUpdate, AfterLoad
+  BeforeUpdate, AfterLoad, Index
 } from 'typeorm';
 import { User } from './User';
 import { Task } from './Task';
@@ -26,9 +26,11 @@ export class Project {
   id!: number;
 
   @Column({ length: 128 })
+  @Index()
   name!: string;
 
   @Column('text', { nullable: true })
+  @Index()
   description!: string;
 
   @Column('text', { default: '[]' })

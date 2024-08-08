@@ -15,6 +15,7 @@ import { Label } from './Label';
 import { Comment } from './Comment';
 import {TaskAttachment} from "./TaskAttachment";
 import {TaskHistory} from "./TaskHistory";
+import {ProjectUser} from "./ProjectUser";
 
 @Entity('tasks')
 export class Task {
@@ -33,10 +34,6 @@ export class Task {
   @ManyToOne(() => Project, project => project.tasks, { nullable: false })
   project!: Project;
 
-  @ManyToMany(() => User, user => user.tasks)
-  @JoinTable()
-  assignees!: User[];
-
   @ManyToOne(() => Label, label => label.tasks, { nullable: true })
   label!: Label;
 
@@ -52,8 +49,9 @@ export class Task {
   @Column('int', { nullable: true })
   actualTime!: number;
 
-  @Column('simple-array', { nullable: true })
-  assigneeIds!: number[];
+  @ManyToMany(() => ProjectUser, projectUser => projectUser.tasks)
+  @JoinTable()
+  assignees!: ProjectUser[];
 
   @Column({ length: 128, nullable: true })
   type!: string;

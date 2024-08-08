@@ -8,7 +8,7 @@ export interface TaskBase {
   description?: string | null
   status?: string | null
   projectId?: number | null
-  assigneeIds?: number[]
+  assignees?: number[]
   labelId?: number | null
   dueDate?: Date | null
   priority?: string | null

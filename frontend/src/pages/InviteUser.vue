@@ -8,7 +8,15 @@
             <label for="userId" class="form-label">User ID</label>
             <input v-model="userId" type="number" id="userId" class="form-control" placeholder="User ID" />
           </div>
-          <button type="submit" class="btn btn-primary" :class="{disabled: userId === 0}">Invite User</button>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input v-model="email" type="email" id="email" class="form-control" placeholder="Email" />
+          </div>
+          <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input v-model="username" type="text" id="username" class="form-control" placeholder="Username" />
+          </div>
+          <button type="submit" class="btn btn-primary" :class="{disabled: !userId && !email && !username}">Invite User</button>
         </form>
         <hr class="mt-5" />
         <h2>Invited Users</h2>
@@ -36,13 +44,13 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, computed} from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import Tabs from '@/components/Tabs.vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore, type User } from "@/stores/authStore";
 import { useProjectStore } from "@/stores/projectStore";
-import {useAlertStore} from "@/stores/alertStore";
+import { useAlertStore } from "@/stores/alertStore";
 
 const route = useRoute()
 const projectStore = useProjectStore()
@@ -51,7 +59,9 @@ const authStore = useAuthStore()
 const authUserId = computed(() => authStore.getUserId)
 
 const projectId = ref(route.params.projectId.toString())
-const userId = ref(0)
+const userId = ref('')
+const email = ref('')
+const username = ref('')
 const invitedUsers = ref<User[]>([])
 
 const fetchInvitedUsers = async () => {
@@ -60,7 +70,11 @@ const fetchInvitedUsers = async () => {
 
 const inviteUser = async () => {
   try {
-    await axios.post(`/projects/${projectId.value}/invite`, { userId: userId.value })
+    await axios.post(`/projects/${projectId.value}/invite`, {
+      userId: userId.value,
+      email: email.value,
+      username: username.value
+    })
     useAlertStore().setAlert('User invited successfully', 'success')
     fetchInvitedUsers()  // Refresh the list after inviting
   } catch (error: any) {

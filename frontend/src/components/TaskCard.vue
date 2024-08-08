@@ -19,8 +19,8 @@
       </select>
     </div>
     <div class="mb-3">
-      <label for="label" class="form-label">Assignee</label>
-      <select v-model="task.assigneeIds" id="label" class="form-select" multiple>
+      <label for="assignees" class="form-label">Assignee</label>
+      <select v-model="task.assignees" id="assignees" class="form-select" multiple>
         <option v-for="user in users" :key="user.id" :value="user.id">
           {{ user.username }}
         </option>
@@ -130,7 +130,7 @@ const props = defineProps<{
   showComments: boolean
 }>()
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'update'])
 
 const taskStore = useTaskStore()
 const authStore = useAuthStore()
@@ -154,7 +154,7 @@ const saveTask = async () => {
     title: task.value.title,
     description: task.value.description,
     status: task.value.status,
-    assigneeIds: task.value.assigneeIds,
+    assignees: task.value.assignees,
     labelId: task.value.labelId,
     dueDate: task.value.dueDate,
     estimatedTime: task.value.estimatedTime,
@@ -165,6 +165,7 @@ const saveTask = async () => {
     tags: tags.value
   })
   emit('close')
+  emit('update')
 }
 
 const deleteTask = async () => {

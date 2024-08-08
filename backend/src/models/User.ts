@@ -6,7 +6,8 @@ import {
   ManyToMany,
   JoinTable,
   UpdateDateColumn,
-  CreateDateColumn
+  CreateDateColumn,
+  Index
 } from 'typeorm';
 import { Project } from './Project';
 import { Notification } from './Notification';
@@ -24,12 +25,15 @@ export class User {
   id!: number;
 
   @Column({ unique: true, nullable: true })
+  @Index()
   apikey!: string;
 
   @Column({ unique: true })
+  @Index()
   username!: string;
 
   @Column({ unique: true })
+  @Index()
   email!: string;
 
   @Column()
@@ -37,6 +41,7 @@ export class User {
   password!: string;
 
   @Column({ default: false })
+  @Index()
   twoFactorEnabled!: boolean;
 
   @Column({ type: 'text', nullable: true })
@@ -52,9 +57,11 @@ export class User {
   resetPasswordExpires!: Date | null;
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  @Index()
   createdAt!: Date;
 
   @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  @Index()
   updatedAt!: Date;
 
   @OneToMany(() => Project, (project) => project.owner)

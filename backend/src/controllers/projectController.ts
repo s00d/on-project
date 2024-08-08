@@ -66,7 +66,7 @@ const createProject = async (req: Request, res: Response) => {
 };
 
 const inviteUser = async (req: Request, res: Response) => {
-  const { userId } = req.body;
+  const { userId, email, username } = req.body;
   const { projectId } = req.params;
 
   try {
@@ -78,24 +78,36 @@ const inviteUser = async (req: Request, res: Response) => {
       where: { id: parseInt(projectId), owner: { id: req.session.user!.id } }
     });
 
-    const user = await userRepository.findOne({ where: { id: parseInt(userId) } });
+    if (!project) {
+      return res.status(403).json({ error: 'Only the project owner can invite users' });
+    }
+
+    let user: null|User = null;
+
+    if (userId) {
+      user = await userRepository.findOne({ where: { id: parseInt(userId) } });
+    }
+    if (!user && email) {
+      user = await userRepository.findOne({ where: { email } });
+    }
+    if (!user && username) {
+      user = await userRepository.findOne({ where: { username } });
+    }
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
     const existingProjectUser = await projectUserRepository.findOne({
-      where: { project: { id: parseInt(projectId) }, user: user }
+      where: { project: { id: parseInt(projectId) }, user: { id: user.id } }
     });
 
     if (existingProjectUser) {
       res.status(400).json({ error: 'User is already a member of the project' });
-    } else if (project) {
+    } else {
       const projectUser = projectUserRepository.create({ project: project, user: user });
       await projectUserRepository.save(projectUser);
       res.json({ message: 'User invited successfully' });
-    } else {
-      res.status(403).json({ error: 'Only the project owner can invite users' });
     }
   } catch (err: any) {
     const error = err as Error;

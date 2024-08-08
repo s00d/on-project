@@ -5,7 +5,7 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany
+  OneToMany, Index
 } from 'typeorm';
 import { Project } from './Project';
 import { User } from './User';
@@ -26,6 +26,7 @@ export class Label {
   tasks!: Task[];
 
   @Column({ length: 128 })
+  @Index()
   name!: string;
 
   @Column({ length: 7 })
