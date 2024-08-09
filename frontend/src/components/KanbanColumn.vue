@@ -85,8 +85,15 @@ const onDragEnter = () => {
   isDragOver.value = true
 }
 
-const onDragLeave = () => {
-  isDragOver.value = false
+const onDragLeave = (event: DragEvent) => {
+  const currentTarget = event.currentTarget as HTMLElement | null;
+  const relatedTarget = event.relatedTarget as HTMLElement | null;
+
+  // Проверяем, что курсор действительно покидает колонку
+  const isLeaving = !relatedTarget || (currentTarget && !currentTarget.contains(relatedTarget));
+  if (isLeaving) {
+    isDragOver.value = false;
+  }
 }
 
 const showEdit = (task: Task) => {
