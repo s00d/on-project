@@ -113,10 +113,7 @@ export const useTaskStore = defineStore('task', {
       try {
         const response = await axios.put(`/tasks/${projectId}/${taskId}`, task)
         const index = this.tasks.findIndex((t) => t.id === taskId)
-        if (index !== -1) {
-          this.tasks[index] = response.data
-          useAlertStore().setAlert('Task updated successfully', 'success')
-        }
+        useAlertStore().setAlert('Task updated successfully', 'success')
       } catch (error) {
         useAlertStore().setAlert('Failed to update task', 'danger')
       }

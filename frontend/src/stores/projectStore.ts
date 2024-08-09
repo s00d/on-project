@@ -68,11 +68,7 @@ export const useProjectStore = defineStore('project', {
     async updateProject(id: number, project: updateProjectInterface) {
       try {
         const response = await axios.put(`/projects/${id}`, project)
-        const index = this.projects.findIndex((p) => p.id === id)
-        if (index !== -1) {
-          this.projects[index] = response.data
-          useAlertStore().setAlert('Project updated successfully', 'success')
-        }
+        useAlertStore().setAlert('Project updated successfully', 'success')
       } catch (error) {
         useAlertStore().setAlert('Failed to update project', 'danger')
       }

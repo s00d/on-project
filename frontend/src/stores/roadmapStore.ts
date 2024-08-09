@@ -39,11 +39,7 @@ export const useRoadmapStore = defineStore('roadmap', {
     async updateRoadmap(projectId: number, roadmapId: number, roadmap: { title: string; description?: string }) {
       try {
         const response = await axios.put(`/roadmaps/${projectId}/${roadmapId}`, roadmap)
-        const index = this.roadmaps.findIndex((r) => r.id === roadmapId)
-        if (index !== -1) {
-          this.roadmaps[index] = response.data
-          useAlertStore().setAlert('Roadmap updated successfully', 'success')
-        }
+        useAlertStore().setAlert('Roadmap updated successfully', 'success')
       } catch (error) {
         useAlertStore().setAlert('Failed to update roadmap', 'danger')
       }

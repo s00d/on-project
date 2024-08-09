@@ -18,16 +18,19 @@
       <div v-for="sprint in sprints" :key="sprint.id" class="sprint-row">
         <div class="sprint-title">{{ sprint.title }}</div>
         <div class="sprint-bar-container">
-          <div class="sprint-bar" :style="getSprintBarStyle(sprint)" @mouseenter="showTooltip($event, sprint.tasks)" @mouseleave="hideTooltip">
-
+          <div
+            class="sprint-bar"
+            :style="getSprintBarStyle(sprint)"
+            @mouseenter="showTooltip($event, sprint.tasks)"
+            @mouseleave="hideTooltip"
+          >
             <div class="sprint-info">
               <div class="sprint-info-title">{{ sprint.title }}</div>
               <div class="sprint-info-tasks">
-                Tasks: {{ completedTasks(sprint.tasks) }} / {{ sprint.tasks.length }}
+                Tasks: {{ completedTasks(sprint.tasks) }} / {{ sprint.tasks?.length }}
                 ({{ taskCompletionPercentage(sprint.tasks) }}%)
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -35,22 +38,27 @@
   </div>
 
   <!-- Tooltip Element -->
-  <div v-if="tooltipVisible" class="tooltip" :style="{ top: tooltipPosition.y + 'px', left: tooltipPosition.x + 'px' }">
-    <ul>
-      <li v-for="task in tooltipTasks" :key="task.id">
-        <span>{{ task.title }} - {{ task.status }}</span>
-
-        <span class="task-priority priority-low">{{ task.priority }}</span>
-      </li>
-    </ul>
-  </div>
+  <transition name="fade">
+    <div v-if="tooltipVisible" class="tooltip" :style="{ top: tooltipPosition.y + 'px', left: tooltipPosition.x + 'px' }">
+      <ul>
+        <li v-for="task in tooltipTasks" :key="task.id">
+          <span>{{ task.title }} - {{ task.status }}</span>
+          <span class="task-priority" :class="getPriorityClass(task.priority)">{{ task.priority }}</span>
+          <br />
+          <small v-if="task.plannedDate">Planned: {{ formatDate(task.plannedDate) }}</small>
+          <br />
+          <small v-if="task.assignees?.length">Assignees: {{ task.assignees.join(', ') }}</small>
+        </li>
+      </ul>
+    </div>
+  </transition>
 </template>
 
 <script lang="ts" setup>
-import {defineProps, nextTick, onMounted, ref} from 'vue';
-import {addDays, differenceInDays, endOfMonth, endOfYear, format, isToday as checkIfToday, startOfYear} from 'date-fns';
-import type {Sprint} from "@/stores/sprintStore";
-import type {Task} from "@/stores/taskStore";
+import { defineProps, nextTick, onMounted, ref } from 'vue';
+import { addDays, differenceInDays, endOfMonth, endOfYear, format, isToday as checkIfToday, startOfYear } from 'date-fns';
+import type { Sprint } from "@/stores/sprintStore";
+import type { Task } from "@/stores/taskStore";
 
 defineProps<{
   sprints: Sprint[]
@@ -62,7 +70,6 @@ const timelineContainer = ref<HTMLDivElement | null>(null);
 const tooltipVisible = ref(false);
 const tooltipTasks = ref<Task[]>([]);
 const tooltipPosition = ref({ x: 0, y: 0 });
-
 
 const dateWidth = 27;  // Width of each date column in pixels
 
@@ -98,12 +105,24 @@ const scrollToToday = () => {
 };
 
 const completedTasks = (tasks: Task[]) => {
-  return tasks.filter(task => task.status === 'Completed').length;
+  return tasks ? tasks?.filter(task => task.status === 'Completed').length : false;
 };
 
 const showTooltip = (event: MouseEvent, tasks: Task[]) => {
   tooltipTasks.value = tasks;
-  tooltipPosition.value = { x: event.clientX + 10, y: event.clientY + 10 }; // Смещение тултипа относительно курсора
+
+  // Рассчёт позиции тултипа
+  let xPosition = event.clientX + 10;
+  const yPosition = event.clientY + 10;
+
+  const tooltipWidth = 300; // ширина тултипа, установлена в стилях
+
+  // Если тултип выходит за границу экрана, сдвигаем его влево
+  if (xPosition + tooltipWidth > window.innerWidth) {
+    xPosition = window.innerWidth - tooltipWidth - 10;
+  }
+
+  tooltipPosition.value = { x: xPosition, y: yPosition };
   tooltipVisible.value = true;
 };
 
@@ -114,7 +133,21 @@ const hideTooltip = () => {
 
 const taskCompletionPercentage = (tasks: Task[]) => {
   const completed = completedTasks(tasks);
+  if (!completed || !tasks) return 0;
   return tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0;
+};
+
+const getPriorityClass = (priority: string) => {
+  switch (priority) {
+    case 'High':
+      return 'priority-high';
+    case 'Medium':
+      return 'priority-medium';
+    case 'Low':
+      return 'priority-low';
+    default:
+      return '';
+  }
 };
 
 const getSprintBarStyle = (sprint: Sprint) => {
@@ -124,18 +157,36 @@ const getSprintBarStyle = (sprint: Sprint) => {
 
   const sprintStart = new Date(sprint.startDate);
   const sprintEnd = new Date(sprint.endDate);
+  const today = new Date();
 
   const offsetDays = differenceInDays(sprintStart, months.value[0][0]);
   const durationDays = differenceInDays(sprintEnd, sprintStart) + 1;
 
+  // Определяем цвет в зависимости от состояния спринта
+  let backgroundColor = '#4caf50'; // Зеленый по умолчанию для текущих спринтов
+
+  if (sprintEnd < today) {
+    backgroundColor = '#9e9e9e'; // Серый для завершенных спринтов
+  } else if (sprintStart > today) {
+    backgroundColor = '#7c8ffa'; // Светло-голубой для будущих спринтов
+  } else {
+    const completionPercentage = taskCompletionPercentage(sprint.tasks);
+    if (completionPercentage < 100 && completionPercentage > 0) {
+      backgroundColor = '#ffc107'; // Желтый для частично завершенных
+    } else if (completionPercentage === 0) {
+      backgroundColor = '#f44336'; // Красный для невыполненных
+    }
+  }
+
   return {
     left: offsetDays * dateWidth + (offsetDays * 0.1) + 'px',
     width: durationDays * dateWidth + (offsetDays * 0.1) + 'px',
-    backgroundColor: '#4caf50',
+    backgroundColor: backgroundColor,
     borderRadius: '10px',
     boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
   };
 };
+
 
 const formatDay = (date: Date) => {
   return format(date, 'dd');  // Format date as "01"
@@ -143,6 +194,10 @@ const formatDay = (date: Date) => {
 
 const formatMonth = (date: Date) => {
   return format(date, 'MMMM yyyy');  // Format month as "January 2024"
+};
+
+const formatDate = (date: Date) => {
+  return format(date, 'yyyy-MM-dd');
 };
 
 const isToday = (date: Date) => {
@@ -243,7 +298,7 @@ onMounted(async () => {
   margin: 0;  /* Убедитесь, что нет margin */
   padding: 0; /* Убедитесь, что нет padding */
 
-  border: 1px solid blue;
+  border: 1px solid rgba(0, 0, 255, 0.23);
 }
 
 .sprint-bar {
@@ -294,10 +349,21 @@ onMounted(async () => {
 }
 
 .task-priority {
-  background-color: rgba(255, 255, 255, 0.3);
   padding: 2px 4px;
   border-radius: 4px;
   font-size: 0.8em;
+}
+
+.priority-high {
+  background-color: #e53e3e;
+}
+
+.priority-medium {
+  background-color: #dd6b20;
+}
+
+.priority-low {
+  background-color: #38a169;
 }
 
 .tooltip {
@@ -308,8 +374,9 @@ onMounted(async () => {
   border-radius: 4px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   z-index: 1000;
-  width: 300px; /* Ширина подсказки */
+  width: 300px;
   opacity: 1;
+  transition: opacity 0.3s ease;
 }
 
 .tooltip ul {
@@ -320,9 +387,16 @@ onMounted(async () => {
 
 .tooltip li {
   margin-bottom: 5px;
-
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
 }
 </style>

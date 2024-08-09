@@ -54,10 +54,7 @@ export const useSprintStore = defineStore('sprint', {
       try {
         const response = await axios.put(`/sprints/${projectId}/${sprintId}`, sprint)
         const index = this.sprints.findIndex((s) => s.id === sprintId)
-        if (index !== -1) {
-          this.sprints[index] = response.data
-          useAlertStore().setAlert('Sprint updated successfully', 'success')
-        }
+        useAlertStore().setAlert('Sprint updated successfully', 'success')
       } catch (error) {
         useAlertStore().setAlert('Failed to update sprint', 'danger')
       }

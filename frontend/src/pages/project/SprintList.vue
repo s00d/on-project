@@ -51,7 +51,7 @@
 
 
         <div class="project-board" v-if="isLoaded">
-          <ScrumRoadmapTimeline :sprints="sprints" />
+          <ScrumRoadmapTimeline v-if="sprints" :sprints="sprints" />
         </div>
       </Tabs>
 
@@ -210,6 +210,8 @@ onMounted(() => {
 
 .task-list {
   margin-top: 16px;
+  max-height: 100px;
+  overflow-y: scroll;
 }
 
 .task-item {
