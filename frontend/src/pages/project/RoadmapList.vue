@@ -5,7 +5,6 @@
         <div class="project-board">
           <div class="board-header">
             <h1 class="board-title">Roadmaps Overview</h1>
-            <button @click="openCreateRoadmapModal" class="btn btn-primary">New Roadmap</button>
           </div>
 
           <div class="board-columns">
@@ -22,8 +21,8 @@
               </div>
             </div>
 
-            <div class="board-column add-column">
-              <button @click="openCreateRoadmapModal" class="btn btn-link">+ Add Roadmap</button>
+            <div class="board-column add-column" @click="openCreateRoadmapModal">
+              <button class="btn btn-link">+ Add Roadmap</button>
             </div>
           </div>
         </div>

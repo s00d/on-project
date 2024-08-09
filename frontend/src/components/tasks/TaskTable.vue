@@ -1,35 +1,39 @@
 <template>
   <div v-for="(tasks, group) in groupedTasks" :key="group">
     <h3 class="task-group-title">{{ group }}</h3>
-    <table class="table table-hover table-sm">
-      <thead>
-      <tr>
-        <th v-for="column in visibleColumns" @click="sort(column)" :key="column">
-          {{ column }}
-          <i v-if="sortKey === column" :class="sortIconClass(column)"></i>
-        </th>
-        <th scope="col">Actions</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr
-        v-for="task in tasks"
-        :key="task.id"
-        class="task-row"
+    <div class="table-responsive">
+      <table class="table table-hover table-sm">
+        <thead>
+        <tr>
+          <th v-for="column in visibleColumns" @click="sort(column)"  :key="column">
+            {{ column }}
+            <i v-if="sortKey === column" :class="sortIconClass(column)"></i>
+          </th>
+          <th scope="col" class="actions-sticky" style="width: 90px;">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr
+          v-for="task in tasks"
+          :key="task.id"
+          class="task-row"
 
-      >
-        <td :style="{backgroundColor: generatePriorityColor(task.priority ?? '')}" v-for="column in visibleColumns" :key="column" v-html="getColumnData(task, column)"></td>
-        <td>
-          <button class="btn btn-danger btn-sm" style="margin-right: 2px;" @click="$emit('open-task-modal', task)">
-            <i class="fas fa-edit"></i>
-          </button>
-          <button class="btn btn-info btn-sm" @click="$emit('open-preview-modal', task)">
-            <i class="fas fa-eye"></i>
-          </button>
-        </td>
-      </tr>
-      </tbody>
-    </table>
+        >
+          <td v-for="column in visibleColumns" :style="{backgroundColor: generatePriorityColor(task.priority ?? '')}"  :key="column" v-html="getColumnData(task, column)"></td>
+          <td class="actions-sticky" style="width: 90px;">
+            <div style="width: 90%; display: flex">
+              <button class="btn btn-danger btn-sm" style="margin-right: 2px;" @click="$emit('open-task-modal', task)">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-info btn-sm" @click="$emit('open-preview-modal', task)">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -265,5 +269,23 @@ const generatePriorityColor = (priority: string): string => {
   padding: 2px 4px;
   border-radius: 4px;
   color: white;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 600px; /* Устанавливает минимальную ширину таблицы, если требуется */
+}
+
+.table th.actions-sticky,
+.table td.actions-sticky {
+  position: sticky;
+  right: 0;
+  background-color: #fff;
+  z-index: 10;
 }
 </style>

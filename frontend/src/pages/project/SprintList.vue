@@ -13,7 +13,6 @@
             <h1 class="board-title">
               Sprints Overview
             </h1>
-            <button @click="openCreateSprintModal" class="btn btn-primary">New Sprint</button>
           </div>
 
           <div class="board-columns">
@@ -43,8 +42,8 @@
               </div>
             </div>
 
-            <div class="board-column add-column">
-              <button @click="openCreateSprintModal" class="btn btn-link">+ Add Sprint</button>
+            <div class="board-column add-column" @click="openCreateSprintModal">
+              <button class="btn btn-link">+ Add Sprint</button>
             </div>
           </div>
         </div>

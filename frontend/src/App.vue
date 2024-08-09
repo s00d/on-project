@@ -87,7 +87,7 @@ export default defineComponent({
 }
 
 .markdown-content p {
-  margin: 1rem 0;
+  margin: 0;
 }
 
 .markdown-content a {
@@ -175,4 +175,5 @@ export default defineComponent({
 .overflow-hidden {
   overflow: hidden;
 }
+
 </style>

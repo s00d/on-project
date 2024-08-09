@@ -108,11 +108,10 @@ export const useTaskStore = defineStore('task', {
     async updateTask(
       projectId: number,
       taskId: number,
-      task: TaskBase
+      task: Partial<TaskBase>
     ) {
       try {
         const response = await axios.put(`/tasks/${projectId}/${taskId}`, task)
-        const index = this.tasks.findIndex((t) => t.id === taskId)
         useAlertStore().setAlert('Task updated successfully', 'success')
       } catch (error) {
         useAlertStore().setAlert('Failed to update task', 'danger')
