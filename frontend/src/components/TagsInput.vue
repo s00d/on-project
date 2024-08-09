@@ -12,7 +12,7 @@
       type="text"
       class="form-control d-inline-block"
       :placeholder="placeholder"
-      style="border: none; box-shadow: none; outline: none; background-color: transparent; padding: 0 6px; margin: 0; width: auto; max-width: inherit;"
+      style="border: none; box-shadow: none; outline: none; background-color: transparent; padding: 0 6px; margin: 0; width: 100%; max-width: inherit;"
     />
   </div>
 </template>

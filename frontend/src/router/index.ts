@@ -24,7 +24,6 @@ import TeamPerformanceReport from '../pages/report/TeamPerformanceReport.vue'
 import PriorityDistributionReport from '../pages/report/PriorityDistributionReport.vue'
 import ProgressReport from '../pages/report/ProgressReport.vue'
 import TeamWorkloadReport from '../pages/report/TeamWorkloadReport.vue'
-import CreateTask from '@/pages/project/CreateTask.vue'
 
 import Calendar from '../pages/CalendarPage.vue'
 import ImportExport from '../pages/ImportExport.vue'
@@ -99,12 +98,6 @@ const routes = [
     path: '/cabinet/projects/:projectId',
     component: TaskList,
     name: 'TaskList',
-    beforeEnter: authGuard
-  },
-  {
-    path: '/cabinet/projects/:projectId/tasks/add',
-    component: CreateTask,
-    name: 'CreateTask',
     beforeEnter: authGuard
   },
   {

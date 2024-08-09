@@ -8,17 +8,25 @@
           {{ column }}
           <i v-if="sortKey === column" :class="sortIconClass(column)"></i>
         </th>
+        <th scope="col">Actions</th>
       </tr>
       </thead>
       <tbody>
       <tr
         v-for="task in tasks"
         :key="task.id"
-        @click="openTaskModal(task)"
         class="task-row"
 
       >
         <td :style="{backgroundColor: generatePriorityColor(task.priority ?? '')}" v-for="column in visibleColumns" :key="column" v-html="getColumnData(task, column)"></td>
+        <td>
+          <button class="btn btn-danger btn-sm" style="margin-right: 2px;" @click="$emit('open-task-modal', task)">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn btn-info btn-sm" @click="$emit('open-preview-modal', task)">
+            <i class="fas fa-eye"></i>
+          </button>
+        </td>
       </tr>
       </tbody>
     </table>
@@ -39,6 +47,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'open-task-modal', task: Task): void
+  (e: 'open-preview-modal', task: Task): void
 }>()
 
 const sortKey = ref('')
@@ -154,10 +163,6 @@ const getColumnData = (task: Task, column: string) => {
     default:
       return task.customFields?.[column] || ''
   }
-}
-
-const openTaskModal = (task: Task) => {
-  emit('open-task-modal', task)
 }
 
 const generateColor = (value: string, alpha: number = 0.8): string => {

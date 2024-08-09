@@ -7,10 +7,9 @@ import {
   JoinTable,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany, AfterLoad
+  OneToMany, AfterLoad, Index
 } from 'typeorm';
 import { Project } from './Project';
-import { User } from './User';
 import { Label } from './Label';
 import { Comment } from './Comment';
 import {TaskAttachment} from "./TaskAttachment";
@@ -23,12 +22,15 @@ export class Task {
   id!: number;
 
   @Column({ length: 128 })
+  @Index()
   title!: string;
 
-  @Column('text', { nullable: true })
+  @Column('text', { default: '' })
+  @Index()
   description!: string;
 
-  @Column({ length: 128 })
+  @Column({ length: 128, default: '' })
+  @Index()
   status!: string;
 
   @ManyToOne(() => Project, project => project.tasks, { nullable: false })
@@ -43,17 +45,18 @@ export class Task {
   @Column({ length: 128, default: 'Medium' })
   priority!: string;
 
-  @Column('int', { nullable: true })
+  @Column('int', { default: 0 })
   estimatedTime!: number;
 
-  @Column('int', { nullable: true })
+  @Column('int', { default: 0 })
   actualTime!: number;
 
   @ManyToMany(() => ProjectUser, projectUser => projectUser.tasks)
   @JoinTable()
   assignees!: ProjectUser[];
 
-  @Column({ length: 128, nullable: true })
+  @Column({ length: 128, default: '' })
+  @Index()
   type!: string;
 
   @Column('date', { nullable: true })
@@ -66,6 +69,7 @@ export class Task {
   relatedTasks!: Task[];
 
   @Column('simple-array', { nullable: true })
+  @Index()
   tags!: string[];
 
   @Column('simple-json', { nullable: true })

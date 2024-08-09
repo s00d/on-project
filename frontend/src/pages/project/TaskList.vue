@@ -16,6 +16,8 @@
             @apply-filters="applyFilters"
             @open-settings-modal="openSettingsModal"
             @open-save-filter-modal="openSaveFilterModal"
+            @create-task-modal="createTaskModal"
+            @update:search="(val) => search = val"
           />
           <TaskTable
             :tasks="taskStore.tasks"
@@ -23,18 +25,52 @@
             :groupBy="groupBy"
             :users="users"
             @open-task-modal="openTaskModal"
+            @open-preview-modal="openPreviewModal"
           />
           <PaginationComponent :total-pages="totalPages" :current-page="currentPage" @update:current-page="selectPage" />
 
           <!-- Task Modal -->
-          <ModalComponent :isOpen="isTaskModalOpen" title="Task Details" @close="closeTaskModal" pos="fixed-left">
+          <ModalComponent :isOpen="isTaskModalOpen" :title="selectedTask ? 'Edit Details' : 'Create Details'" @close="closeTaskModal" pos="fixed-left">
             <template #body>
-              <TaskCard v-if="isTaskModalOpen && selectedTask && project" :task="selectedTask" :project="project" :show-comments="true" @close="closeTaskModal" />
+              <TaskCard
+                v-if="isTaskModalOpen && selectedTask && project"
+                :projectId="projectId"
+                :project="project"
+                :initialTaskData="selectedTask"
+                :users="users"
+                mode="edit"
+                showComments
+                @task-saved="closeTaskModal"
+                @close="isTaskModalOpen = false"
+              />
+              <TaskCard
+                v-if="isTaskModalOpen && !selectedTask && project"
+                :projectId="projectId"
+                :project="project"
+                :users="users"
+                mode="create"
+                :show-comments="false"
+                @task-saved="closeTaskModal"
+                @close="isTaskModalOpen = false"
+              />
+            </template>
+          </ModalComponent>
+
+          <ModalComponent :isOpen="isPreviewModalOpen" :title="selectedTask?.title ?? ''" @close="closeTaskModal">
+            <template #body>
+              <TaskPreviewCard
+                v-if="isPreviewModalOpen && selectedTask && project"
+                :projectId="projectId"
+                :project="project"
+                :taskData="selectedTask"
+                :users="users"
+                @close="isPreviewModalOpen = false"
+              />
             </template>
           </ModalComponent>
 
           <!-- Settings Modal -->
-          <ModalComponent :isOpen="isSettingsModalOpen" title="Settings" @close="closeSettingsModal" pos="center">
+          <ModalComponent :isOpen="isSettingsModalOpen" title="Settings" @close="closeTaskModal" pos="center">
             <template #body>
               <SettingsModalContent
                 :status="status"
@@ -55,7 +91,7 @@
           </ModalComponent>
 
           <!-- Save Filter Modal -->
-          <ModalComponent :isOpen="isSaveFilterModalOpen" title="Save Filter" @close="closeSaveFilterModal" pos="center">
+          <ModalComponent :isOpen="isSaveFilterModalOpen" title="Save Filter" @close="closeTaskModal" pos="center">
             <template #body>
               <div class="mb-3">
                 <label for="filterName" class="form-label">Filter Name</label>
@@ -63,7 +99,7 @@
               </div>
             </template>
             <template #footer>
-              <button type="button" class="btn btn-secondary" @click="closeSaveFilterModal">Close</button>
+              <button type="button" class="btn btn-secondary" @click="closeTaskModal">Close</button>
               <button type="button" class="btn btn-primary" @click="saveFilter">Save</button>
             </template>
           </ModalComponent>
@@ -78,7 +114,7 @@ import { ref, onMounted, computed } from 'vue'
 import {type Task, useTaskStore} from '@/stores/taskStore'
 import { useRoute } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
-import TaskCard from '../../components/TaskCard.vue'
+import TaskCard from '@/components/tasks/TaskCard.vue'
 import Tabs from '@/components/Tabs.vue'
 import PaginationComponent from "@/components/PaginationComponent.vue"
 import TabsComponent from '@/components/tasks/TabsComponent.vue'
@@ -88,6 +124,7 @@ import ModalComponent from "@/components/ModalComponent.vue"
 import SettingsModalContent from '@/components/tasks/SettingsModalContent.vue'
 import { useAlertStore } from "@/stores/alertStore"
 import type {User} from "@/stores/authStore";
+import TaskPreviewCard from "@/components/tasks/TaskPreviewCard.vue";
 
 const taskStore = useTaskStore()
 const projectStore = useProjectStore()
@@ -104,6 +141,7 @@ const pageSize = ref(100)
 const currentPage = ref(1)
 const totalPages = ref(1)
 const isTaskModalOpen = ref(false)
+const isPreviewModalOpen = ref(false)
 const isSettingsModalOpen = ref(false)
 const isSaveFilterModalOpen = ref(false)
 const selectedTask = ref<null | Task>(null)
@@ -169,13 +207,26 @@ onMounted(async () => {
   users.value = await projectStore.fetchUsers(Number(projectId))
 })
 
+const createTaskModal = () => {
+  selectedTask.value = null
+  isTaskModalOpen.value = true
+}
+
 const openTaskModal = (task: Task) => {
   selectedTask.value = task
   isTaskModalOpen.value = true
 }
 
+const openPreviewModal = (task: Task) => {
+  selectedTask.value = task
+  isPreviewModalOpen.value = true
+}
+
 const closeTaskModal = async () => {
   isTaskModalOpen.value = false
+  isSettingsModalOpen.value = false
+  isPreviewModalOpen.value = false
+  isSaveFilterModalOpen.value = false
   selectedTask.value = null
   await applyFilters()
 }
@@ -184,16 +235,8 @@ const openSettingsModal = () => {
   isSettingsModalOpen.value = true
 }
 
-const closeSettingsModal = () => {
-  isSettingsModalOpen.value = false
-}
-
 const openSaveFilterModal = () => {
   isSaveFilterModalOpen.value = true
-}
-
-const closeSaveFilterModal = () => {
-  isSaveFilterModalOpen.value = false
 }
 
 const saveFilter = async () => {
@@ -215,7 +258,7 @@ const saveFilter = async () => {
   const savedFilters = [...projectStore.project?.savedFilters ?? [], { name: filterName.value, filters }]
   await projectStore.updateProject(pId, { savedFilters })
   filterName.value = ''
-  closeSaveFilterModal()
+  closeTaskModal()
   await projectStore.fetchProject(Number(projectId))
   loadSavedFilters()
 }

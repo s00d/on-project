@@ -13,10 +13,7 @@
     <div class="ms-auto d-flex align-items-end">
       <button @click="$emit('open-settings-modal')" class="btn btn-secondary mb-3">Settings</button>
       <button @click="$emit('open-save-filter-modal')" class="btn btn-secondary mb-3 ms-3">Save Filter</button>
-      <router-link
-        :to="`/cabinet/projects/${projectId}/tasks/add`"
-        class="btn btn-primary mb-3 ms-3"
-      >Create Task</router-link>
+      <button @click="$emit('create-task-modal')" class="btn btn-primary mb-3 ms-3">Create Task</button>
     </div>
   </div>
 </template>
@@ -29,7 +26,7 @@ const props = defineProps<{
   search: string
 }>()
 
-const emit = defineEmits(['update:search', 'apply-filters', 'open-settings-modal', 'open-save-filter-modal'])
+const emit = defineEmits(['update:search', 'apply-filters', 'open-settings-modal', 'open-save-filter-modal', 'create-task-modal'])
 
 const updateSearch = (event: Event) => {
   const target = event.target as HTMLInputElement

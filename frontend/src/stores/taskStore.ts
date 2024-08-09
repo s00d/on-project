@@ -2,23 +2,24 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useAlertStore } from './alertStore'
 import { socket } from '@/plugins/socketPlugin'
+import type {User} from "@/stores/authStore";
 
 export interface TaskBase {
-  title?: string | null
-  description?: string | null
-  status?: string | null
-  projectId?: number | null
-  assignees?: number[]
-  labelId?: number | null
-  dueDate?: Date | null
-  priority?: string | null
-  estimatedTime?: number | null
-  type?: string | null
-  plannedDate?: Date | null
-  relatedTaskId?: number | null
-  actualTime?: number | null
-  tags?: string[] | null
-  customFields?: { [name: string]: string }
+  title: string;
+  description: string; // Описание теперь обязательно, с значением по умолчанию ''
+  status: string; // Статус теперь обязателен, с значением по умолчанию ''
+  projectId: number; // Проект обязателен
+  assignees?: number[]; // Массив идентификаторов пользователей (опционально)
+  labelId?: number | null; // Идентификатор метки (опционально)
+  dueDate?: Date | null; // Дата завершения (опционально)
+  priority: string; // Приоритет теперь обязателен, с значением по умолчанию 'Medium'
+  estimatedTime: number; // Оценочное время теперь обязательно, с значением по умолчанию 0
+  actualTime: number; // Фактическое время теперь обязательно, с значением по умолчанию 0
+  type: string; // Тип задачи теперь обязателен, с значением по умолчанию ''
+  plannedDate?: Date | null; // Запланированная дата (опционально)
+  relatedTaskId?: number | null; // Идентификатор связанной задачи (опционально)
+  tags?: string[] | null; // Метки (опционально)
+  customFields?: { [name: string]: string }; // Кастомные поля (опционально)
 }
 
 export interface Task extends TaskBase {
@@ -40,6 +41,7 @@ export interface Comment {
   userId: number
   createdAt: string
   updatedAt: string
+  user?: User
 }
 
 interface TaskState {

@@ -3,43 +3,64 @@ import { AppDataSource } from '../ormconfig';
 import { Task } from '../models/Task';
 import { logTaskHistory } from './taskHistoryController';
 import { createNotification } from './notificationController';
-import {In, Like} from 'typeorm';
+import {Brackets, In, Like} from 'typeorm';
 import { io } from '../index';
 import { Label } from "../models/Label";
 import { Project } from "../models/Project";
-import { User } from "../models/User";
 import {ProjectUser} from "../models/ProjectUser";
 
 const getTasks = async (req: Request, res: Response) => {
   const { projectId } = req.params;
   const { status, priority, search, assignee, tags, pageSize = 10, page = 1 } = req.query;
 
-  const whereClause: any = { project: { id: parseInt(projectId) } };
-
-  if (status) whereClause.status = status;
-  if (priority) whereClause.priority = priority;
-  if (search) {
-    whereClause.title = Like(`%${search}%`);
-    whereClause.description = Like(`%${search}%`);
-  }
-
-  if (assignee) {
-    const assigneeIds = (assignee as string).split(',');
-    whereClause.assignees = { id: Like(`%${assigneeIds}%`) };
-  }
-
-  if (tags) {
-    whereClause.tags = (tags as string).split(',').map(tag => Like(`%${tag}%`));
-  }
-
   try {
     const taskRepository = AppDataSource.getRepository(Task);
-    const [tasks, count] = await taskRepository.findAndCount({
-      where: whereClause,
-      relations: ['label', 'assignees'],
-      skip: (Number(page) - 1) * Number(pageSize),
-      take: Number(pageSize),
-    });
+
+    const queryBuilder = taskRepository.createQueryBuilder('task')
+      .leftJoinAndSelect('task.label', 'label')
+      .leftJoinAndSelect('task.assignees', 'assignees')
+      .where('task.projectId = :projectId', { projectId: parseInt(projectId) });
+
+    if (status) {
+      queryBuilder.andWhere('task.status = :status', { status });
+    }
+
+    if (priority) {
+      queryBuilder.andWhere('task.priority = :priority', { priority });
+    }
+
+    if (search) {
+      queryBuilder.andWhere(
+        new Brackets(qb => {
+          qb.where('task.title LIKE :search', { search: `%${search}%` })
+            .orWhere('task.description LIKE :search', { search: `%${search}%` })
+            .orWhere('task.type LIKE :search', { search: `%${search}%` })
+            .orWhere('task.status LIKE :search', { search: `%${search}%` })
+            .orWhere('task.priority LIKE :search', { search: `%${search}%` });
+        })
+      );
+    }
+
+    if (assignee) {
+      const assigneeIds = (assignee as string).split(',');
+      queryBuilder.andWhere('assignees.id IN (:...assigneeIds)', { assigneeIds });
+    }
+
+    if (tags) {
+      const tagsArray = (tags as string).split(',');
+      queryBuilder.andWhere(
+        new Brackets(qb => {
+          tagsArray.forEach(tag => {
+            qb.orWhere(':tag = ANY(task.tags)', { tag });
+          });
+        })
+      );
+    }
+
+    const [tasks, count] = await queryBuilder
+      .skip((Number(page) - 1) * Number(pageSize))
+      .take(Number(pageSize))
+      .getManyAndCount();
 
     const tasksWithAssigneeIds = tasks.map(task => ({
       ...task,
@@ -48,8 +69,7 @@ const getTasks = async (req: Request, res: Response) => {
 
     res.json({ tasks: tasksWithAssigneeIds, total: count });
   } catch (err: any) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message, stack: error.stack });
+    res.status(400).json({ error: err.message, stack: err.stack });
   }
 };
 
@@ -108,7 +128,7 @@ const createTask = async (req: Request, res: Response) => {
       assignees,
       dueDate,
       priority,
-      estimatedTime,
+      estimatedTime: estimatedTime ?? 0,
       type,
       plannedDate,
       actualTime,

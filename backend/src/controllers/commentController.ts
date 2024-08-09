@@ -29,7 +29,28 @@ const addComment = async (req: Request, res: Response) => {
 
     const content = fields?.content?.toString();
     const userId = parseInt(fields?.userId?.toString() ?? '0');
-    const attachment = files?.filename && files?.filename?.length > 0 ? files.filename[0] : null;
+
+    const file = files?.attachment as File|undefined;
+
+    let savedFilename = null;
+
+    if (file) {
+      const uploadDir = path.join(__dirname, '../../uploads'); // путь к директории для загрузки файлов
+
+      const filename = `${Date.now()}_${file.name}`;
+      const filepath = path.join(uploadDir, filename);
+
+      // Перемещение файла из временной директории в желаемую
+      try {
+        // @ts-ignore
+        fs.renameSync(file.path, filepath)
+      } catch (err) {
+        return res.status(500).json({ error: 'File upload failed' });
+      }
+
+      savedFilename = filename;
+    }
+
 
     try {
       const commentRepository = AppDataSource.getRepository(Comment);
@@ -51,7 +72,7 @@ const addComment = async (req: Request, res: Response) => {
         content,
         task,
         user,
-        attachment: attachment ? attachment.newFilename : null,
+        attachment: savedFilename,
       });
 
       await commentRepository.save(comment);

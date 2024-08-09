@@ -1,22 +1,23 @@
 <template>
-  <div class="comment-card card mt-3">
-    <div class="card-body position-relative">
-      <div class="d-flex justify-content-between align-items-center">
-        <div>
-          <h5 class="card-title mb-1">{{ comment.User.username }}</h5>
-          <small class="text-muted">{{ new Date(comment.createdAt).toLocaleString() }}</small>
-        </div>
-        <div class="comment-actions">
-          <button @click="editComment" class="btn btn-link p-0"><i class="fas fa-edit"></i></button>
-          <button @click="deleteComment" class="btn btn-link p-0 text-danger">
-            <i class="fas fa-trash-alt"></i>
-          </button>
+
+  <div class="comment-card card my-3">
+    <div class="card-body p-2">
+      <div class="d-flex flex-start">
+        <div style="width: 100%">
+          <h6 v-if="comment.user" class="fw-bold mb-1" style="text-align: left;" v-text="comment.user.username"></h6>
+          <div class="d-flex align-items-center mb-3">
+            <p class="mb-0">
+              {{ new Date(comment.createdAt).toLocaleString() }}
+            </p>
+            <a @click.prevent="editComment" class="link-muted"><i class="fas fa-pencil-alt ms-2"></i></a>
+            <a @click.prevent="deleteComment" class="link-muted"><i class="fas fa-trash-alt ms-2"></i></a>
+          </div>
+          <span class="mb-0" v-html="parsedContent"></span>
+          <span v-if="comment.attachment" class="mt-2">
+            <a :href="`/uploads/${comment.attachment}`" target="_blank">Attachment</a>
+          </span>
         </div>
       </div>
-      <p class="card-text mt-2" v-html="parsedContent"></p>
-      <p v-if="comment.attachment">
-        <a :href="`/uploads/${comment.attachment}`" target="_blank">Attachment</a>
-      </p>
     </div>
   </div>
 </template>
@@ -24,24 +25,20 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue'
 import { marked } from 'marked'
-import { type Comment as CommentOriginal, useTaskStore } from '@/stores/taskStore'
-import type { User } from '@/stores/authStore'
-
-export interface Comment extends CommentOriginal {
-  User: User
-}
+import { type Comment, useTaskStore } from '@/stores/taskStore'
 
 const props = defineProps<{
   comment: Comment
   projectId: string
 }>()
+
 const taskStore = useTaskStore()
 const comment = ref({ ...props.comment })
 
 const parsedContent = computed(() => marked.parse(comment.value.content))
 
 const editComment = () => {
-  // Implement edit comment logic here
+  // Логика редактирования комментария
 }
 
 const deleteComment = async () => {
@@ -49,25 +46,7 @@ const deleteComment = async () => {
 }
 </script>
 
-<style>
-@import '@fortawesome/fontawesome-free/css/all.css';
+<style scoped>
 
-.comment-card {
-  background-color: #fff;
-  padding: 10px;
-  margin-bottom: 10px;
-  border-radius: 5px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-}
-
-.comment-actions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.comment-actions button {
-  display: flex;
-  align-items: center;
-}
+.link-muted { color: #aaa; } .link-muted:hover { color: #1266f1; }
 </style>
