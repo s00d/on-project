@@ -6,8 +6,10 @@
           <div class="board-header">
             <h1 class="board-title">
               Kanban Board
+
             </h1>
             <div class="selectors">
+              <button @click="createTaskModal" class="btn btn-primary">New Task</button>
               <div class="selector-item">
                 <label for="roadmap-select" class="pr-3">Roadmap</label>
                 <select id="roadmap-select" v-model="selectedRoadmap" @change="onRoadmapChange">
@@ -28,7 +30,17 @@
             </div>
           </div>
 
-          <div v-if="selectedSprint" class="board-columns">
+          <div class="board-columns">
+            <!-- Колонка для задач без спринта -->
+            <KanbanColumn
+              :status="'No Sprint'"
+              :tasks="tasksWithoutSprint"
+              :project-id="projectId"
+              :users="users"
+              @task-dropped="(taskId, newStatus) => onTaskDropped(taskId, newStatus, null)"
+            />
+
+            <!-- Остальные колонки -->
             <KanbanColumn
               v-for="status in project?.statuses"
               :key="status"
@@ -36,31 +48,48 @@
               :tasks="filteredTasks(status)"
               :project-id="projectId"
               :users="users"
-              @task-dropped="onTaskDropped"
+              @task-dropped="(taskId, newStatus) => onTaskDropped(taskId, newStatus, selectedSprint)"
             />
           </div>
         </div>
       </Tabs>
     </div>
   </div>
+
+  <ModalComponent :isOpen="isTaskModalOpen" title="create Task" @close="isTaskModalOpen = false" pos="fixed-left">
+    <template #body>
+      <TaskCard
+        v-if="isTaskModalOpen"
+        :projectId="projectId"
+        :project="project"
+        :users="users"
+        mode="create"
+        showComments
+        @task-saved="closeTaskModal"
+        @close="isTaskModalOpen = false"
+      />
+    </template>
+  </ModalComponent>
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted, ref} from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import KanbanColumn from '../../components/KanbanColumn.vue';
-import {useRoute} from 'vue-router';
+import { useRoute } from 'vue-router';
 import Tabs from '@/components/Tabs.vue';
-import {useProjectStore} from "@/stores/projectStore";
-import {useSprintStore} from "@/stores/sprintStore";
-import {useRoadmapStore} from "@/stores/roadmapStore";
-import type {Task} from "@/stores/taskStore";
-import {useTaskStore} from '@/stores/taskStore'
-import type {User} from "@/stores/authStore";
+import { useProjectStore } from "@/stores/projectStore";
+import { useSprintStore } from "@/stores/sprintStore";
+import { useRoadmapStore } from "@/stores/roadmapStore";
+import type { Task } from "@/stores/taskStore";
+import { useTaskStore } from '@/stores/taskStore';
+import type { User } from "@/stores/authStore";
+import TaskCard from "@/components/tasks/TaskCard.vue";
+import ModalComponent from "@/components/ModalComponent.vue";
 
 const projectStore = useProjectStore();
 const roadmapStore = useRoadmapStore();
 const sprintStore = useSprintStore();
-const taskStore = useTaskStore()
+const taskStore = useTaskStore();
 
 const route = useRoute();
 const projectId = route.params.projectId.toString();
@@ -68,16 +97,24 @@ const projectId = route.params.projectId.toString();
 const users = ref<{ [key: string]: User }>({});
 const selectedRoadmap = ref<number | null>(null);
 const selectedSprint = ref<number | null>(null);
+const isTaskModalOpen = ref(false);
 
 const roadmaps = computed(() => roadmapStore.getRoadmaps);
 const sprints = computed(() => sprintStore.getSprints);
 const project = computed(() => projectStore.project);
+
+// Все задачи из проекта
 const tasks = computed(() => {
   const sprint = sprints.value.find((s) => s.id === selectedSprint.value);
   if (sprint) {
     return sprint.tasks;
   }
   return [];
+});
+
+// Задачи без спринта
+const tasksWithoutSprint = computed(() => {
+  return taskStore.tasks.filter((task) => task.sprintId === null);
 });
 
 onMounted(async () => {
@@ -98,6 +135,7 @@ onMounted(async () => {
   }
 
   users.value = await projectStore.fetchUsers(pId);
+  await taskStore.fetchTasks(pId, { sprintId: 0 });
 });
 
 const onRoadmapChange = async () => {
@@ -121,33 +159,35 @@ const onSprintChange = () => {
 
 const filteredTasks = (status: string): Task[] => {
   if (selectedSprint.value === null) return [];
-  console.log(1111, tasks.value)
-  return tasks.value.filter((task) => {
-    console.log(222, task.status, status, task.status === status)
-    return task.status === status;
-  });
+  return tasks.value.filter((task) => task.status === status);
 };
 
-const onTaskDropped = async (taskId: number, newStatus: string) => {
-  const sprint = sprints.value.find((s) => s.id === selectedSprint.value);
-  if (sprint) {
-    const task = tasks.value.find((t) => t.id === taskId);
-    if (task) {
-      task.status = newStatus;
-      await taskStore.updateTask(parseInt(projectId), taskId, { status: newStatus })
-      if (selectedRoadmap.value){
-        await sprintStore.fetchSprints(parseInt(projectId), selectedRoadmap.value)
-      }
-    }
+const onTaskDropped = async (taskId: number, newStatus: string, sprintId: number|null) => {
+  await taskStore.updateTask(parseInt(projectId), taskId, { status: newStatus, sprintId });
+  if (selectedRoadmap.value) {
+    await sprintStore.fetchSprints(parseInt(projectId), selectedRoadmap.value);
+    const pId = parseInt(projectId);
+    await taskStore.fetchTasks(pId, { sprintId: 0 });
   }
 };
 
+const closeTaskModal = async () => {
+  if (selectedRoadmap.value) {
+    await sprintStore.fetchSprints(parseInt(projectId), selectedRoadmap.value);
+    const pId = parseInt(projectId);
+    await taskStore.fetchTasks(pId, { sprintId: 0 });
+  }
+  isTaskModalOpen.value = false
+}
 
+const createTaskModal = () => {
+  isTaskModalOpen.value = true
+}
 </script>
 
 <style scoped>
 .project-board {
-  max-width: 1200px;
+  max-width: 95%;
   margin: auto;
   padding: 20px;
   background-color: #f4f5f7;

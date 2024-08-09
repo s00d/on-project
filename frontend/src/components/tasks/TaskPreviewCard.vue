@@ -88,8 +88,11 @@ const props = defineProps<{
 
 const emit = defineEmits(['close'])
 
+const authStore = useAuthStore()
 const taskStore = useTaskStore()
+
 const comments = ref<Comment[]>([])
+const attachment = ref<File | null>(null)
 
 const newCommentContent = ref('')
 
@@ -100,7 +103,7 @@ const labelName = computed(() => {
 })
 
 const assignedUsers = computed(() => {
-  return Object.values(props.users).filter(user => props.taskData.assignees.includes(user.id)) ?? []
+  return Object.values(props.users).filter(user => props.taskData.assignees?.includes(user.id)) ?? []
 })
 
 const parsedDescription = computed(() => marked.parse(props.taskData.description))
@@ -145,7 +148,7 @@ const handleFileUpload = (event: Event) => {
 
 const addComment = async () => {
   await taskStore.addComment(
-    taskData.value.id,
+    props.taskData.id,
     { content: newCommentContent.value, userId: authStore.userId! },
     attachment.value
   )

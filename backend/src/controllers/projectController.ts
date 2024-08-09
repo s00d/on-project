@@ -218,6 +218,8 @@ const updateProject = async (req: Request, res: Response) => {
 const deleteProject = async (req: Request, res: Response) => {
   const { projectId } = req.params;
 
+  console.log(111, projectId)
+
   try {
     const projectRepository = AppDataSource.getRepository(Project);
 
@@ -233,7 +235,8 @@ const deleteProject = async (req: Request, res: Response) => {
     }
   } catch (err: any) {
     const error = err as Error;
-    res.status(400).json({ error: error.message });
+    error.stack
+    res.status(400).json({ error: error.message, stack: error.stack });
   }
 };
 

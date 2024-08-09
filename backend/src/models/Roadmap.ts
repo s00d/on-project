@@ -24,7 +24,7 @@ export class Roadmap {
   @ManyToOne(() => Project, project => project.roadmaps, { nullable: false })
   project!: Project;
 
-  @OneToMany(() => Sprint, sprint => sprint.roadmap)
+  @OneToMany(() => Sprint, sprint => sprint.roadmap, { cascade: true, onDelete: 'CASCADE' })
   sprints!: Sprint[];
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })

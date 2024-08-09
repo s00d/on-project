@@ -64,23 +64,23 @@ export class Project {
   @RelationId((project: Project) => project.owner)
   ownerId!: number;
 
-  @OneToMany(() => Task, task => task.project)
+  @OneToMany(() => Task, task => task.project, { cascade: true, onDelete: 'CASCADE' })
   tasks!: Task[];
 
-  @OneToMany(() => Label, label => label.project)
+  @OneToMany(() => Label, label => label.project, { cascade: true, onDelete: 'CASCADE' })
   labels!: Label[];
 
-  @OneToMany(() => ProjectUser, projectUser => projectUser.project)
+  @OneToMany(() => ProjectUser, projectUser => projectUser.project, { cascade: true, onDelete: 'CASCADE' })
   projectUsers!: ProjectUser[];
 
-  @OneToMany(() => Roadmap, roadmap => roadmap.project)
+  @OneToMany(() => Roadmap, roadmap => roadmap.project, { cascade: true, onDelete: 'CASCADE' })
   roadmaps!: Roadmap[];
 
   @ManyToMany(() => User, user => user.joinedProjects)
   @JoinTable()
   users!: User[];
 
-  @OneToMany(() => Sprint, sprint => sprint.project)  // Добавляем связь со Sprint
+  @OneToMany(() => Sprint, sprint => sprint.project, { cascade: true, onDelete: 'CASCADE' })  // Добавляем связь со Sprint
   sprints!: Sprint[];
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })

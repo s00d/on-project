@@ -12,7 +12,7 @@ import {Sprint} from "../models/Sprint";
 
 const getTasks = async (req: Request, res: Response) => {
   const { projectId } = req.params;
-  const { status, priority, search, assignee, tags, pageSize = 10, page = 1 } = req.query;
+  const { status, priority, search, assignee, tags, sprintId, pageSize = 10, page = 1 } = req.query;
 
   try {
     const taskRepository = AppDataSource.getRepository(Task);
@@ -28,6 +28,17 @@ const getTasks = async (req: Request, res: Response) => {
 
     if (priority) {
       queryBuilder.andWhere('task.priority = :priority', { priority });
+    }
+
+    if (sprintId !== undefined) {
+      const sprintIdNumber = parseInt(sprintId.toString())
+      if (sprintIdNumber === 0) {
+        // Фильтр для задач без спринта (sprintId IS NULL)
+        queryBuilder.andWhere('task.sprintId IS NULL');
+      } else {
+        // Фильтр для задач с указанным sprintId
+        queryBuilder.andWhere('task.sprintId = :sprintId', { sprintId: sprintIdNumber });
+      }
     }
 
     if (search) {
@@ -215,11 +226,16 @@ const updateTask = async (req: Request, res: Response) => {
       if (tags !== undefined) updatedFields.tags = tags;
       if (customFields !== undefined) updatedFields.customFields = customFields;
       if (sprintId !== undefined) {
-        const sprint = await sprintRepository.findOne({ where: { id: parseInt(sprintId) } }) ;
-        if (!sprint) {
-          return res.status(404).json({ error: 'Sprint not found' });
+        if(sprintId === null) {
+          updatedFields.sprint = null;
+        } else {
+          const sprint = await sprintRepository.findOne({ where: { id: parseInt(sprintId) } }) ;
+          if (!sprint) {
+            return res.status(404).json({ error: 'Sprint not found' });
+          }
+          updatedFields.sprint = sprint;
         }
-        updatedFields.sprint = sprint;
+
       }
 
       await taskRepository.save({ ...task, ...updatedFields });

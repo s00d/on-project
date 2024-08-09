@@ -14,6 +14,8 @@
       class="task-card"
       draggable="true"
       @dragstart="(event) => onDragStart(event, task.id)"
+
+      @click="showEdit(task)"
     >
       <h5 class="card-title">{{ task.title }}</h5>
       <p v-if="task.assignees && task.assignees.length">
@@ -24,6 +26,22 @@
       </p>
     </div>
   </div>
+
+  <ModalComponent :isOpen="!!selectedTask" title="Edit Details" @close="closeTaskModal" pos="fixed-left">
+    <template #body>
+      <TaskCard
+        v-if="selectedTask"
+        :projectId="projectId"
+        :project="project"
+        :initialTaskData="selectedTask"
+        :users="users"
+        mode="edit"
+        showComments
+        @task-saved="closeTaskModal"
+        @close="selectedTask = null"
+      />
+    </template>
+  </ModalComponent>
 </template>
 
 <script lang="ts" setup>
@@ -31,6 +49,9 @@ import { ref, computed } from 'vue'
 import { useTaskStore } from '@/stores/taskStore'
 import type { Task } from '@/stores/taskStore'
 import type {User} from "@/stores/authStore";
+import TaskCard from "@/components/tasks/TaskCard.vue";
+import ModalComponent from "@/components/ModalComponent.vue";
+import {useProjectStore} from "@/stores/projectStore";
 
 interface Props {
   status: string
@@ -42,7 +63,10 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits(['task-dropped'])
 
+const projectStore = useProjectStore()
+
 const isDragOver = ref(false)
+const selectedTask = ref<Task|null>(null)
 
 const onDragStart = (event: DragEvent, taskId: number) => {
   event.dataTransfer?.setData('text/plain', taskId.toString())
@@ -64,6 +88,18 @@ const onDragEnter = () => {
 const onDragLeave = () => {
   isDragOver.value = false
 }
+
+const showEdit = (task: Task) => {
+  selectedTask.value = task
+}
+
+const closeTaskModal = (task: Task) => {
+  selectedTask.value = null
+}
+
+const project = computed(() => {
+  return projectStore.project
+})
 </script>
 
 <style>
@@ -87,12 +123,11 @@ const onDragLeave = () => {
 }
 
 .task-card {
-  background-color: #fff;
   padding: 15px;
   border-radius: 5px;
   margin-bottom: 10px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  background-color: rgba(128, 128, 128, 0.13);
+  background-color: rgb(255 255 255 / 81%);
 }
 
 .card-title {

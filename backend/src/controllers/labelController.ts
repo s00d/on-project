@@ -1,11 +1,17 @@
 import { Request, Response } from 'express';
 import { Label } from '../models/Label';
 import { AppDataSource } from '../ormconfig';
+import {Project} from "../models/Project";
 
 const getLabels = async (req: Request, res: Response) => {
+  const { projectId } = req.params;
   try {
     const labelRepository = AppDataSource.getRepository(Label);
-    const labels = await labelRepository.find();
+
+    const labels = await labelRepository.createQueryBuilder('label')
+      .where('label.projectId = :projectId', { projectId: parseInt(projectId) })
+      .getMany();
+
     res.json(labels);
   } catch (err: any) {
     const error = err as Error;

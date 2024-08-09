@@ -72,7 +72,7 @@ export class Task {
 
   @ManyToOne(() => Task, task => task.sprint, { nullable: true })
   @JoinColumn({ name: 'sprintId' })
-  sprint!: Sprint;
+  sprint!: Sprint|null;
 
   @RelationId((task: Task) => task.sprint)
   sprintId!: number;

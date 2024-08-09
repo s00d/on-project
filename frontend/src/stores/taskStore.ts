@@ -54,6 +54,7 @@ interface TaskState {
 interface TaskFilters {
   search?: string
   status?: string
+  sprintId?: number|null
   priority?: string
   assignee?: string
   pageSize?: number
