@@ -6,7 +6,7 @@ import {
   generateTeamPerformanceReport,
   generatePriorityDistributionReport,
   generateProgressReport,
-  generateTeamWorkloadReport
+  generateTeamWorkloadReport, generateUniversalReport
 } from '../controllers/reportController'
 import { authenticateAll } from '../middlewares/authMiddleware'
 
@@ -19,5 +19,6 @@ router.get('/project/:projectId/performance', authenticateAll, generateTeamPerfo
 router.get('/project/:projectId/priority', authenticateAll, generatePriorityReport)
 router.get('/project/:projectId/progress', authenticateAll, generateProgressReport)
 router.get('/project/:projectId/workload', authenticateAll, generateTeamWorkloadReport)
+router.post('/project/:projectId/universal', authenticateAll, generateUniversalReport)
 
 export { router as reportRouter }

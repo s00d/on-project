@@ -9,6 +9,8 @@
 </template>
 
 <script lang="ts" setup>
+import UniversalReport from "@/pages/report/UniversalReport.vue";
+
 const props = defineProps<{
   projectId: string
 }>()
@@ -20,7 +22,8 @@ const links = [
   { name: 'Progress Report', routeName: 'ProgressReport' },
   { name: 'Project Report', routeName: 'ProjectReport' },
   { name: 'Team Performance Report', routeName: 'TeamPerformanceReport' },
-  { name: 'Team Workload Report', routeName: 'TeamWorkloadReport' }
+  { name: 'Team Workload Report', routeName: 'TeamWorkloadReport' },
+  { name: 'Universal Report Builder', routeName: 'UniversalReport' }
 ]
 </script>
 

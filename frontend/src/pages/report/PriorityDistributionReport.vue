@@ -59,6 +59,7 @@ import Tabs from '@/components/Tabs.vue'
 import ReportsLinks from "@/components/ReportsLinks.vue";
 import { useRoute } from "vue-router";
 import {useProjectStore} from "@/stores/projectStore";
+import {useAlertStore} from "@/stores/alertStore";
 
 Chart.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, PieController, BarController)
 
@@ -159,8 +160,9 @@ const fetchReport = async () => {
     const response = await axios.get(`/reports/project/${projectId}/priority_distribution?period=${selectedPeriod.value}&user=${selectedUser.value}&type=${selectedReportType.value}`)
     report.value = response.data
     createChart()
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to generate report', error)
+    useAlertStore().setAlert(`Failed to generate report: ${error.response?.data?.error}`, 'danger')
   }
 }
 

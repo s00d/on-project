@@ -31,6 +31,8 @@ import TaskTemplates from '../pages/project/TaskTemplates.vue'
 
 import {authGuard} from "@/middleware/authGuard";
 import {guestGuard} from "@/middleware/guestGuard";
+import UniversalReport from "@/pages/report/UniversalReport.vue";
+import NotificationList from "@/pages/NotificationList.vue";
 
 const routes = [
   { path: '/', component: Home, name: 'Home' },
@@ -74,6 +76,12 @@ const routes = [
     path: '/cabinet/profile',
     component: ProfilePage,
     name: 'ProfilePage',
+    beforeEnter: authGuard
+  },
+  {
+    path: '/cabinet/notifications',
+    component: NotificationList,
+    name: 'NotificationList',
     beforeEnter: authGuard
   },
   {
@@ -146,6 +154,12 @@ const routes = [
     path: '/cabinet/reports/:projectId/workload',
     component: TeamWorkloadReport,
     name: 'TeamWorkloadReport',
+    beforeEnter: authGuard
+  },
+  {
+    path: '/cabinet/reports/:projectId/universal',
+    component: UniversalReport,
+    name: 'UniversalReport',
     beforeEnter: authGuard
   },
   {

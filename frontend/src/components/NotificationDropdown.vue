@@ -15,6 +15,11 @@
         {{ notification.message }}
         <button class="btn btn-link" @click="markAsRead(notification.id)">Mark as read</button>
       </li>
+      <li>
+        <li class="dropdown-item">
+          <router-link class="nav-link" :to="{ name: 'NotificationList' }" tag="span">See all</router-link>
+        </li>
+      </li>
     </ul>
   </div>
 </template>
