@@ -19,12 +19,20 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits } from 'vue';
+import {defineProps, defineEmits, watch} from 'vue';
 
-defineProps({
+const props = defineProps({
   isOpen: Boolean,
   title: String,
   pos: String
+});
+
+watch(() => props.isOpen, (newVal) => {
+  if (newVal) {
+    document.body.classList.add('overflow-hidden');
+  } else {
+    document.body.classList.remove('overflow-hidden');
+  }
 });
 
 const emits = defineEmits(['close']);

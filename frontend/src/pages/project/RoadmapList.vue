@@ -29,13 +29,19 @@
         </div>
       </Tabs>
 
-      <RoadmapFormModal
-        v-if="isModalOpen && currentRoadmapData"
-        :isEditMode="isEditMode"
-        :roadmap-data="currentRoadmapData"
-        @save="handleSaveRoadmap"
-        @close="closeModal"
-      />
+      <ModalComponent :isOpen="isModalOpen" :title="isEditMode ? 'Edit Sprint' : 'Create Sprint'" @close="closeModal">
+        <template #body>
+          <RoadmapFormModal
+            v-if="isModalOpen && currentRoadmapData"
+            :isEditMode="isEditMode"
+            :roadmap-data="currentRoadmapData"
+            @save="handleSaveRoadmap"
+            @close="closeModal"
+          />
+        </template>
+      </ModalComponent>
+
+
     </div>
   </div>
 </template>
@@ -46,6 +52,8 @@ import {type Roadmap, useRoadmapStore} from '@/stores/roadmapStore';
 import Tabs from "@/components/Tabs.vue";
 import { useRoute } from "vue-router";
 import RoadmapFormModal from "@/components/sprint/RoadmapFormModal.vue";
+import SprintFormModal from "@/components/sprint/SprintFormModal.vue";
+import ModalComponent from "@/components/ModalComponent.vue";
 
 const route = useRoute();
 

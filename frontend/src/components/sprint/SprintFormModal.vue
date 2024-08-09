@@ -1,35 +1,40 @@
 <template>
-  <div class="modal-overlay" @click.self="closeModal">
-    <div class="modal-content">
-      <h2>{{ isEditMode ? 'Edit Sprint' : 'Create Sprint' }}</h2>
-      <form @submit.prevent="submitForm">
-        <div class="form-group">
-          <label for="title">Title</label>
-          <input v-model="form.title" type="text" id="title" required />
-        </div>
-        <div class="form-group">
-          <label for="description">Description</label>
-          <textarea v-model="form.description" id="description" required></textarea>
-        </div>
-        <div class="form-group">
-          <label for="startDate">Start Date</label>
-          <input v-model="form.startDate" type="datetime-local" id="startDate" required />
-        </div>
-        <div class="form-group">
-          <label for="endDate">End Date</label>
-          <input v-model="form.endDate" type="datetime-local" id="endDate" required />
-        </div>
-        <button type="submit" class="btn btn-primary">{{ isEditMode ? 'Save Changes' : 'Create Sprint' }}</button>
-        <button type="button" class="btn btn-secondary" @click="closeModal">Cancel</button>
-      </form>
+  <form @submit.prevent="submitForm">
+    <div class="form-group">
+      <label for="title">Title</label>
+      <input v-model="form.title" type="text" id="title" required />
     </div>
-  </div>
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea v-model="form.description" id="description" required></textarea>
+    </div>
+    <div class="form-group">
+      <label for="startDate">Start Date</label>
+      <input v-model="form.startDate" type="datetime-local" id="startDate" required />
+    </div>
+    <div class="form-group">
+      <label for="endDate">End Date</label>
+      <input v-model="form.endDate" type="datetime-local" id="endDate" required />
+    </div>
+    <button type="submit" class="btn btn-primary">{{ isEditMode ? 'Save Changes' : 'Create Sprint' }}</button>
+    <button type="button" class="btn btn-secondary" @click="closeModal">Cancel</button>
+  </form>
 </template>
 
 <script lang="ts" setup>
 import { ref, defineProps, defineEmits, onMounted, watch } from 'vue';
 import type {Sprint} from "@/stores/sprintStore";
 
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
 
 const props = defineProps<{
   isEditMode: boolean
@@ -42,8 +47,8 @@ const form = ref<Sprint>({
   id: 0,
   title: '',
   description: '',
-  startDate: new Date,
-  endDate: new Date,
+  startDate: formatDate((new Date).toLocaleDateString()),
+  endDate: formatDate((new Date).toLocaleDateString()),
   roadmapId: 0,
   tasks: [],
 });
@@ -59,12 +64,23 @@ const closeModal = () => {
 onMounted(() => {
   if (props.isEditMode && props.sprintData) {
     form.value = { ...props.sprintData };
+    form.value = {
+      ...props.sprintData,
+      startDate: formatDate(props.sprintData.startDate.toString()),
+      endDate: formatDate(props.sprintData.endDate.toString()),
+    };
+
   }
 });
 
 watch(() => props.sprintData, (newVal) => {
   if (props.isEditMode && newVal) {
     form.value = { ...newVal };
+    form.value = {
+      ...newVal,
+      startDate: formatDate(newVal.startDate.toString()),
+      endDate: formatDate(newVal.endDate.toString()),
+    };
   }
 });
 </script>

@@ -61,7 +61,6 @@ export const useAuthStore = defineStore('auth', {
     },
     async fetchUser() {
       const response = await axios.get('/users/me')
-      console.log(1111, response)
       if(response.data.user) {
         this.user = { ...response.data }
         this.userId = response.data.user.id

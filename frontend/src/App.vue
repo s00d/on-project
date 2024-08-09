@@ -172,4 +172,7 @@ export default defineComponent({
   margin: 2rem 0;
 }
 
+.overflow-hidden {
+  overflow: hidden;
+}
 </style>

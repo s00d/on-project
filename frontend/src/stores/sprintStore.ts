@@ -8,8 +8,8 @@ export interface Sprint {
   id: number
   title: string
   description: string
-  startDate: Date
-  endDate: Date
+  startDate: string
+  endDate: string
   roadmapId: number
   tasks: Task[]
 }

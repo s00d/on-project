@@ -1,21 +1,17 @@
 <template>
-  <div class="modal-overlay" @click.self="closeModal">
-    <div class="modal-content">
-      <h2>{{ isEditMode ? 'Edit Roadmap' : 'Create Roadmap' }}</h2>
-      <form @submit.prevent="submitForm">
-        <div class="form-group">
-          <label for="title">Title</label>
-          <input v-model="form.title" type="text" id="title" required />
-        </div>
-        <div class="form-group">
-          <label for="description">Description</label>
-          <textarea v-model="form.description" id="description" required></textarea>
-        </div>
-        <button type="submit" class="btn btn-primary">{{ isEditMode ? 'Save Changes' : 'Create Roadmap' }}</button>
-        <button type="button" class="btn btn-secondary" @click="closeModal">Cancel</button>
-      </form>
+  <h2>{{ isEditMode ? 'Edit Roadmap' : 'Create Roadmap' }}</h2>
+  <form @submit.prevent="submitForm">
+    <div class="form-group">
+      <label for="title">Title</label>
+      <input v-model="form.title" type="text" id="title" required />
     </div>
-  </div>
+    <div class="form-group">
+      <label for="description">Description</label>
+      <textarea v-model="form.description" id="description" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">{{ isEditMode ? 'Save Changes' : 'Create Roadmap' }}</button>
+    <button type="button" class="btn btn-secondary" @click="closeModal">Cancel</button>
+  </form>
 </template>
 
 <script lang="ts" setup>

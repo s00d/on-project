@@ -48,15 +48,25 @@
             </div>
           </div>
         </div>
+
+
+        <div class="project-board" v-if="isLoaded">
+          <ScrumRoadmapTimeline :sprints="sprints" />
+        </div>
       </Tabs>
 
-      <SprintFormModal
-        v-if="isModalOpen && currentSprintData"
-        :isEditMode="isEditMode"
-        :sprint-data="currentSprintData"
-        @save="handleSaveSprint"
-        @close="closeModal"
-      />
+      <ModalComponent :isOpen="isModalOpen" :title="isEditMode ? 'Edit Sprint' : 'Create Sprint'" @close="closeModal">
+        <template #body>
+          <SprintFormModal
+            v-if="isModalOpen && currentSprintData"
+            :isEditMode="isEditMode"
+            :sprint-data="currentSprintData"
+            @save="handleSaveSprint"
+            @close="closeModal"
+          />
+        </template>
+      </ModalComponent>
+
     </div>
   </div>
 </template>
@@ -67,6 +77,8 @@ import {type Sprint, useSprintStore} from '@/stores/sprintStore';
 import Tabs from "@/components/Tabs.vue";
 import { useRoute } from "vue-router";
 import SprintFormModal from "@/components/sprint/SprintFormModal.vue";
+import ScrumRoadmapTimeline from "@/components/sprint/ScrumRoadmapTimeline.vue";
+import ModalComponent from "@/components/ModalComponent.vue";
 
 const route = useRoute();
 
@@ -77,6 +89,7 @@ const sprintStore = useSprintStore();
 
 const sprints = computed(() => sprintStore.getSprints);
 
+const isLoaded = ref(false);
 const isModalOpen = ref(false);
 const isEditMode = ref(false);
 const currentSprintData = ref<Sprint|null>(null);
@@ -87,8 +100,8 @@ const openCreateSprintModal = () => {
     id: 0,
     title: '',
     description: '',
-    startDate: new Date,
-    endDate: new Date,
+    startDate: (new Date).toString(),
+    endDate: (new Date).toString(),
     roadmapId: 0,
     tasks: [],
   };
@@ -119,7 +132,7 @@ const deleteSprint = async (sprintId: number) => {
   await sprintStore.deleteSprint(projectId, sprintId);
 };
 
-const formatDate = (date: Date) => {
+const formatDate = (date: Date|string) => {
   return new Date(date).toLocaleDateString();
 };
 
@@ -133,6 +146,7 @@ const getPriorityClass = (priority: string) => {
 
 const fetchSprints = async () => {
   await sprintStore.fetchSprints(projectId, roadmapId);
+  isLoaded.value = true;
 };
 
 onMounted(() => {
