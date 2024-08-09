@@ -109,7 +109,7 @@ const sort = (key: string) => {
       const usernamesB = getUsernames(b)
       result = usernamesA.localeCompare(usernamesB)
     } else if (key === 'Label') {
-      result = (a.Label?.name || '').localeCompare(b.Label?.name || '')
+      result = (a.label?.name || '').localeCompare(b.label?.name || '')
     } else if (key === 'Tags') {
       result = (a.tags?.join(', ') || '').localeCompare(b.tags?.join(', ') || '')
     } else {
@@ -145,7 +145,7 @@ const getColumnData = (task: Task, column: string) => {
     case 'Sprint':
       return task.sprintId && sprintMap.value[task.sprintId] ? sprintMap.value[task.sprintId].title ?? 'N/A' : 'N/A'
     case 'Label':
-      return task.Label ? `<span class="badge" style="background-color: ${task.Label.color}">${task.Label.name}</span>` : ''
+      return task.label ? `<span class="badge" style="background-color: ${task.label.color}">${task.label.name}</span>` : ''
     case 'Assignee':
       vals = []
       if (task.assignees?.length) {

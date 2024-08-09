@@ -25,7 +25,7 @@ export interface TaskBase {
 
 export interface Task extends TaskBase {
   id: number
-  Label?: { name: string; color: string; id: number }
+  label?: { name: string; color: string; id: number }
 }
 
 export interface Label {
