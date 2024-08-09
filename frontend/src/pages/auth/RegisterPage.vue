@@ -51,7 +51,7 @@ const register = async () => {
       password: password.value
     })
     useAlertStore().setAlert('Registration successful', 'success')
-    router.push('/auth/login')
+    router.push({ name: 'Login' })
   } catch (error) {
     useAlertStore().setAlert('Registration failed', 'danger')
   }

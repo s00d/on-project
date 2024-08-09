@@ -177,7 +177,7 @@ const updateProject = async () => {
     tags: tags.value,
     types: types.value
   })
-  router.push('/cabinet')
+  router.push({ name: 'ProjectList' })
 }
 
 const fetchLabels = async () => {
@@ -204,7 +204,7 @@ const deleteLabel = async (labelId: number) => {
 }
 
 function close() {
-  router.push(`/cabinet/projects/${projectId}`)
+  router.push({ name: 'TaskList', params: {projectId: projectId} })
 }
 
 onMounted(async () => {

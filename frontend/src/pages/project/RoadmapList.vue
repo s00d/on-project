@@ -25,7 +25,7 @@
               <p>{{ roadmap.description }}</p>
               <button @click="deleteRoadmap(roadmap.id)" class="btn btn-danger">Delete</button>
               <button @click="editRoadmap(roadmap)" class="btn btn-secondary">Edit</button>
-              <router-link :to="`/roadmaps/${roadmap.id}/sprints`" class="btn btn-info"
+              <router-link :to="{ name: 'SprintList', params: { roadmapId: roadmap.id } }" class="btn btn-info"
                 >View Sprints</router-link
               >
             </li>

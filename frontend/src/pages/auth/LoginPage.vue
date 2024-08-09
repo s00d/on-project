@@ -37,9 +37,9 @@ const login = async () => {
   try {
     const result = await authStore.login({ email: email.value, password: password.value })
     if (result?.twoFactorRequired) {
-      router.push('/auth/verify-2fa')
+      router.push({ name: 'TwoFactorAuth' })
     } else {
-      router.push('/cabinet')
+      router.push({ name: 'ProjectList' })
     }
   } catch (err: any) {
     error.value = 'Login failed: ' + err.response?.data?.error || err.message

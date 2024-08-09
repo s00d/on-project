@@ -3,7 +3,7 @@
     <div class="content">
       <div class="container mt-5">
         <h1>Projects</h1>
-        <router-link class="btn btn-primary mb-3" to="/cabinet/projects/add"
+        <router-link class="btn btn-primary mb-3" :to="{ name: 'AddProject' }"
           >Add Project</router-link
         >
         <div v-if="projects.length === 0" class="alert alert-info">No projects available</div>
@@ -18,13 +18,13 @@
               <p v-html="parseMd(project.description)"></p>
             </div>
             <div>
-              <router-link class="btn btn-info" :to="`/cabinet/projects/${project.id}`"
+              <router-link class="btn btn-info" :to="{ name: 'TaskList', params: { projectId: project.id } }"
                 >Select</router-link
               >
               <router-link
                 v-if="project.ownerId === userId"
                 class="btn btn-secondary ms-2"
-                :to="`/cabinet/projects/${project.id}/edit`"
+                :to="{ name: 'EditProject', params: { projectId: project.id } }"
                 >Edit</router-link
               >
               <button
@@ -47,6 +47,7 @@ import { computed, onMounted } from 'vue'
 import { useProjectStore } from '@/stores/projectStore'
 import { useAuthStore } from '@/stores/authStore'
 import { marked } from 'marked'
+import TaskList from "@/pages/project/TaskList.vue";
 
 const projectStore = useProjectStore()
 const authStore = useAuthStore()

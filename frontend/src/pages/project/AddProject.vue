@@ -33,6 +33,6 @@ const description = ref('')
 
 const addProject = async () => {
   await projectStore.createProject({ name: name.value, description: description.value })
-  router.push('/cabinet')
+  router.push({ name: 'ProjectList' })
 }
 </script>
