@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import { AppDataSource } from '../ormconfig';
 import { Project } from '../models/Project';
+import { startOfWeek, startOfMonth, startOfYear } from 'date-fns';
+import {Task} from "../models/Task";
+
+type DateRange = [Date, Date];
 
 const generateReport = async (req: Request, res: Response) => {
   const projectId = req.params.projectId;
@@ -30,30 +34,59 @@ const generateReport = async (req: Request, res: Response) => {
 };
 
 const generatePriorityReport = async (req: Request, res: Response) => {
-  const projectId = req.params.projectId;
+  const { projectId } = req.params;
+  const { period = 'all', user = 'all', type = 'priority' } = req.query;
+
   try {
     const projectRepository = AppDataSource.getRepository(Project);
-    const project = await projectRepository.findOne({
+    const project: Project | null = await projectRepository.findOne({
       where: { id: parseInt(projectId) },
-      relations: ['tasks'],
+      relations: ['tasks', 'tasks.assignees'],
     });
+
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
-    const tasks = project.tasks;
-    const priorityCounts = tasks?.reduce(
-      (acc, task) => {
-        acc[task.priority] = (acc[task.priority] || 0) + 1;
+
+    const now: Date = new Date();
+    let dateRange: DateRange;
+
+    switch (period) {
+      case 'week':
+        dateRange = [startOfWeek(now), now];
+        break;
+      case 'month':
+        dateRange = [startOfMonth(now), now];
+        break;
+      case 'year':
+        dateRange = [startOfYear(now), now];
+        break;
+      default:
+        dateRange = [new Date(0), now]; // Все время
+    }
+
+    const tasks: Task[] | undefined = project.tasks?.filter((task: Task) => {
+      const isInRange = task.createdAt >= dateRange[0] && task.createdAt <= dateRange[1];
+      const isAssignedToUser = user === 'all' || task.assignees.some(assignee => assignee.id === parseInt(user.toString()));
+      return isInRange && isAssignedToUser;
+    });
+
+    const reportData = tasks?.reduce(
+      (acc: Record<string, number>, task: Task) => {
+        const key = type === 'priority' ? task.priority : task.status;
+        acc[key] = (acc[key] || 0) + 1;
         return acc;
       },
-      {} as Record<string, number>
+      {}
     );
-    res.json(priorityCounts);
+
+    res.json(reportData);
   } catch (err: any) {
     const error = err as Error;
     res.status(400).json({ error: error.message });
   }
 };
+
 
 const generateOverdueReport = async (req: Request, res: Response) => {
   const projectId = req.params.projectId;
