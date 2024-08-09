@@ -36,6 +36,15 @@
       <li class="nav-item">
         <router-link
           class="nav-link"
+          :class="{ active: isActive('RoadmapList') }"
+          :to="{ name: 'RoadmapList', params: { projectId: projectId } }"
+        >
+          Roadmap
+        </router-link>
+      </li>
+      <li class="nav-item">
+        <router-link
+          class="nav-link"
           :class="{ active: isActive('EditProject') }"
           :to="{ name: 'EditProject', params: { projectId: projectId } }"
         >

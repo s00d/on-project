@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import { socket } from '@/plugins/socketPlugin'
 import { useAlertStore } from './alertStore'
-import type {User} from "@/stores/authStore";
+import type { Task } from "@/stores/taskStore";
 
 export interface Sprint {
   id: number
@@ -11,6 +11,7 @@ export interface Sprint {
   startDate: Date
   endDate: Date
   roadmapId: number
+  tasks: Task[]
 }
 
 interface SprintState {

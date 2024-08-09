@@ -30,6 +30,7 @@ const getProject = async (req: Request, res: Response) => {
 
     const project = await projectRepository.createQueryBuilder('project')
       .innerJoin('project.projectUsers', 'projectUser', 'projectUser.userId = :userId', { userId })
+      .leftJoinAndSelect('project.sprints', 'sprint')
       .where('project.id = :projectId', { projectId })
       .getOne();
 

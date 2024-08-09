@@ -7,7 +7,7 @@ import {
   JoinTable,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany, AfterLoad, Index
+  OneToMany, AfterLoad, Index, JoinColumn, RelationId
 } from 'typeorm';
 import { Project } from './Project';
 import { Label } from './Label';
@@ -15,6 +15,8 @@ import { Comment } from './Comment';
 import {TaskAttachment} from "./TaskAttachment";
 import {TaskHistory} from "./TaskHistory";
 import {ProjectUser} from "./ProjectUser";
+import {Sprint} from "./Sprint";
+import {User} from "./User";
 
 @Entity('tasks')
 export class Task {
@@ -67,6 +69,13 @@ export class Task {
 
   @ManyToOne(() => Project, project => project.tasks, { nullable: true })
   relatedTasks!: Task[];
+
+  @ManyToOne(() => Task, task => task.sprint, { nullable: true })
+  @JoinColumn({ name: 'sprintId' })
+  sprint!: Sprint;
+
+  @RelationId((task: Task) => task.sprint)
+  sprintId!: number;
 
   @Column('simple-array', { nullable: true })
   @Index()

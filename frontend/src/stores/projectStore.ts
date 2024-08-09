@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useAlertStore } from './alertStore'
+import type {Sprint} from "@/stores/sprintStore";
 
 export interface Project {
   id: number
@@ -13,6 +14,7 @@ export interface Project {
   statuses?: string[],
   tags?: string[]
   types?: string[]
+  sprints?: Sprint[]
 }
 
 interface ProjectState {

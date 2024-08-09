@@ -10,6 +10,7 @@ export interface TaskBase {
   status: string; // Статус теперь обязателен, с значением по умолчанию ''
   projectId: number; // Проект обязателен
   assignees?: number[]; // Массив идентификаторов пользователей (опционально)
+  sprintId?: number | null; // Идентификатор метки (опционально)
   labelId?: number | null; // Идентификатор метки (опционально)
   dueDate?: Date | null; // Дата завершения (опционально)
   priority: string; // Приоритет теперь обязателен, с значением по умолчанию 'Medium'

@@ -1,5 +1,15 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+  OneToMany
+} from 'typeorm';
 import { Roadmap } from './Roadmap';
+import {Task} from "./Task";
+import {Project} from "./Project";
 
 @Entity('sprints')
 export class Sprint {
@@ -20,6 +30,12 @@ export class Sprint {
 
   @ManyToOne(() => Roadmap, roadmap => roadmap.sprints, { nullable: false })
   roadmap!: Roadmap;
+
+  @OneToMany(() => Task, task => task.sprint)  // Добавляем связь с задачами
+  tasks!: Task[];
+
+  @ManyToOne(() => Project, project => project.sprints, { nullable: false })  // Связь с проектом
+  project!: Project;
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   createdAt!: Date;

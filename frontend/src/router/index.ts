@@ -161,7 +161,7 @@ const routes = [
     beforeEnter: authGuard
   },
   {
-    path: '/cabinet/roadmaps/:roadmapId/sprints',
+    path: '/cabinet/projects/:projectId/:roadmapId/sprints',
     component: SprintList,
     name: 'SprintList',
     beforeEnter: authGuard

@@ -37,9 +37,12 @@
 import { ref, computed, defineProps, defineEmits } from 'vue'
 import type { Task } from '@/stores/taskStore'
 import type { User } from '@/stores/authStore'
+import type { Project } from "@/stores/projectStore";
+import type {Sprint} from "@/stores/sprintStore";
 
 const props = defineProps<{
   tasks: Task[]
+  project: Project | null
   visibleColumns: string[]
   groupBy: string
   users: { [key: number]: User }
@@ -124,6 +127,14 @@ const sortIconClass = (key: string) => {
   return 'fas fa-sort'
 }
 
+const sprintMap = computed(() => {
+  const sprints = props.project?.sprints ?? []
+  return sprints.reduce((acc, sprint) => {
+    acc[sprint.id] = sprint
+    return acc
+  }, {} as Record<number, Sprint>)
+})
+
 const getColumnData = (task: Task, column: string) => {
   let vals: string[] = []
   switch (column) {
@@ -131,6 +142,8 @@ const getColumnData = (task: Task, column: string) => {
       return task.title
     case 'Status':
       return task.status
+    case 'Sprint':
+      return task.sprintId && sprintMap.value[task.sprintId] ? sprintMap.value[task.sprintId].title ?? 'N/A' : 'N/A'
     case 'Label':
       return task.Label ? `<span class="badge" style="background-color: ${task.Label.color}">${task.Label.name}</span>` : ''
     case 'Assignee':

@@ -19,6 +19,7 @@ import { Label } from './Label';
 import { ProjectUser } from './ProjectUser';
 import { Roadmap } from './Roadmap';
 import { Exclude } from "class-transformer";
+import {Sprint} from "./Sprint";
 
 @Entity('projects')
 export class Project {
@@ -78,6 +79,9 @@ export class Project {
   @ManyToMany(() => User, user => user.joinedProjects)
   @JoinTable()
   users!: User[];
+
+  @OneToMany(() => Sprint, sprint => sprint.project)  // Добавляем связь со Sprint
+  sprints!: Sprint[];
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   createdAt!: Date;

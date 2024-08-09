@@ -2,24 +2,51 @@ import { Request, Response } from 'express';
 import { AppDataSource } from '../ormconfig';
 import { Roadmap } from '../models/Roadmap';
 import { io } from '../index';
+import {Project} from "../models/Project";
 
 const getRoadmaps = async (req: Request, res: Response) => {
-  const projectId = req.params.projectId;
+  const { projectId } = req.params;
   try {
+    const userId = req.session.user!.id;
+
     const roadmapRepository = AppDataSource.getRepository(Roadmap);
-    const roadmaps = await roadmapRepository.find({ where: { project: { id: parseInt(projectId) } } });
+    const projectRepository = AppDataSource.getRepository(Project);
+
+    const project = await projectRepository.createQueryBuilder('project')
+      .innerJoin('project.projectUsers', 'projectUser', 'projectUser.userId = :userId', { userId })
+      .where('project.id = :projectId', { projectId })
+      .getOne();
+
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+    const roadmaps = await roadmapRepository.find({
+      where: { project: { id: parseInt(projectId) } }
+    });
+
     res.json(roadmaps);
   } catch (err: any) {
     const error = err as Error;
+    console.log(222, error)
     res.status(400).json({ error: error.message });
   }
 };
 
 const createRoadmap = async (req: Request, res: Response) => {
-  const { title, description, projectId } = req.body;
+  const { projectId } = req.params;
+
+  const { title, description } = req.body;
   try {
     const roadmapRepository = AppDataSource.getRepository(Roadmap);
-    const roadmap = roadmapRepository.create({ title, description, project: { id: parseInt(projectId) } });
+    const projectRepository = AppDataSource.getRepository(Project);
+
+    const project = await projectRepository.findOne({ where: { id: parseInt(projectId) } });
+
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    const roadmap = roadmapRepository.create({ title, description, project });
     await roadmapRepository.save(roadmap);
     io.emit('roadmap:create', roadmap);
     res.json(roadmap);

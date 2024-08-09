@@ -8,6 +8,7 @@ import { io } from '../index';
 import { Label } from "../models/Label";
 import { Project } from "../models/Project";
 import {ProjectUser} from "../models/ProjectUser";
+import {Sprint} from "../models/Sprint";
 
 const getTasks = async (req: Request, res: Response) => {
   const { projectId } = req.params;
@@ -96,7 +97,7 @@ const getTask = async (req: Request, res: Response) => {
 
 const createTask = async (req: Request, res: Response) => {
   const { projectId } = req.params;
-  const { title, description, status, assignees: assigneeIds, labelId, dueDate, priority, estimatedTime, type, plannedDate, relatedTaskId, actualTime, tags, customFields } = req.body;
+  const { title, description, status, assignees: assigneeIds, labelId, dueDate, priority, estimatedTime, type, plannedDate, relatedTaskId, actualTime, tags, customFields, sprintId } = req.body;
   const userId = req.session.user!.id;
 
   try {
@@ -104,6 +105,7 @@ const createTask = async (req: Request, res: Response) => {
     const labelRepository = AppDataSource.getRepository(Label);
     const projectRepository = AppDataSource.getRepository(Project);
     const projectUserRepository = AppDataSource.getRepository(ProjectUser);
+    const sprintRepository = AppDataSource.getRepository(Sprint);
 
     const project = await projectRepository.findOne({ where: { id: parseInt(projectId) } });
     const label = labelId ? await labelRepository.findOne({ where: { id: labelId } }) : null;
@@ -144,6 +146,14 @@ const createTask = async (req: Request, res: Response) => {
       newTask.relatedTask = relatedTask;
     }
 
+    if (sprintId) {
+      const sprint = await sprintRepository.findOne({ where: { id: parseInt(sprintId) } }) ;
+      if (!sprint) {
+        return res.status(404).json({ error: 'Sprint not found' });
+      }
+      newTask.sprint = sprint;
+    }
+
     const task = taskRepository.create(newTask);
     await taskRepository.save(task);
     await logTaskHistory(task.id, userId, 'created');
@@ -167,13 +177,14 @@ const createTask = async (req: Request, res: Response) => {
 
 const updateTask = async (req: Request, res: Response) => {
   const { projectId, id } = req.params;
-  const { title, description, status, assignees: assigneeIds, labelId, dueDate, priority, estimatedTime, type, plannedDate, relatedTaskId, actualTime, tags, customFields } = req.body;
+  const { title, description, status, assignees: assigneeIds, labelId, dueDate, priority, estimatedTime, type, plannedDate, relatedTaskId, actualTime, tags, customFields, sprintId } = req.body;
   const userId = req.session.user!.id;
 
   try {
     const taskRepository = AppDataSource.getRepository(Task);
     const labelRepository = AppDataSource.getRepository(Label);
     const projectUserRepository = AppDataSource.getRepository(ProjectUser);
+    const sprintRepository = AppDataSource.getRepository(Sprint);
 
     const task = await taskRepository.findOne({ where: { id: parseInt(id), project: { id: parseInt(projectId) } }, relations: ['project', 'label', 'relatedTask', 'assignees'] });
     const label = labelId ? await labelRepository.findOne({ where: { id: labelId } }) : null;
@@ -203,6 +214,13 @@ const updateTask = async (req: Request, res: Response) => {
       if (actualTime !== undefined) updatedFields.actualTime = actualTime;
       if (tags !== undefined) updatedFields.tags = tags;
       if (customFields !== undefined) updatedFields.customFields = customFields;
+      if (sprintId !== undefined) {
+        const sprint = await sprintRepository.findOne({ where: { id: parseInt(sprintId) } }) ;
+        if (!sprint) {
+          return res.status(404).json({ error: 'Sprint not found' });
+        }
+        updatedFields.sprint = sprint;
+      }
 
       await taskRepository.save({ ...task, ...updatedFields });
       await logTaskHistory(task.id, userId, 'updated');

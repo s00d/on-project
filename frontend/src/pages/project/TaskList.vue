@@ -23,6 +23,7 @@
             :tasks="taskStore.tasks"
             :visibleColumns="visibleColumns"
             :groupBy="groupBy"
+            :project="project"
             :users="users"
             @open-task-modal="openTaskModal"
             @open-preview-modal="openPreviewModal"
@@ -131,7 +132,7 @@ const projectStore = useProjectStore()
 const route = useRoute()
 const projectId = route.params.projectId.toString()
 
-const users = ref<User[]>([])
+const users = ref<{[key: number]: User}>([])
 const search = ref('')
 const status = ref('')
 const priority = ref('')
@@ -149,11 +150,11 @@ const allTags = ref<string[]>([])
 const selectedTags = ref<string[]>([])
 const filterName = ref('')
 const visibleColumns = ref<string[]>([
-  'Title', 'Status', 'Label', 'Assignee', 'Due Date', 'Priority', 'Estimated Time', 'Type', 'Planned Date', 'Related Task', 'Actual Time', 'Tags'
+  'Title', 'Status', 'Label', 'Assignee', 'Due Date', 'Priority', 'Estimated Time', 'Type', 'Planned Date', 'Related Task', 'Actual Time', 'Tags', 'Sprint'
 ])
 
 const allColumns = [
-  'Title', 'Status', 'Label', 'Assignee', 'Due Date', 'Priority', 'Estimated Time', 'Type', 'Planned Date', 'Related Task', 'Actual Time', 'Tags'
+  'Title', 'Status', 'Label', 'Assignee', 'Due Date', 'Priority', 'Estimated Time', 'Type', 'Planned Date', 'Related Task', 'Actual Time', 'Tags', 'Sprint'
 ]
 
 export interface Filter {

@@ -2,78 +2,168 @@
   <div class="admin-panel">
     <div class="content">
       <Tabs>
-        <div class="container mt-5">
-          <h1>Roadmaps</h1>
-          <form @submit.prevent="addRoadmap" class="mt-3">
-            <div class="mb-3">
-              <label for="title" class="form-label">Title</label>
-              <input v-model="newRoadmapTitle" type="text" id="title" class="form-control" />
+        <div class="project-board">
+          <div class="board-header">
+            <h1 class="board-title">Roadmaps Overview</h1>
+            <button @click="openCreateRoadmapModal" class="btn btn-primary">New Roadmap</button>
+          </div>
+
+          <div class="board-columns">
+            <div class="board-column" v-for="roadmap in roadmaps" :key="roadmap.id">
+              <div class="board-column-header">
+                <h2 class="board-column-title">{{ roadmap.title }}</h2>
+                <button @click="deleteRoadmap(roadmap.id)" class="btn btn-danger btn-sm">x</button>
+              </div>
+              <div class="board-column-content">
+                <p>{{ roadmap.description }}</p>
+                <button @click="openEditRoadmapModal(roadmap)" class="btn btn-secondary btn-sm">Edit Roadmap</button>
+                <router-link :to="{ name: 'SprintList', params: { roadmapId: roadmap.id, projectId: projectId } }" class="btn btn-info btn-sm"
+                >View Sprints</router-link>
+              </div>
             </div>
-            <div class="mb-3">
-              <label for="description" class="form-label">Description</label>
-              <textarea
-                v-model="newRoadmapDescription"
-                id="description"
-                class="form-control"
-              ></textarea>
+
+            <div class="board-column add-column">
+              <button @click="openCreateRoadmapModal" class="btn btn-link">+ Add Roadmap</button>
             </div>
-            <button type="submit" class="btn btn-primary">Add Roadmap</button>
-          </form>
-          <ul class="list-group mt-3">
-            <li v-for="roadmap in roadmaps" :key="roadmap.id" class="list-group-item">
-              <h5>{{ roadmap.title }}</h5>
-              <p>{{ roadmap.description }}</p>
-              <button @click="deleteRoadmap(roadmap.id)" class="btn btn-danger">Delete</button>
-              <button @click="editRoadmap(roadmap)" class="btn btn-secondary">Edit</button>
-              <router-link :to="{ name: 'SprintList', params: { roadmapId: roadmap.id } }" class="btn btn-info"
-                >View Sprints</router-link
-              >
-            </li>
-          </ul>
+          </div>
         </div>
       </Tabs>
+
+      <RoadmapFormModal
+        v-if="isModalOpen && currentRoadmapData"
+        :isEditMode="isEditMode"
+        :roadmap-data="currentRoadmapData"
+        @save="handleSaveRoadmap"
+        @close="closeModal"
+      />
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed } from 'vue'
-import {type Roadmap, useRoadmapStore} from '@/stores/roadmapStore'
-import { useRoute } from 'vue-router'
-import Tabs from '@/components/Tabs.vue'
+import { ref, computed, onMounted } from 'vue';
+import {type Roadmap, useRoadmapStore} from '@/stores/roadmapStore';
+import Tabs from "@/components/Tabs.vue";
+import { useRoute } from "vue-router";
+import RoadmapFormModal from "@/components/sprint/RoadmapFormModal.vue";
 
-const roadmapStore = useRoadmapStore()
-const route = useRoute()
-const newRoadmapTitle = ref('')
-const newRoadmapDescription = ref('')
-const projectId = Number(route.params.projectId)
+const route = useRoute();
 
-const roadmaps = computed(() => roadmapStore.getRoadmaps)
+const projectId = Number(route.params.projectId);
 
-const fetchRoadmaps = async () => {
-  await roadmapStore.fetchRoadmaps(projectId)
-}
+const roadmapStore = useRoadmapStore();
 
-const addRoadmap = async () => {
-  await roadmapStore.createRoadmap(projectId, {
-    title: newRoadmapTitle.value,
-    description: newRoadmapDescription.value,
-    projectId
-  })
-  newRoadmapTitle.value = ''
-  newRoadmapDescription.value = ''
-}
+const roadmaps = computed(() => roadmapStore.getRoadmaps);
+
+const isModalOpen = ref(false);
+const isEditMode = ref(false);
+const currentRoadmapData = ref<Roadmap|null>(null);
+
+const openCreateRoadmapModal = () => {
+  isEditMode.value = false;
+  currentRoadmapData.value = {
+    id: 0,
+    title: '',
+    description: '',
+    projectId: 0
+  };
+  isModalOpen.value = true;
+};
+
+const openEditRoadmapModal = (roadmap: any) => {
+  isEditMode.value = true;
+  currentRoadmapData.value = { ...roadmap };
+  isModalOpen.value = true;
+};
+
+const handleSaveRoadmap = async (roadmapData: any) => {
+  if (isEditMode.value) {
+    await roadmapStore.updateRoadmap(projectId, roadmapData.id, roadmapData);
+  } else {
+    await roadmapStore.createRoadmap(projectId, { ...roadmapData, projectId });
+  }
+  closeModal();
+  fetchRoadmaps();
+};
+
+const closeModal = () => {
+  isModalOpen.value = false;
+};
 
 const deleteRoadmap = async (roadmapId: number) => {
-  await roadmapStore.deleteRoadmap(projectId, roadmapId)
-}
+  await roadmapStore.deleteRoadmap(projectId, roadmapId);
+};
 
-const editRoadmap = async (roadmap: Roadmap) => {
-  await roadmapStore.createRoadmap(projectId, roadmap)
-}
+const fetchRoadmaps = async () => {
+  await roadmapStore.fetchRoadmaps(projectId);
+};
 
 onMounted(() => {
-  fetchRoadmaps()
-  roadmapStore.subscribeToSocketEvents()
-})
+  fetchRoadmaps();
+  roadmapStore.subscribeToSocketEvents();
+});
 </script>
+
+<style scoped>
+.project-board {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+  background-color: #f4f5f7;
+}
+
+.board-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.board-title {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.board-columns {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+}
+
+.board-column {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  width: 300px;
+  padding: 16px;
+}
+
+.board-column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.board-column-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.board-column-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.add-column {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 300px;
+  background-color: #edf2f7;
+  border-radius: 8px;
+  border: 2px dashed #cbd5e0;
+  cursor: pointer;
+}
+</style>

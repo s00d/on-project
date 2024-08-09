@@ -29,6 +29,15 @@
       </select>
     </div>
     <div class="mb-3">
+      <label for="sprint" class="form-label">Sprint</label>
+      <select v-model="taskData.sprintId" id="sprint" class="form-select">
+        <option :value="null">Empty</option>
+        <option v-for="sprint in project?.sprints" :value="sprint.id" :key="sprint.id">
+          {{ sprint.title }}
+        </option>
+      </select>
+    </div>
+    <div class="mb-3">
       <label for="dueDate" class="form-label">Due Date</label>
       <input v-model="taskData.dueDate" type="datetime-local" id="dueDate" class="form-control" />
     </div>
@@ -155,6 +164,7 @@ const taskData = ref<Task>({
   description: '',
   status: 'To Do',
   priority: 'Low',
+  sprintId: null,
   assignees: [] as number[],
   dueDate: null as Date | null,
   estimatedTime: 0,

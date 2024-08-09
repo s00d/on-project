@@ -71,7 +71,7 @@ const props = defineProps<{
   visibleColumns: string[]
   allTags: string[]
   allColumns: string[]
-  users: User[]
+  users: {[key: number]: User}
   project: Project | null
   projectCustomFields: { name: string }[]
 }>()
