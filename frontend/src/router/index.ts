@@ -25,7 +25,7 @@ import PriorityDistributionReport from '../pages/report/PriorityDistributionRepo
 import ProgressReport from '../pages/report/ProgressReport.vue'
 import TeamWorkloadReport from '../pages/report/TeamWorkloadReport.vue'
 
-import Calendar from '../pages/CalendarPage.vue'
+import CalendarPage from '../pages/CalendarPage.vue'
 import ImportExport from '../pages/ImportExport.vue'
 import TaskTemplates from '../pages/project/TaskTemplates.vue'
 
@@ -94,6 +94,12 @@ const routes = [
     path: '/cabinet/projects/:projectId/edit',
     component: EditProject,
     name: 'EditProject',
+    beforeEnter: authGuard
+  },
+  {
+    path: '/cabinet/projects/:projectId/calendar',
+    component: CalendarPage,
+    name: 'CalendarPage',
     beforeEnter: authGuard
   },
   {

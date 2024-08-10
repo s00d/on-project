@@ -150,11 +150,11 @@ const allTags = ref<string[]>([])
 const selectedTags = ref<string[]>([])
 const filterName = ref('')
 const visibleColumns = ref<string[]>([
-  'Title', 'Status', 'Label', 'Assignee', 'Due Date', 'Priority', 'Estimated Time', 'Type', 'Planned Date', 'Related Task', 'Actual Time', 'Tags', 'Sprint'
+  'Title', 'Status', 'Label', 'Assignee', 'Due Date', 'Priority', 'Time', 'Type', 'Planned Date', 'Related Task', 'Tags', 'Sprint'
 ])
 
 const allColumns = [
-  'Title', 'Status', 'Label', 'Assignee', 'Due Date', 'Priority', 'Estimated Time', 'Type', 'Planned Date', 'Related Task', 'Actual Time', 'Tags', 'Sprint'
+  'Title', 'Status', 'Label', 'Assignee', 'Due Date', 'Priority', 'Time', 'Type', 'Planned Date', 'Related Task', 'Tags', 'Sprint'
 ]
 
 export interface Filter {

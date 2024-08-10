@@ -41,8 +41,17 @@ export class Task {
   @ManyToOne(() => Label, label => label.tasks, { nullable: true })
   label!: Label;
 
+  @Column('datetime', { nullable: true })
+  @Index()
+  startDate!: Date|null;
+
+  @Column('datetime', { nullable: true })
+  @Index()
+  stopDate!: Date|null;
+
   @Column('date', { nullable: true })
-  dueDate!: Date;
+  @Index()
+  dueDate!: Date|null;
 
   @Column({ length: 128, default: 'Medium' })
   priority!: string;
@@ -94,8 +103,10 @@ export class Task {
   history!: TaskHistory[];
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  @Index()
   createdAt!: Date;
 
   @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  @Index()
   updatedAt!: Date;
 }

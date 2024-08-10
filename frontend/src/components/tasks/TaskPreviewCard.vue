@@ -38,6 +38,8 @@
       <div>
         <span class="badge" :class="priorityBadgeClass">{{ taskData.priority }}</span>
         <span class="badge bg-info">{{ labelName }}</span>
+        <span v-if="taskData.startDate" class="badge bg-info">{{ taskData.startDate }}</span>
+        <span v-if="taskData.stopDate" class="badge bg-info">{{ taskData.stopDate }}</span>
       </div>
     </div>
 

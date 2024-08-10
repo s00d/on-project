@@ -84,9 +84,11 @@ export class Project {
   sprints!: Sprint[];
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  @Index()
   createdAt!: Date;
 
   @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  @Index()
   updatedAt!: Date;
 
   @BeforeInsert()

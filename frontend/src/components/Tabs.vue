@@ -60,6 +60,15 @@
           Invite Users
         </router-link>
       </li>
+      <li class="nav-item">
+        <router-link
+          class="nav-link"
+          :class="{ active: isActive('CalendarPage') }"
+          :to="{ name: 'CalendarPage', params: { projectId: projectId } }"
+        >
+          Calendar
+        </router-link>
+      </li>
     </ul>
     <div class="tab-content mt-3">
       <slot></slot>

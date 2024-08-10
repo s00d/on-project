@@ -165,16 +165,18 @@ const getColumnData = (task: Task, column: string) => {
       return task.dueDate ? `<span class="circle" style="background-color: ${generateColor(task.dueDate.toString())}"></span> ${new Date(task.dueDate).toLocaleDateString()}` : 'N/A'
     case 'Priority':
       return task.priority
-    case 'Estimated Time':
-      return task.estimatedTime
+    case 'Time': {
+      const timeValue = task.status !== 'Done' ? task.estimatedTime : task.actualTime;
+      const color = task.status === 'Done' ? 'green' : '#b1b151';
+      const tooltip = `Status: ${task.status}`;
+      return `<span style="color: ${color};font-weight: bold" title="${tooltip}">${timeValue}</span>`;
+    }
     case 'Type':
       return task.type ? `<span class="circle" style="background-color: ${generateColor(task.type)}"></span> ${task.type}` : 'N/A'
     case 'Planned Date':
       return task.plannedDate ? `<span class="circle" style="background-color: ${generateColor(task.plannedDate.toString())}"></span> ${new Date(task.plannedDate).toLocaleDateString()}` : 'N/A'
     case 'Related Task':
       return task.relatedTaskId
-    case 'Actual Time':
-      return task.actualTime
     case 'Tags':
       return task.tags?.map(tag => `<span class="badge bg-primary mr-2">${tag}</span>`).join('') || ''
     default:

@@ -5,7 +5,7 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany
+  OneToMany, Index
 } from 'typeorm';
 import { Roadmap } from './Roadmap';
 import {Task} from "./Task";
@@ -38,8 +38,10 @@ export class Sprint {
   project!: Project;
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
+  @Index()
   createdAt!: Date;
 
   @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  @Index()
   updatedAt!: Date;
 }

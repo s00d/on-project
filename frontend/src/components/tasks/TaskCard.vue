@@ -63,10 +63,6 @@
         </option>
       </select>
     </div>
-    <div class="mb-3">
-      <label for="actualTime" class="form-label">Actual Time (hours)</label>
-      <input v-model="taskData.actualTime" type="number" id="actualTime" class="form-control" />
-    </div>
     <div class="mb-3" v-if="taskData.tags">
       <label for="tags" class="form-label">Tags</label>
       <TagsInput v-model="taskData.tags" placeholder="Add a tag" />

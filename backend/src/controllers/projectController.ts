@@ -3,6 +3,10 @@ import { Project } from '../models/Project';
 import { ProjectUser } from '../models/ProjectUser';
 import { AppDataSource } from '../ormconfig';
 import {User} from "../models/User";
+import {Sprint} from "../models/Sprint";
+import {Roadmap} from "../models/Roadmap";
+import {Label} from "../models/Label";
+import {Task} from "../models/Task";
 
 const getProjects = async (req: Request, res: Response) => {
   try {
@@ -218,16 +222,20 @@ const updateProject = async (req: Request, res: Response) => {
 const deleteProject = async (req: Request, res: Response) => {
   const { projectId } = req.params;
 
-  console.log(111, projectId)
-
   try {
     const projectRepository = AppDataSource.getRepository(Project);
+    const taskRepository = AppDataSource.getRepository(Task);
+    const labelRepository = AppDataSource.getRepository(Label);
+    const projectUserRepository = AppDataSource.getRepository(ProjectUser);
+    const roadmapRepository = AppDataSource.getRepository(Roadmap);
+    const sprintRepository = AppDataSource.getRepository(Sprint);
 
     const project = await projectRepository.findOne({
       where: { id: parseInt(projectId), owner: { id: req.session.user!.id } }
     });
 
     if (project) {
+      await projectUserRepository.delete({ project: { id: project.id } });
       await projectRepository.remove(project);
       res.status(204).end();
     } else {

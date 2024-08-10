@@ -114,10 +114,15 @@ const generateOverdueReport = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    const tasks = project.tasks.filter(task => new Date(task.dueDate) >= new Date(startDate as string) && new Date(task.dueDate) < new Date() && task.status !== 'Done');
+    const tasks = project.tasks.filter(task =>
+      task.dueDate !== null && // Проверяем, что dueDate не равен null
+      new Date(task.dueDate) >= new Date(startDate as string) &&
+      new Date(task.dueDate) < new Date() &&
+      task.status !== 'Done'
+    );
 
     const overdueData = tasks.reduce((acc, task) => {
-      const date = new Date(task.dueDate).toLocaleDateString();
+      const date = new Date(task.dueDate!).toLocaleDateString(); // Используем !, так как мы уже проверили, что dueDate не null
       if (!acc[date]) {
         acc[date] = 0;
       }

@@ -1,18 +1,18 @@
-import { Request, Response } from 'express';
-import { AppDataSource } from '../ormconfig';
-import { Task } from '../models/Task';
-import { logTaskHistory } from './taskHistoryController';
-import { createNotification } from './notificationController';
-import {Brackets, In, Like} from 'typeorm';
-import { io } from '../index';
-import { Label } from "../models/Label";
-import { Project } from "../models/Project";
+import {Request, Response} from 'express';
+import {AppDataSource} from '../ormconfig';
+import {Task} from '../models/Task';
+import {logTaskHistory} from './taskHistoryController';
+import {createNotification} from './notificationController';
+import {Brackets, In} from 'typeorm';
+import {io} from '../index';
+import {Label} from "../models/Label";
+import {Project} from "../models/Project";
 import {ProjectUser} from "../models/ProjectUser";
 import {Sprint} from "../models/Sprint";
 
 const getTasks = async (req: Request, res: Response) => {
   const { projectId } = req.params;
-  const { status, priority, search, assignee, tags, sprintId, pageSize = 10, page = 1 } = req.query;
+  const { status, priority, search, assignee, tags, sprintId, pageSize = 10, page = 1, startDate, endDate } = req.query;
 
   try {
     const taskRepository = AppDataSource.getRepository(Task);
@@ -31,12 +31,10 @@ const getTasks = async (req: Request, res: Response) => {
     }
 
     if (sprintId !== undefined) {
-      const sprintIdNumber = parseInt(sprintId.toString())
+      const sprintIdNumber = parseInt(sprintId.toString());
       if (sprintIdNumber === 0) {
-        // Фильтр для задач без спринта (sprintId IS NULL)
         queryBuilder.andWhere('task.sprintId IS NULL');
       } else {
-        // Фильтр для задач с указанным sprintId
         queryBuilder.andWhere('task.sprintId = :sprintId', { sprintId: sprintIdNumber });
       }
     }
@@ -69,6 +67,20 @@ const getTasks = async (req: Request, res: Response) => {
       );
     }
 
+    // Добавляем фильтрацию по датам
+    if (startDate || endDate) {
+      queryBuilder.andWhere(
+        new Brackets(qb => {
+          if (startDate) {
+            qb.orWhere('task.startDate >= :startDate', { startDate: new Date(startDate as string) });
+          }
+          if (endDate) {
+            qb.orWhere('task.stopDate <= :endDate', { endDate: new Date(endDate as string) });
+          }
+        })
+      );
+    }
+
     const [tasks, count] = await queryBuilder
       .skip((Number(page) - 1) * Number(pageSize))
       .take(Number(pageSize))
@@ -84,6 +96,7 @@ const getTasks = async (req: Request, res: Response) => {
     res.status(400).json({ error: err.message, stack: err.stack });
   }
 };
+
 
 const getTask = async (req: Request, res: Response) => {
   const { projectId, id } = req.params;
@@ -133,6 +146,23 @@ const createTask = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
+    let startDate = null
+    let stopDate = null
+    if (status !== undefined) {
+      // Устанавливаем даты в зависимости от статуса
+      if (status === 'In Progress') {
+        startDate = new Date(); // Устанавливаем текущую дату как startDate
+        stopDate = estimatedTime
+          ? new Date(Date.now() + estimatedTime * 60 * 60 * 1000) // Устанавливаем stopDate как текущая дата + estimatedTime в часах
+          : null; // Если estimatedTime нет, оставляем stopDate равным null
+      } else if (status === 'To Do') {
+        startDate = null; // Сбрасываем startDate
+        stopDate = null; // Сбрасываем startDate
+      } else if (status === 'Done') {
+        stopDate = new Date(); // Устанавливаем текущую дату как stopDate
+      }
+    }
+
     const newTask: Partial<Task> = {
       title,
       description,
@@ -145,6 +175,8 @@ const createTask = async (req: Request, res: Response) => {
       type,
       plannedDate,
       actualTime,
+      startDate,
+      stopDate,
       tags: tags ?? [],
       customFields: customFields ?? {}
     }
@@ -210,6 +242,25 @@ const updateTask = async (req: Request, res: Response) => {
 
     if (task) {
       const updatedFields: Partial<Task> = {};
+
+      if (status !== undefined) {
+        // Устанавливаем даты в зависимости от статуса
+        if (status === 'In Progress') {
+          updatedFields.startDate = new Date(); // Устанавливаем текущую дату как startDate
+          updatedFields.stopDate = estimatedTime
+            ? new Date(Date.now() + estimatedTime * 60 * 60 * 1000) // Устанавливаем stopDate как текущая дата + estimatedTime в часах
+            : null; // Если estimatedTime нет, оставляем stopDate равным null
+        } else if (status === 'To Do') {
+          updatedFields.startDate = null; // Сбрасываем startDate
+          updatedFields.stopDate = null; // Сбрасываем startDate
+        } else if (status === 'Done') {
+          updatedFields.stopDate = new Date(); // Устанавливаем текущую дату как stopDate
+          if (task.startDate) {
+            // Рассчитываем actualTime как разницу между stopDate и startDate в часах
+            updatedFields.actualTime = (updatedFields.stopDate.getTime() - new Date(task.startDate).getTime()) / (60 * 60 * 1000);
+          }
+        }
+      }
 
       if (title !== undefined) updatedFields.title = title;
       if (description !== undefined) updatedFields.description = description;

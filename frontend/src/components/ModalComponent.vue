@@ -1,25 +1,27 @@
 <template>
   <div v-if="isOpen" class="modal-backdrop fade show" @click="closeModal"></div>
-  <div v-if="isOpen" class="modal fade show" :class="pos" tabindex="-1" role="dialog" style="display: block" @click.self="closeModal">
-    <div class="modal-dialog" :class="{'modal-dialog-aside': pos === 'fixed-left' || pos === 'fixed-right'}" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">{{ title }}</h5>
-          <button type="button" class="btn-close" @click="closeModal"></button>
-        </div>
-        <div class="modal-body">
-          <slot name="body"></slot>
-        </div>
-        <div class="modal-footer">
-          <slot name="footer"></slot>
+  <transition name="modal-fade">
+    <div v-if="isOpen" class="modal fade" :class="[pos, { show: isOpen }]" tabindex="-1" role="dialog" style="display: block" @click.self="closeModal">
+      <div class="modal-dialog" :class="{'modal-dialog-aside': pos === 'fixed-left' || pos === 'fixed-right'}" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">{{ title }}</h5>
+            <button type="button" class="btn-close" @click="closeModal"></button>
+          </div>
+          <div class="modal-body">
+            <slot name="body"></slot>
+          </div>
+          <div class="modal-footer">
+            <slot name="footer"></slot>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  </transition>
 </template>
 
 <script lang="ts" setup>
-import {defineProps, defineEmits, watch} from 'vue';
+import { defineProps, defineEmits, watch } from 'vue';
 
 const props = defineProps({
   isOpen: Boolean,
@@ -53,7 +55,17 @@ const closeModal = () => {
   z-index: 1050;
 }
 
+/* Анимация для плавного появления и скрытия модального окна */
+.modal-fade-enter-active, .modal-fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.1s ease;
+}
 
+.modal-fade-enter-from, .modal-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+/* Стили для анимации боковых модальных окон */
 .modal .modal-dialog-aside {
   width: 500px;
   max-width: 80%;

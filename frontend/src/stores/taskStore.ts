@@ -12,6 +12,8 @@ export interface TaskBase {
   assignees?: number[]; // Массив идентификаторов пользователей (опционально)
   sprintId?: number | null; // Идентификатор метки (опционально)
   labelId?: number | null; // Идентификатор метки (опционально)
+  startDate?: Date | null; // Дата завершения (опционально)
+  stopDate?: Date | null; // Дата завершения (опционально)
   dueDate?: Date | null; // Дата завершения (опционально)
   priority: string; // Приоритет теперь обязателен, с значением по умолчанию 'Medium'
   estimatedTime: number; // Оценочное время теперь обязательно, с значением по умолчанию 0
@@ -59,6 +61,8 @@ interface TaskFilters {
   assignee?: string
   pageSize?: number
   page?: number
+  startDate?: string
+  endDate?: string
 }
 
 export const useTaskStore = defineStore('task', {
