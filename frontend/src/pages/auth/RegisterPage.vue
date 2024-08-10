@@ -39,13 +39,13 @@ import {useAlertStore} from "@/stores/alertStore";
 
 const authStore = useAuthStore()
 const router = useRouter()
-const username = ref('')
-const email = ref('')
-const password = ref('')
+const username = ref('a')
+const email = ref('a@a.a')
+const password = ref('a@a.a')
 
 const register = async () => {
   try {
-    await authStore.register({
+    const resp = await authStore.register({
       username: username.value,
       email: email.value,
       password: password.value

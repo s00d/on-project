@@ -1,3 +1,43 @@
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Roadmap:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: The unique identifier for the roadmap.
+ *           example: 1
+ *         title:
+ *           type: string
+ *           description: The title of the roadmap.
+ *           example: "Product Launch Roadmap"
+ *         description:
+ *           type: string
+ *           nullable: true
+ *           description: A detailed description of the roadmap.
+ *           example: "This roadmap outlines the key sprints for the upcoming product launch."
+ *         project:
+ *           $ref: '#/components/schemas/Project'
+ *           description: The project associated with this roadmap.
+ *         sprints:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Sprint'
+ *           description: The list of sprints included in the roadmap.
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: The date and time when the roadmap was created.
+ *           example: "2023-08-01T12:34:56Z"
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: The date and time when the roadmap was last updated.
+ *           example: "2023-08-02T12:34:56Z"
+ */
+
 import {
   Entity,
   PrimaryGeneratedColumn,

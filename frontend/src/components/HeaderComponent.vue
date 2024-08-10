@@ -25,6 +25,10 @@
             <router-link class="nav-link" :to="{ name: 'ProjectList' }">Cabinet</router-link>
           </li>
 
+          <li class="nav-item">
+            <a class="nav-link" href="/api-docs">Api Docs</a>
+          </li>
+
           <li class="nav-item" v-if="isAuthenticated">
             <a class="nav-link" @click="logout">Logout</a>
           </li>

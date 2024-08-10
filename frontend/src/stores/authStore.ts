@@ -30,34 +30,20 @@ export const useAuthStore = defineStore('auth', {
   }),
   actions: {
     async login(user: { email: string; password: string }) {
-      try {
-        const response = await axios.post('/users/login', user)
-        const { twoFactorRequired, auth } = response.data
-        if (auth) {
-          await this.fetchUser()
-          useAlertStore().setAlert('Login successful', 'success')
-          return;
-        }
-
-        if (twoFactorRequired) {
-          useAlertStore().setAlert('2FA required', 'warning')
-          return { twoFactorRequired: true }
-        }
-
-        console.error('Login failed', 'danger')
-        useAlertStore().setAlert('Login failed', 'danger')
-      } catch (error) {
-        console.error('Login failed', error)
-        useAlertStore().setAlert('Login failed', 'danger')
+      const response = await axios.post('/users/login', user)
+      const { twoFactorRequired, auth } = response.data
+      if (auth) {
+        return await this.fetchUser()
       }
+
+      if (twoFactorRequired) {
+        return { twoFactorRequired: true }
+      }
+
+      return null
     },
     async register(user: { username: string; email: string; password: string }) {
-      try {
-        await axios.post('/users/register', user)
-        useAlertStore().setAlert('Registration successful', 'success')
-      } catch (error) {
-        useAlertStore().setAlert('Registration failed', 'danger')
-      }
+      return await axios.post('/users/register', user)
     },
     async fetchUser() {
       const response = await axios.get('/users/me')

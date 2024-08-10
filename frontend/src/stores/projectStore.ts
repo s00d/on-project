@@ -49,6 +49,9 @@ export const useProjectStore = defineStore('project', {
     },
     async fetchProject(id: number) {
       try {
+        if (this.project && this.project.id === id) {
+          return this.project
+        }
         const response = await axios.get(`/projects/${id}`)
         this.project = response.data
         return this.project

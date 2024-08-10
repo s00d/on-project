@@ -1,3 +1,92 @@
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Project:
+ *       type: object
+ *       required:
+ *         - id
+ *         - name
+ *         - ownerId
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: The unique identifier for the project
+ *           example: 1
+ *         name:
+ *           type: string
+ *           description: The name of the project
+ *           example: "New Website Development"
+ *         description:
+ *           type: string
+ *           description: The description of the project
+ *           nullable: true
+ *           example: "This project involves the development of a new corporate website."
+ *         savedFilters:
+ *           type: string
+ *           description: JSON string containing saved filters for the project
+ *           example: '[]'
+ *         customFields:
+ *           type: string
+ *           description: JSON string containing custom fields for the project
+ *           example: '[]'
+ *         priorities:
+ *           type: string
+ *           description: JSON string containing the list of task priorities
+ *           example: '["Low", "Medium", "High"]'
+ *         statuses:
+ *           type: string
+ *           description: JSON string containing the list of task statuses
+ *           example: '["To Do", "In Progress", "Done"]'
+ *         tags:
+ *           type: string
+ *           description: JSON string containing the list of tags used in the project
+ *           example: '["tag1", "tag2"]'
+ *         types:
+ *           type: string
+ *           description: JSON string containing the list of task types
+ *           example: '["Frontend", "Backend", "Test", "Deploy", "Mixed"]'
+ *         ownerId:
+ *           type: integer
+ *           description: The ID of the user who owns the project
+ *           example: 1
+ *         tasks:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Task'
+ *           description: The list of tasks associated with the project
+ *         labels:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Label'
+ *           description: The list of labels associated with the project
+ *         projectUsers:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/ProjectUser'
+ *           description: The list of users associated with the project
+ *         roadmaps:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Roadmap'
+ *           description: The list of roadmaps associated with the project
+ *         sprints:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Sprint'
+ *           description: The list of sprints associated with the project
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *           description: The date and time when the project was created
+ *           example: "2023-08-01T12:34:56Z"
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ *           description: The date and time when the project was last updated
+ *           example: "2023-08-02T12:34:56Z"
+ */
+
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -6,8 +95,6 @@ import {
   OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
-  ManyToMany,
-  JoinTable,
   JoinColumn,
   RelationId,
   BeforeInsert,
@@ -57,6 +144,7 @@ export class Project {
   @Exclude()
   types!: string;
 
+  // Связь с пользователем-владельцем проекта
   @ManyToOne(() => User, user => user.projects, { nullable: false })
   @JoinColumn({ name: 'ownerId' })
   owner!: User;
@@ -75,10 +163,6 @@ export class Project {
 
   @OneToMany(() => Roadmap, roadmap => roadmap.project, { cascade: true, onDelete: 'CASCADE' })
   roadmaps!: Roadmap[];
-
-  @ManyToMany(() => User, user => user.joinedProjects)
-  @JoinTable()
-  users!: User[];
 
   @OneToMany(() => Sprint, sprint => sprint.project, { cascade: true, onDelete: 'CASCADE' })  // Добавляем связь со Sprint
   sprints!: Sprint[];

@@ -25,14 +25,14 @@
           <tr>
             <th scope="col">User ID</th>
             <th scope="col">Username</th>
-            <th scope="col">Actions</th>
+            <th scope="col" v-if="project?.ownerId === authUserId">Actions</th>
           </tr>
           </thead>
           <tbody>
           <tr v-for="user in invitedUsers" :key="user.id">
             <td>{{ user.id }}</td>
             <td>{{ user.username }}</td>
-            <td>
+            <td v-if="project?.ownerId === authUserId">
               <button v-if="user.id !== authUserId" @click="deActiveUser(user.id)" class="btn btn-danger btn-sm">Remove</button>
             </td>
           </tr>
@@ -64,6 +64,10 @@ const email = ref('')
 const username = ref('')
 const invitedUsers = ref<User[]>([])
 
+const project = computed(() => {
+  return projectStore.project
+})
+
 const fetchInvitedUsers = async () => {
   invitedUsers.value = await projectStore.fetchUsers(parseInt(projectId.value))
 }
@@ -92,8 +96,10 @@ const deActiveUser = async (id: number) => {
   }
 }
 
-onMounted(() => {
-  fetchInvitedUsers();
+
+onMounted(async () => {
+  await projectStore.fetchProject(parseInt(projectId.value))
+  await fetchInvitedUsers();
 })
 </script>
 

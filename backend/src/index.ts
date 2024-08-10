@@ -6,6 +6,7 @@ import session from 'express-session'
 import connect_sqlite3 from 'connect-sqlite3'
 import morgan from 'morgan'
 import { errorReporter } from 'express-youch'
+import swaggerUi from "swagger-ui-express";
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
@@ -27,12 +28,15 @@ import path from 'path'
 import { AppDataSource } from './ormconfig';
 import {User} from "./models/User";
 import {createUser} from "./controllers/userController";
+import {Project} from "./models/Project";
+import {swaggerSpec} from "./swagger";
 
 const isDev = process.env.NODE_ENV === 'development'
 
 declare module 'express-session' {
   interface SessionData {
     user: User
+    project: Project
   }
 }
 
@@ -83,6 +87,7 @@ app.use('/api/import-export', importExportRouter)
 
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 app.use('/public', express.static(path.join(__dirname, '../public')))
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 if (isDev) {
   // frontend proxy

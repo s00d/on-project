@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { Label } from '../models/Label';
 import { AppDataSource } from '../ormconfig';
-import {Project} from "../models/Project";
 
 const getLabels = async (req: Request, res: Response) => {
   const { projectId } = req.params;

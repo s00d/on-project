@@ -1,3 +1,29 @@
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Comment:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: integer
+ *         content:
+ *           type: string
+ *         attachment:
+ *           type: string
+ *           nullable: true
+ *         taskId:
+ *           type: integer
+ *         userId:
+ *           type: integer
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ */
+
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { User } from './User';
 import { Task } from './Task';

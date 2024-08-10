@@ -26,6 +26,7 @@
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'vue-router'
+import {useAlertStore} from "@/stores/alertStore";
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -37,12 +38,14 @@ const login = async () => {
   try {
     const result = await authStore.login({ email: email.value, password: password.value })
     if (result?.twoFactorRequired) {
+      useAlertStore().setAlert('2FA required', 'warning')
       router.push({ name: 'TwoFactorAuth' })
     } else {
+      useAlertStore().setAlert('Login successful', 'success')
       router.push({ name: 'ProjectList' })
     }
   } catch (err: any) {
-    error.value = 'Login failed: ' + err.response?.data?.error || err.message
+    useAlertStore().setAlert('Login failed', 'danger')
   }
 }
 </script>

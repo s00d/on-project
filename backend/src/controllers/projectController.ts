@@ -128,7 +128,7 @@ const getProjectUsers = async (req: Request, res: Response) => {
     const projectUserRepository = AppDataSource.getRepository(ProjectUser);
 
     const project = await projectRepository.findOne({
-      where: { id: parseInt(projectId), owner: { id: req.session.user!.id } },
+      where: { id: parseInt(projectId) },
       relations: ['owner', 'projectUsers', 'projectUsers.user']
     });
 
@@ -159,10 +159,15 @@ const getProjectUsers = async (req: Request, res: Response) => {
   }
 };
 
-const DeActiveUser = async (req: Request, res: Response) => {
-  const { userId, projectId } = req.params;
+const deActiveUser = async (req: Request, res: Response) => {
+  const { projectId } = req.params;
+  const userId = req.session?.user?.id;
 
   try {
+    if (req.session?.project?.ownerId === req.session?.user?.id) {
+      res.status(404).json({ error: 'Self delete error' });
+    }
+
     const projectRepository = AppDataSource.getRepository(Project);
     const projectUserRepository = AppDataSource.getRepository(ProjectUser);
 
@@ -171,7 +176,7 @@ const DeActiveUser = async (req: Request, res: Response) => {
     });
 
     if (project) {
-      const existingProjectUser = await projectUserRepository.findOne({ where: { user: { id: parseInt(userId) }, project: { id: parseInt(projectId) } } });
+      const existingProjectUser = await projectUserRepository.findOne({ where: { user: { id: userId }, project: { id: parseInt(projectId) } } });
       if (existingProjectUser) {
         await projectUserRepository.remove(existingProjectUser);
         res.status(204).end();
@@ -236,6 +241,10 @@ const deleteProject = async (req: Request, res: Response) => {
 
     if (project) {
       await projectUserRepository.delete({ project: { id: project.id } });
+      await taskRepository.delete({ project: { id: project.id } });
+      await labelRepository.delete({ project: { id: project.id } });
+      await roadmapRepository.delete({ project: { id: project.id } });
+      await sprintRepository.delete({ project: { id: project.id } });
       await projectRepository.remove(project);
       res.status(204).end();
     } else {
@@ -254,7 +263,7 @@ export {
   createProject,
   inviteUser,
   getProjectUsers,
-  DeActiveUser,
+  deActiveUser,
   updateProject,
   deleteProject
 };

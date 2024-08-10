@@ -164,8 +164,8 @@ const fetchReport = async () => {
   try {
     const response = await axios.get(`/reports/project/${projectId.value}/priority`, {
       params: {
-        period: selectedPeriod.value,
-        user: selectedUser.value
+        user: selectedUser.value,
+        startDate: startDate.toISOString()
       }
     })
     report.value = response.data

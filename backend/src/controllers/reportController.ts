@@ -1,10 +1,8 @@
 import { Request, Response } from 'express';
 import { AppDataSource } from '../ormconfig';
 import { Project } from '../models/Project';
-import { startOfWeek, startOfMonth, startOfYear } from 'date-fns';
 import {Task} from "../models/Task";
 
-type DateRange = [Date, Date];
 
 const generateReport = async (req: Request, res: Response) => {
   const { projectId } = req.params;
@@ -12,17 +10,30 @@ const generateReport = async (req: Request, res: Response) => {
 
   try {
     const projectRepository = AppDataSource.getRepository(Project);
-    const project = await projectRepository.findOne({
-      where: { id: parseInt(projectId) },
-      relations: ['tasks', 'tasks.assignees'],
-    });
+
+    // Создаем QueryBuilder для получения данных с фильтрацией на уровне БД
+    const queryBuilder = projectRepository.createQueryBuilder('project')
+      .leftJoinAndSelect('project.tasks', 'task')
+      .leftJoinAndSelect('task.assignees', 'assignee')
+      .where('project.id = :projectId', { projectId: parseInt(projectId) });
+
+    // Фильтрация по дате обновления задач
+    if (startDate) {
+      queryBuilder.andWhere('task.updatedAt >= :startDate', { startDate: new Date(startDate as string) });
+    }
+
+    // Фильтрация по пользователю, если указан
+    if (user !== 'all') {
+      queryBuilder.andWhere('assignee.id = :userId', { userId: parseInt(user as string) });
+    }
+
+    const project = await queryBuilder.getOne();
 
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    const tasks = project.tasks.filter(task => new Date(task.updatedAt) >= new Date(startDate as string) &&
-      (user === 'all' || task.assignees.some(assignee => assignee.id === parseInt(user as string))));
+    const tasks = project.tasks;
 
     const completedTasks = tasks.filter(task => task.status === 'Done').length;
     const totalTasks = tasks.length;
@@ -51,43 +62,33 @@ const generateReport = async (req: Request, res: Response) => {
 
 const generatePriorityReport = async (req: Request, res: Response) => {
   const { projectId } = req.params;
-  const { period = 'all', user = 'all' } = req.query;
+  const { user = 'all', startDate } = req.query;
 
   try {
     const projectRepository = AppDataSource.getRepository(Project);
-    const project = await projectRepository.findOne({
-      where: { id: parseInt(projectId) },
-      relations: ['tasks', 'tasks.assignees'],
-    });
+
+    const queryBuilder = projectRepository.createQueryBuilder('project')
+      .leftJoinAndSelect('project.tasks', 'task')
+      .leftJoinAndSelect('task.assignees', 'assignee')
+      .where('project.id = :projectId', { projectId: parseInt(projectId) });
+
+    // Фильтрация по дате создания задачи
+    if (startDate) {
+      queryBuilder.andWhere('task.createdAt >= :startDate', { startDate: new Date(startDate.toString()) });
+    }
+
+    // Фильтрация по назначенному пользователю, если указан
+    if (user !== 'all') {
+      queryBuilder.andWhere('assignee.id = :userId', { userId: parseInt(user as string) });
+    }
+
+    const project = await queryBuilder.getOne();
 
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    const now: Date = new Date();
-    let dateRange: DateRange;
-
-    switch (period) {
-      case 'week':
-        dateRange = [startOfWeek(now), now];
-        break;
-      case 'month':
-        dateRange = [startOfMonth(now), now];
-        break;
-      case 'year':
-        dateRange = [startOfYear(now), now];
-        break;
-      default:
-        dateRange = [new Date(0), now]; // Все время
-    }
-
-    const tasks = project.tasks.filter((task) => {
-      const isInRange = task.createdAt >= dateRange[0] && task.createdAt <= dateRange[1];
-      const isAssignedToUser = user === 'all' || task.assignees.some(assignee => assignee.id === parseInt(user as string));
-      return isInRange && isAssignedToUser;
-    });
-
-    const reportData = tasks.reduce((acc: Record<string, number>, task: Task) => {
+    const reportData = project.tasks.reduce((acc: Record<string, number>, task: Task) => {
       acc[task.priority] = (acc[task.priority] || 0) + 1;
       return acc;
     }, {});
@@ -105,24 +106,28 @@ const generateOverdueReport = async (req: Request, res: Response) => {
 
   try {
     const projectRepository = AppDataSource.getRepository(Project);
-    const project = await projectRepository.findOne({
-      where: { id: parseInt(projectId) },
-      relations: ['tasks'],
-    });
+
+    // Получаем задачи с помощью QueryBuilder
+    const queryBuilder = projectRepository.createQueryBuilder('project')
+      .leftJoinAndSelect('project.tasks', 'task')
+      .where('project.id = :projectId', { projectId: parseInt(projectId) })
+      .andWhere('task.dueDate IS NOT NULL')
+      .andWhere('task.dueDate < :now', { now: new Date() })
+      .andWhere('task.status != :status', { status: 'Done' });
+
+
+    if (startDate) {
+      queryBuilder.andWhere('task.createdAt >= :startDate', { startDate: new Date(startDate.toString()) });
+    }
+
+    const project = await queryBuilder.getOne();
 
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    const tasks = project.tasks.filter(task =>
-      task.dueDate !== null && // Проверяем, что dueDate не равен null
-      new Date(task.dueDate) >= new Date(startDate as string) &&
-      new Date(task.dueDate) < new Date() &&
-      task.status !== 'Done'
-    );
-
-    const overdueData = tasks.reduce((acc, task) => {
-      const date = new Date(task.dueDate!).toLocaleDateString(); // Используем !, так как мы уже проверили, что dueDate не null
+    const overdueData = project.tasks.reduce((acc, task) => {
+      const date = new Date(task.dueDate!).toLocaleDateString();
       if (!acc[date]) {
         acc[date] = 0;
       }
@@ -138,26 +143,32 @@ const generateOverdueReport = async (req: Request, res: Response) => {
 
 
 const generateTeamPerformanceReport = async (req: Request, res: Response) => {
-  const { projectId } = req.params;
-  const { startDate } = req.query;
+  const {projectId} = req.params;
+  const {startDate} = req.query;
 
   try {
     const projectRepository = AppDataSource.getRepository(Project);
-    const project = await projectRepository.findOne({
-      where: { id: parseInt(projectId) },
-      relations: ['tasks', 'tasks.assignees'],
-    });
 
-    if (!project) {
-      return res.status(404).json({ error: 'Project not found' });
+    // Используем QueryBuilder для выполнения фильтрации на уровне базы данных
+    const queryBuilder = projectRepository.createQueryBuilder('project')
+      .leftJoinAndSelect('project.tasks', 'task')
+      .leftJoinAndSelect('task.assignees', 'assignee')
+      .where('project.id = :projectId', {projectId: parseInt(projectId)})
+
+    if (startDate) {
+      queryBuilder.andWhere('task.createdAt >= :startDate', {startDate: new Date(startDate.toString())});
     }
 
-    const tasks = project.tasks.filter(task => new Date(task.updatedAt) >= new Date(startDate as string));
+    const project = await queryBuilder.getOne();
 
-    const performance = tasks.reduce(
+    if (!project) {
+      return res.status(404).json({error: 'Project not found'});
+    }
+
+    const performance = project.tasks.reduce(
       (acc, task) => {
         task.assignees.forEach((assignee) => {
-          acc[assignee.id] = acc[assignee.id] || { total: 0, completed: 0 };
+          acc[assignee.id] = acc[assignee.id] || {total: 0, completed: 0};
           acc[assignee.id].total += 1;
           if (task.status === 'Done') {
             acc[assignee.id].completed += 1;
@@ -170,50 +181,40 @@ const generateTeamPerformanceReport = async (req: Request, res: Response) => {
 
     res.json(performance);
   } catch (err: any) {
-    res.status(400).json({ error: err.message });
+    res.status(400).json({error: err.message});
   }
-};
-
+}
 
 const generatePriorityDistributionReport = async (req: Request, res: Response) => {
   const { projectId } = req.params;
-  const { period = 'all', user = 'all', type = 'priority' } = req.query;
+  const { period = 'all', user = 'all', type = 'priority', startDate } = req.query;
 
   try {
     const projectRepository = AppDataSource.getRepository(Project);
-    const project: Project | null = await projectRepository.findOne({
-      where: { id: parseInt(projectId) },
-      relations: ['tasks', 'tasks.assignees'],
-    });
+
+    // Используем QueryBuilder для выполнения фильтрации на уровне базы данных
+    const queryBuilder = projectRepository.createQueryBuilder('project')
+      .leftJoinAndSelect('project.tasks', 'task')
+      .leftJoinAndSelect('task.assignees', 'assignee')
+      .where('project.id = :projectId', { projectId: parseInt(projectId) });
+
+    // Фильтрация по дате создания задачи
+    if (startDate) {
+      queryBuilder.andWhere('task.createdAt >= :startDate', { startDate: new Date(startDate.toString()) });
+    }
+
+    // Фильтрация по назначенному пользователю, если указан
+    if (user !== 'all') {
+      queryBuilder.andWhere('assignee.id = :userId', { userId: parseInt(user.toString()) });
+    }
+
+    const project = await queryBuilder.getOne();
 
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    const now: Date = new Date();
-    let dateRange: DateRange;
-
-    switch (period) {
-      case 'week':
-        dateRange = [startOfWeek(now), now];
-        break;
-      case 'month':
-        dateRange = [startOfMonth(now), now];
-        break;
-      case 'year':
-        dateRange = [startOfYear(now), now];
-        break;
-      default:
-        dateRange = [new Date(0), now]; // Все время
-    }
-
-    const tasks: Task[] | undefined = project.tasks?.filter((task: Task) => {
-      const isInRange = task.createdAt >= dateRange[0] && task.createdAt <= dateRange[1];
-      const isAssignedToUser = user === 'all' || task.assignees.some(assignee => assignee.id === parseInt(user.toString()));
-      return isInRange && isAssignedToUser;
-    });
-
-    const reportData = tasks?.reduce(
+    const reportData = project.tasks.reduce(
       (acc: Record<string, number>, task: Task) => {
         const key = type === 'priority' ? task.priority : task.status;
         acc[key] = (acc[key] || 0) + 1;
@@ -235,18 +236,23 @@ const generateProgressReport = async (req: Request, res: Response) => {
 
   try {
     const projectRepository = AppDataSource.getRepository(Project);
-    const project = await projectRepository.findOne({
-      where: { id: parseInt(projectId) },
-      relations: ['tasks'],
-    });
+
+    // Используем QueryBuilder для выполнения фильтрации на уровне базы данных
+    const queryBuilder = projectRepository.createQueryBuilder('project')
+      .leftJoinAndSelect('project.tasks', 'task')
+      .where('project.id = :projectId', { projectId: parseInt(projectId) });
+
+    if (startDate) {
+      queryBuilder.andWhere('task.createdAt >= :startDate', { startDate: new Date(startDate.toString()) });
+    }
+
+    const project = await queryBuilder.getOne();
 
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    const tasks = project.tasks.filter(task => new Date(task.updatedAt) >= new Date(startDate as string));
-
-    const progress = tasks.reduce(
+    const progress = project.tasks.reduce(
       (acc, task) => {
         const date = new Date(task.updatedAt).toLocaleDateString();
         if (!acc[date]) {
@@ -263,10 +269,10 @@ const generateProgressReport = async (req: Request, res: Response) => {
 
     res.json(progress);
   } catch (err: any) {
-    const error = err as Error;
-    res.status(400).json({ error: error.message });
+    res.status(400).json({ error: err.message });
   }
 };
+
 
 const generateTeamWorkloadReport = async (req: Request, res: Response) => {
   const { projectId } = req.params;
@@ -274,28 +280,31 @@ const generateTeamWorkloadReport = async (req: Request, res: Response) => {
 
   try {
     const projectRepository = AppDataSource.getRepository(Project);
-    const project = await projectRepository.findOne({
-      where: { id: parseInt(projectId) },
-      relations: ['tasks', 'tasks.assignees'],
-    });
+
+    // Используем QueryBuilder для выполнения фильтрации на уровне базы данных
+    const queryBuilder = projectRepository.createQueryBuilder('project')
+      .leftJoinAndSelect('project.tasks', 'task')
+      .leftJoinAndSelect('task.assignees', 'assignee')
+      .where('project.id = :projectId', { projectId: parseInt(projectId) })
+
+    if (startDate) {
+      queryBuilder.andWhere('task.createdAt >= :startDate', { startDate: new Date(startDate.toString()) });
+    }
+
+    const project = await queryBuilder.getOne();
 
     if (!project) {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    const tasks = project.tasks.filter(task => new Date(task.createdAt) >= new Date(startDate as string));
-
-    const workload = tasks.reduce(
+    const workload = project.tasks.reduce(
       (acc, task) => {
         task.assignees.forEach((assignee) => {
-          if (!acc[assignee.id]) {
-            acc[assignee.id] = 0;
-          }
-          acc[assignee.id] += 1;
+          acc[assignee.id] = (acc[assignee.id] || 0) + 1;
         });
         return acc;
       },
-      {} as Record<string | number, number>
+      {} as Record<number, number>
     );
 
     res.json(workload);

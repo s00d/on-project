@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
 import { AppDataSource } from '../ormconfig';
 import { TaskAttachment } from '../models/TaskAttachment';
-import multer from 'multer';
-import path from 'path';
 
 
 const getTaskAttachments = async (req: Request, res: Response) => {

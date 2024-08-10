@@ -115,6 +115,8 @@
       </form>
     </div>
 
+    <div class="pef"></div>
+
     <div class="modal-footer">
       <button type="button" class="btn btn-primary" @click.prevent="submitTask">{{ buttonText }}</button>
       <button
@@ -235,5 +237,17 @@ const handleFileUpload = (event: Event) => {
 .task-form {
   max-width: 800px;
   margin: 0 auto;
+}
+
+.pef {
+  padding-bottom: 75px;
+}
+
+.modal-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background-color: white;
 }
 </style>

@@ -30,9 +30,9 @@
                   </select>
 
                   <label for="reportType">Select Report Type:</label>
-                  <select id="reportType" v-model="selectedReportType" @change="fetchReport">
-                    <option value="priority">Priority Distribution</option>
-                    <option value="status">Status Distribution</option>
+                  <select id="reportType" v-model="selectedChartType" @change="fetchReport">
+                    <option value="bar">Bar Chart</option>
+                    <option value="pie">Pie Chart</option>
                   </select>
                 </div>
 
@@ -60,6 +60,7 @@ import ReportsLinks from "@/components/ReportsLinks.vue";
 import { useRoute } from "vue-router";
 import {useProjectStore} from "@/stores/projectStore";
 import {useAlertStore} from "@/stores/alertStore";
+import {startOfMonth, startOfWeek, startOfYear} from "date-fns";
 
 Chart.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, PieController, BarController)
 
@@ -78,7 +79,7 @@ const route = useRoute()
 const projectId = route.params.projectId.toString()
 const selectedPeriod = ref('month')
 const selectedUser = ref('all')
-const selectedReportType = ref('priority') // Новый реф для типа отчета
+const selectedChartType = ref<'bar'|'pie'>('bar')
 
 const users = ref<{[key: number]: User}>([])
 const report = ref<ReportData | null>(null)
@@ -106,7 +107,8 @@ const createChart = () => {
     labels,
     datasets: [
       {
-        label: selectedReportType.value === 'priority' ? 'Task Distribution by Priority' : 'Task Distribution by Status',
+        label: selectedChartType.value === 'pie' ? 'Task Distribution by Priority' : 'Task Distribution by Status',
+
         data,
         backgroundColor: [
           'rgba(255, 99, 132, 0.2)',
@@ -149,7 +151,7 @@ const createChart = () => {
 
   const ctx = document.getElementById('distributionChart') as any
   distributionChart.value = new Chart(ctx.getContext('2d'), {
-    type: selectedReportType.value === 'priority' ? 'pie' : 'bar', // Меняем тип графика в зависимости от отчета
+    type: selectedChartType.value, // Меняем тип графика в зависимости от отчета
     data: chartData,
     options
   })
@@ -157,7 +159,31 @@ const createChart = () => {
 
 const fetchReport = async () => {
   try {
-    const response = await axios.get(`/reports/project/${projectId}/priority_distribution?period=${selectedPeriod.value}&user=${selectedUser.value}&type=${selectedReportType.value}`)
+    const now = new Date();
+    let startDate: Date;
+
+    switch (selectedPeriod.value) {
+      case 'week':
+        startDate = startOfWeek(now);
+        break;
+      case 'month':
+        startDate = startOfMonth(now);
+        break;
+      case 'year':
+        startDate = startOfYear(now);
+        break;
+      default:
+        startDate = new Date(0); // Все время
+    }
+
+
+    const response = await axios.get(`/reports/project/${projectId}/priority_distribution`, {
+      params: {
+        user: selectedPeriod.value,
+        type: selectedChartType.value,
+        startDate: startDate.toISOString()
+      }
+    })
     report.value = response.data
     createChart()
   } catch (error: any) {
