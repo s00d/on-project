@@ -90,7 +90,7 @@ router.post(
   [
     check('projectId').isInt().withMessage('Project ID must be an integer'),
     check('title').isString().notEmpty().withMessage('Title is required'),
-    check('description').isString().optional()
+    check('description').isString().optional({ nullable: true })
   ],
   validateRequest,
   createRoadmap
@@ -146,7 +146,7 @@ router.put(
     check('projectId').isInt().withMessage('Project ID must be an integer'),
     check('id').isInt().withMessage('Roadmap ID must be an integer'),
     check('title').isString().notEmpty().withMessage('Title is required'),
-    check('description').isString().optional()
+    check('description').isString().optional({ nullable: true })
   ],
   validateRequest,
   updateRoadmap

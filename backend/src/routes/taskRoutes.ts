@@ -67,13 +67,13 @@ router.post(
   [
     check('projectId').isInt().withMessage('Project ID must be an integer'),
     check('title').isString().withMessage('Title is required and should be a string'),
-    check('description').optional().isString().withMessage('Description should be a string'),
+    check('description').optional({ nullable: true }).isString().withMessage('Description should be a string'),
     check('status').isString().withMessage('Status is required and should be a string'),
-    check('priority').optional().isString().withMessage('Priority should be a string'),
-    check('dueDate').optional().isISO8601().toDate().withMessage('Due date should be a valid date'),
-    check('assignees').optional().isArray().withMessage('Assignees should be an array of user IDs'),
-    check('labelId').optional().isInt().withMessage('Label ID should be an integer'),
-    check('sprintId').optional().isInt().withMessage('Sprint ID should be an integer')
+    check('priority').optional({ nullable: true }).isString().withMessage('Priority should be a string'),
+    check('dueDate').optional({ nullable: true }).isISO8601().toDate().withMessage('Due date should be a valid date'),
+    check('assignees').optional({ nullable: true }).isArray().withMessage('Assignees should be an array of user IDs'),
+    check('labelId').optional({ nullable: true }).isInt().withMessage('Label ID should be an integer'),
+    check('sprintId').optional({ nullable: true }).isInt().withMessage('Sprint ID should be an integer')
   ],
   validateRequest,
   createTask
@@ -147,14 +147,14 @@ router.put(
   [
     check('projectId').isInt().withMessage('Project ID must be an integer'),
     check('id').isInt().withMessage('Task ID must be an integer'),
-    check('title').optional().isString().withMessage('Title should be a string'),
-    check('description').optional().isString().withMessage('Description should be a string'),
-    check('status').optional().isString().withMessage('Status should be a string'),
-    check('priority').optional().isString().withMessage('Priority should be a string'),
-    check('dueDate').optional().isISO8601().toDate().withMessage('Due date should be a valid date'),
-    check('assignees').optional().isArray().withMessage('Assignees should be an array of user IDs'),
-    check('labelId').optional().isInt().withMessage('Label ID should be an integer'),
-    check('sprintId').optional().isInt().withMessage('Sprint ID should be an integer')
+    check('title').optional({ nullable: true }).isString().withMessage('Title should be a string'),
+    check('description').optional({ nullable: true }).isString().withMessage('Description should be a string'),
+    check('status').optional({ nullable: true }).isString().withMessage('Status should be a string'),
+    check('priority').optional({ nullable: true }).isString().withMessage('Priority should be a string'),
+    check('dueDate').optional({ nullable: true }).isISO8601().toDate().withMessage('Due date should be a valid date'),
+    check('assignees').optional({ nullable: true }).isArray().withMessage('Assignees should be an array of user IDs'),
+    check('labelId').optional({ nullable: true }).isInt().withMessage('Label ID should be an integer'),
+    check('sprintId').optional({ nullable: true }).isInt().withMessage('Sprint ID should be an integer')
   ],
   validateRequest,
   updateTask

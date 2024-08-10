@@ -59,7 +59,7 @@ router.post(
   authenticateAll,
   [
     body('name').notEmpty().withMessage('Project name is required'),
-    body('description').optional().isString().withMessage('Description must be a string')
+    body('description').optional({ nullable: true }).isString().withMessage('Description must be a string')
   ],
   validateRequest,
   createProject
@@ -131,14 +131,14 @@ router.put(
   isProjectCreator,
   [
     param('projectId').isInt().withMessage('Project ID must be an integer'),
-    body('name').optional().isString().withMessage('Name must be a string'),
-    body('description').optional().isString().withMessage('Description must be a string'),
-    body('customFields').optional().isObject().withMessage('Custom fields must be an object'),
-    body('priorities').optional().isArray().withMessage('Priorities must be an array'),
-    body('statuses').optional().isArray().withMessage('Statuses must be an array'),
-    body('tags').optional().isArray().withMessage('Tags must be an array'),
-    body('types').optional().isArray().withMessage('Types must be an array'),
-    body('savedFilters').optional().isArray().withMessage('Saved filters must be an array')
+    body('name').optional({ nullable: true }).isString().withMessage('Name must be a string'),
+    body('description').optional({ nullable: true }).isString().withMessage('Description must be a string'),
+    body('customFields').optional({ nullable: true }).isObject().withMessage('Custom fields must be an object'),
+    body('priorities').optional({ nullable: true }).isArray().withMessage('Priorities must be an array'),
+    body('statuses').optional({ nullable: true }).isArray().withMessage('Statuses must be an array'),
+    body('tags').optional({ nullable: true }).isArray().withMessage('Tags must be an array'),
+    body('types').optional({ nullable: true }).isArray().withMessage('Types must be an array'),
+    body('savedFilters').optional({ nullable: true }).isArray().withMessage('Saved filters must be an array')
   ],
   validateRequest,
   updateProject
@@ -213,9 +213,9 @@ router.post(
   isProjectCreator,
   [
     param('projectId').isInt().withMessage('Project ID must be an integer'),
-    body('userId').optional().isInt().withMessage('User ID must be an integer'),
-    body('email').optional().isEmail().withMessage('Email must be a valid email address'),
-    body('username').optional().isString().withMessage('Username must be a string')
+    body('userId').optional({ nullable: true }).isInt().withMessage('User ID must be an integer'),
+    body('email').optional({ nullable: true }).isEmail().withMessage('Email must be a valid email address'),
+    body('username').optional({ nullable: true }).isString().withMessage('Username must be a string')
   ],
   validateRequest,
   inviteUser

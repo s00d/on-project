@@ -110,7 +110,7 @@ router.post(
   [
     check('projectId').isInt().withMessage('Project ID must be an integer'),
     check('title').isString().notEmpty().withMessage('Title is required'),
-    check('description').isString().optional(),
+    check('description').isString().optional({ nullable: true }),
     check('startDate').isISO8601().toDate().withMessage('Start Date must be a valid date'),
     check('endDate').isISO8601().toDate().withMessage('End Date must be a valid date'),
     check('roadmapId').isInt().withMessage('Roadmap ID must be an integer')
@@ -177,7 +177,7 @@ router.put(
     check('projectId').isInt().withMessage('Project ID must be an integer'),
     check('id').isInt().withMessage('Sprint ID must be an integer'),
     check('title').isString().notEmpty().withMessage('Title is required'),
-    check('description').isString().optional(),
+    check('description').isString().optional({ nullable: true }),
     check('startDate').isISO8601().toDate().withMessage('Start Date must be a valid date'),
     check('endDate').isISO8601().toDate().withMessage('End Date must be a valid date')
   ],

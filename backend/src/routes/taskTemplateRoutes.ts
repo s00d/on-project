@@ -63,14 +63,14 @@ router.post(
   authenticateAll,
   [
     check('title').isString().withMessage('Title is required and should be a string'),
-    check('description').optional().isString().withMessage('Description should be a string'),
+    check('description').optional({ nullable: true }).isString().withMessage('Description should be a string'),
     check('priority')
-      .optional()
+      .optional({ nullable: true })
       .isIn(['Low', 'Medium', 'High'])
       .withMessage('Priority should be Low, Medium, or High'),
-    check('status').optional().isString().withMessage('Status should be a string'),
-    check('tag').optional().isString().withMessage('Tag should be a string'),
-    check('type').optional().isString().withMessage('Type should be a string')
+    check('status').optional({ nullable: true }).isString().withMessage('Status should be a string'),
+    check('tag').optional({ nullable: true }).isString().withMessage('Tag should be a string'),
+    check('type').optional({ nullable: true }).isString().withMessage('Type should be a string')
   ],
   validateRequest,
   createTemplate

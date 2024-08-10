@@ -69,8 +69,8 @@ router.get(
   authenticateAll,
   [
     param('projectId').isInt().withMessage('Project ID must be an integer'),
-    query('startDate').optional().isISO8601().withMessage('Start date must be a valid date-time'),
-    query('user').optional().isInt().withMessage('User ID must be an integer')
+    query('startDate').optional({ nullable: true }).isISO8601().withMessage('Start date must be a valid date-time'),
+    query('user').optional({ nullable: true }).isInt().withMessage('User ID must be an integer')
   ],
   validateRequest,
   generateReport
@@ -132,15 +132,15 @@ router.get(
   [
     param('projectId').isInt().withMessage('Project ID must be an integer'),
     query('period')
-      .optional()
+      .optional({ nullable: true })
       .isIn(['all', 'week', 'month', 'year'])
       .withMessage('Period must be one of [all, week, month, year]'),
-    query('user').optional().isInt().withMessage('User ID must be an integer'),
+    query('user').optional({ nullable: true }).isInt().withMessage('User ID must be an integer'),
     query('type')
-      .optional()
+      .optional({ nullable: true })
       .isIn(['priority', 'status'])
       .withMessage('Type must be one of [priority, status]'),
-    query('startDate').optional().isISO8601().withMessage('Start date must be a valid date-time')
+    query('startDate').optional({ nullable: true }).isISO8601().withMessage('Start date must be a valid date-time')
   ],
   validateRequest,
   generatePriorityDistributionReport
@@ -184,7 +184,7 @@ router.get(
   authenticateAll,
   [
     param('projectId').isInt().withMessage('Project ID must be an integer'),
-    query('startDate').optional().isISO8601().withMessage('Start date must be a valid date-time')
+    query('startDate').optional({ nullable: true }).isISO8601().withMessage('Start date must be a valid date-time')
   ],
   validateRequest,
   generateOverdueReport
@@ -233,7 +233,7 @@ router.get(
   authenticateAll,
   [
     param('projectId').isInt().withMessage('Project ID must be an integer'),
-    query('startDate').optional().isISO8601().withMessage('Start date must be a valid date-time')
+    query('startDate').optional({ nullable: true }).isISO8601().withMessage('Start date must be a valid date-time')
   ],
   validateRequest,
   generateTeamPerformanceReport
@@ -282,8 +282,8 @@ router.get(
   authenticateAll,
   [
     param('projectId').isInt().withMessage('Project ID must be an integer'),
-    query('user').optional().isInt().withMessage('User ID must be an integer'),
-    query('startDate').optional().isISO8601().withMessage('Start date must be a valid date-time')
+    query('user').optional({ nullable: true }).isInt().withMessage('User ID must be an integer'),
+    query('startDate').optional({ nullable: true }).isISO8601().withMessage('Start date must be a valid date-time')
   ],
   validateRequest,
   generatePriorityReport
@@ -332,7 +332,7 @@ router.get(
   authenticateAll,
   [
     param('projectId').isInt().withMessage('Project ID must be an integer'),
-    query('startDate').optional().isISO8601().withMessage('Start date must be a valid date-time')
+    query('startDate').optional({ nullable: true }).isISO8601().withMessage('Start date must be a valid date-time')
   ],
   validateRequest,
   generateProgressReport
@@ -376,7 +376,7 @@ router.get(
   authenticateAll,
   [
     param('projectId').isInt().withMessage('Project ID must be an integer'),
-    query('startDate').optional().isISO8601().withMessage('Start date must be a valid date-time')
+    query('startDate').optional({ nullable: true }).isISO8601().withMessage('Start date must be a valid date-time')
   ],
   validateRequest,
   generateTeamWorkloadReport
@@ -450,19 +450,19 @@ router.post(
       .isIn(['Task', 'User', 'Project', 'Sprint', 'Label'])
       .withMessage('Invalid model selected'),
     check('fields').isArray().withMessage('Fields must be an array of strings'),
-    check('filters').optional().isObject().withMessage('Filters must be an object'),
-    check('groupBy').optional().isString().withMessage('GroupBy must be a string'),
-    check('sortBy').optional().isString().withMessage('SortBy must be a string'),
+    check('filters').optional({ nullable: true }).isObject().withMessage('Filters must be an object'),
+    check('groupBy').optional({ nullable: true }).isString().withMessage('GroupBy must be a string'),
+    check('sortBy').optional({ nullable: true }).isString().withMessage('SortBy must be a string'),
     check('sortOrder')
-      .optional()
+      .optional({ nullable: true })
       .isIn(['ASC', 'DESC'])
       .withMessage('SortOrder must be either ASC or DESC'),
     check('chartType')
-      .optional()
+      .optional({ nullable: true })
       .isIn(['bar', 'pie'])
       .withMessage('ChartType must be either bar or pie'),
-    check('startDate').optional().isISO8601().withMessage('Start date must be a valid date-time'),
-    check('endDate').optional().isISO8601().withMessage('End date must be a valid date-time')
+    check('startDate').optional({ nullable: true }).isISO8601().withMessage('Start date must be a valid date-time'),
+    check('endDate').optional({ nullable: true }).isISO8601().withMessage('End date must be a valid date-time')
   ],
   validateRequest,
   generateUniversalReport
