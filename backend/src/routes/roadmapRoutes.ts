@@ -1,16 +1,16 @@
-import { Router } from 'express';
+import { Router } from 'express'
 import {
   getRoadmaps,
   createRoadmap,
   updateRoadmap,
   deleteRoadmap
-} from '../controllers/roadmapController';
-import { authenticateAll } from '../middlewares/authMiddleware';
-import { isProjectCreator } from '../middlewares/roleMiddleware';
-import { check } from 'express-validator';
-import { validateRequest } from '../middlewares/validateRequest';  // Assuming you have a middleware for handling validation errors
+} from '../controllers/roadmapController'
+import { authenticateAll } from '../middlewares/authMiddleware'
+import { isProjectCreator } from '../middlewares/roleMiddleware'
+import { check } from 'express-validator'
+import { validateRequest } from '../middlewares/validateRequest' // Assuming you have a middleware for handling validation errors
 
-const router = Router();
+const router = Router()
 
 /**
  * @swagger
@@ -42,12 +42,10 @@ const router = Router();
 router.get(
   '/:projectId',
   authenticateAll,
-  [
-    check('projectId').isInt().withMessage('Project ID must be an integer'),
-  ],
+  [check('projectId').isInt().withMessage('Project ID must be an integer')],
   validateRequest,
   getRoadmaps
-);
+)
 
 /**
  * @swagger
@@ -92,11 +90,11 @@ router.post(
   [
     check('projectId').isInt().withMessage('Project ID must be an integer'),
     check('title').isString().notEmpty().withMessage('Title is required'),
-    check('description').isString().optional(),
+    check('description').isString().optional()
   ],
   validateRequest,
   createRoadmap
-);
+)
 
 /**
  * @swagger
@@ -148,11 +146,11 @@ router.put(
     check('projectId').isInt().withMessage('Project ID must be an integer'),
     check('id').isInt().withMessage('Roadmap ID must be an integer'),
     check('title').isString().notEmpty().withMessage('Title is required'),
-    check('description').isString().optional(),
+    check('description').isString().optional()
   ],
   validateRequest,
   updateRoadmap
-);
+)
 
 /**
  * @swagger
@@ -189,10 +187,10 @@ router.delete(
   isProjectCreator,
   [
     check('projectId').isInt().withMessage('Project ID must be an integer'),
-    check('id').isInt().withMessage('Roadmap ID must be an integer'),
+    check('id').isInt().withMessage('Roadmap ID must be an integer')
   ],
   validateRequest,
   deleteRoadmap
-);
+)
 
-export { router as roadmapRouter };
+export { router as roadmapRouter }

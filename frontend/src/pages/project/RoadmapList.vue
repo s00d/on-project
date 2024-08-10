@@ -15,9 +15,17 @@
               </div>
               <div class="board-column-content">
                 <p>{{ roadmap.description }}</p>
-                <button @click="openEditRoadmapModal(roadmap)" class="btn btn-secondary btn-sm">Edit Roadmap</button>
-                <router-link :to="{ name: 'SprintList', params: { roadmapId: roadmap.id, projectId: projectId } }" class="btn btn-info btn-sm"
-                >View Sprints</router-link>
+                <button @click="openEditRoadmapModal(roadmap)" class="btn btn-secondary btn-sm">
+                  Edit Roadmap
+                </button>
+                <router-link
+                  :to="{
+                    name: 'SprintList',
+                    params: { roadmapId: roadmap.id, projectId: projectId }
+                  }"
+                  class="btn btn-info btn-sm"
+                  >View Sprints</router-link
+                >
               </div>
             </div>
 
@@ -28,7 +36,11 @@
         </div>
       </Tabs>
 
-      <ModalComponent :isOpen="isModalOpen" :title="isEditMode ? 'Edit Sprint' : 'Create Sprint'" @close="closeModal">
+      <ModalComponent
+        :isOpen="isModalOpen"
+        :title="isEditMode ? 'Edit Sprint' : 'Create Sprint'"
+        @close="closeModal"
+      >
         <template #body>
           <RoadmapFormModal
             v-if="isModalOpen && currentRoadmapData"
@@ -39,75 +51,73 @@
           />
         </template>
       </ModalComponent>
-
-
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted } from 'vue';
-import {type Roadmap, useRoadmapStore} from '@/stores/roadmapStore';
-import Tabs from "@/components/Tabs.vue";
-import { useRoute } from "vue-router";
-import RoadmapFormModal from "@/components/sprint/RoadmapFormModal.vue";
-import ModalComponent from "@/components/ModalComponent.vue";
+import { ref, computed, onMounted } from 'vue'
+import { type Roadmap, useRoadmapStore } from '@/stores/roadmapStore'
+import Tabs from '@/components/Tabs.vue'
+import { useRoute } from 'vue-router'
+import RoadmapFormModal from '@/components/sprint/RoadmapFormModal.vue'
+import ModalComponent from '@/components/ModalComponent.vue'
 
-const route = useRoute();
+const route = useRoute()
 
-const projectId = Number(route.params.projectId);
+const projectId = Number(route.params.projectId)
 
-const roadmapStore = useRoadmapStore();
+const roadmapStore = useRoadmapStore()
 
-const roadmaps = computed(() => roadmapStore.getRoadmaps);
+const roadmaps = computed(() => roadmapStore.getRoadmaps)
 
-const isModalOpen = ref(false);
-const isEditMode = ref(false);
-const currentRoadmapData = ref<Roadmap|null>(null);
+const isModalOpen = ref(false)
+const isEditMode = ref(false)
+const currentRoadmapData = ref<Roadmap | null>(null)
 
 const openCreateRoadmapModal = () => {
-  isEditMode.value = false;
+  isEditMode.value = false
   currentRoadmapData.value = {
     id: 0,
     title: '',
     description: '',
     projectId: 0
-  };
-  isModalOpen.value = true;
-};
+  }
+  isModalOpen.value = true
+}
 
 const openEditRoadmapModal = (roadmap: any) => {
-  isEditMode.value = true;
-  currentRoadmapData.value = { ...roadmap };
-  isModalOpen.value = true;
-};
+  isEditMode.value = true
+  currentRoadmapData.value = { ...roadmap }
+  isModalOpen.value = true
+}
 
 const handleSaveRoadmap = async (roadmapData: any) => {
   if (isEditMode.value) {
-    await roadmapStore.updateRoadmap(projectId, roadmapData.id, roadmapData);
+    await roadmapStore.updateRoadmap(projectId, roadmapData.id, roadmapData)
   } else {
-    await roadmapStore.createRoadmap(projectId, { ...roadmapData, projectId });
+    await roadmapStore.createRoadmap(projectId, { ...roadmapData, projectId })
   }
-  closeModal();
-  fetchRoadmaps();
-};
+  closeModal()
+  fetchRoadmaps()
+}
 
 const closeModal = () => {
-  isModalOpen.value = false;
-};
+  isModalOpen.value = false
+}
 
 const deleteRoadmap = async (roadmapId: number) => {
-  await roadmapStore.deleteRoadmap(projectId, roadmapId);
-};
+  await roadmapStore.deleteRoadmap(projectId, roadmapId)
+}
 
 const fetchRoadmaps = async () => {
-  await roadmapStore.fetchRoadmaps(projectId);
-};
+  await roadmapStore.fetchRoadmaps(projectId)
+}
 
 onMounted(() => {
-  fetchRoadmaps();
-  roadmapStore.subscribeToSocketEvents();
-});
+  fetchRoadmaps()
+  roadmapStore.subscribeToSocketEvents()
+})
 </script>
 
 <style scoped>

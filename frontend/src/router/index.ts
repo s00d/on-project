@@ -29,10 +29,10 @@ import CalendarPage from '../pages/CalendarPage.vue'
 import ImportExport from '../pages/ImportExport.vue'
 import TaskTemplates from '../pages/project/TaskTemplates.vue'
 
-import {authGuard} from "@/middleware/authGuard";
-import {guestGuard} from "@/middleware/guestGuard";
-import UniversalReport from "@/pages/report/UniversalReport.vue";
-import NotificationList from "@/pages/NotificationList.vue";
+import { authGuard } from '@/middleware/authGuard'
+import { guestGuard } from '@/middleware/guestGuard'
+import UniversalReport from '@/pages/report/UniversalReport.vue'
+import NotificationList from '@/pages/NotificationList.vue'
 
 const routes = [
   { path: '/', component: Home, name: 'Home' },
@@ -185,7 +185,7 @@ const routes = [
     component: SprintList,
     name: 'SprintList',
     beforeEnter: authGuard
-  },
+  }
 ]
 
 const router = createRouter({

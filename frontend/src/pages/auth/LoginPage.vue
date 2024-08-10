@@ -26,7 +26,7 @@
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 import { useRouter } from 'vue-router'
-import {useAlertStore} from "@/stores/alertStore";
+import { useAlertStore } from '@/stores/alertStore'
 
 const authStore = useAuthStore()
 const router = useRouter()

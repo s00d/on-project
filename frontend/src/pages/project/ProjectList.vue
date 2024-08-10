@@ -3,7 +3,9 @@
     <div class="content">
       <div class="container mt-5">
         <h1>Projects</h1>
-        <router-link class="btn btn-primary mb-3" :to="{ name: 'AddProject' }">Add Project</router-link>
+        <router-link class="btn btn-primary mb-3" :to="{ name: 'AddProject' }"
+          >Add Project</router-link
+        >
         <div v-if="projects.length === 0" class="alert alert-info">No projects available</div>
         <ul class="list-group">
           <li
@@ -16,7 +18,11 @@
               <p v-html="parseMd(project.description)"></p>
             </div>
             <div>
-              <router-link class="btn btn-info" :to="{ name: 'TaskList', params: { projectId: project.id } }">Select</router-link>
+              <router-link
+                class="btn btn-info"
+                :to="{ name: 'TaskList', params: { projectId: project.id } }"
+                >Select</router-link
+              >
               <router-link
                 v-if="project.ownerId === userId"
                 class="btn btn-secondary ms-2"
@@ -54,7 +60,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useProjectStore } from '@/stores/projectStore'
 import { useAuthStore } from '@/stores/authStore'
 import { marked } from 'marked'
-import ConfirmationModal from "@/components/ConfirmationModal.vue";
+import ConfirmationModal from '@/components/ConfirmationModal.vue'
 
 const projectStore = useProjectStore()
 const authStore = useAuthStore()

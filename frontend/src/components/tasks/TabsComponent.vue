@@ -20,7 +20,9 @@
       >
         {{ filter.name }}
 
-        <span class="ml-5" style="cursor: pointer;" @click.stop.prevent="removeSavedFilter(index)">×</span>
+        <span class="ml-5" style="cursor: pointer" @click.stop.prevent="removeSavedFilter(index)"
+          >×</span
+        >
       </a>
     </li>
   </ul>

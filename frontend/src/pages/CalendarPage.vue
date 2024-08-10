@@ -12,16 +12,16 @@
 </template>
 
 <script lang="ts" setup>
-import {ref, onMounted, computed} from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
 import listPlugin from '@fullcalendar/list'
 import Tabs from '@/components/Tabs.vue'
-import { useAlertStore } from "@/stores/alertStore"
-import { useRoute } from "vue-router"
-import {type Task, useTaskStore} from "@/stores/taskStore"
+import { useAlertStore } from '@/stores/alertStore'
+import { useRoute } from 'vue-router'
+import { type Task, useTaskStore } from '@/stores/taskStore'
 
 const events = ref([])
 const route = useRoute()
@@ -63,7 +63,10 @@ const handleDatesSet = (info: any) => {
 }
 
 const handleEventClick = (info: any) => {
-  useAlertStore().setAlert(`Task: ${info.event.title}\nStatus: ${info.event.extendedProps.status}\nPriority: ${info.event.extendedProps.priority}`, 'success')
+  useAlertStore().setAlert(
+    `Task: ${info.event.title}\nStatus: ${info.event.extendedProps.status}\nPriority: ${info.event.extendedProps.priority}`,
+    'success'
+  )
 }
 
 const calendarOptions = computed(() => {
@@ -75,5 +78,4 @@ const calendarOptions = computed(() => {
     datesSet: handleDatesSet
   }
 })
-
 </script>

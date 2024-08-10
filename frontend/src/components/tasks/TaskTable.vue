@@ -4,33 +4,37 @@
     <div class="table-responsive">
       <table class="table table-hover table-sm">
         <thead>
-        <tr>
-          <th v-for="column in visibleColumns" @click="sort(column)"  :key="column">
-            {{ column }}
-            <i v-if="sortKey === column" :class="sortIconClass(column)"></i>
-          </th>
-          <th scope="col" class="actions-sticky" style="width: 90px;">Actions</th>
-        </tr>
+          <tr>
+            <th v-for="column in visibleColumns" @click="sort(column)" :key="column">
+              {{ column }}
+              <i v-if="sortKey === column" :class="sortIconClass(column)"></i>
+            </th>
+            <th scope="col" class="actions-sticky" style="width: 90px">Actions</th>
+          </tr>
         </thead>
         <tbody>
-        <tr
-          v-for="task in tasks"
-          :key="task.id"
-          class="task-row"
-
-        >
-          <td v-for="column in visibleColumns" :style="{backgroundColor: generatePriorityColor(task.priority ?? '')}"  :key="column" v-html="getColumnData(task, column)"></td>
-          <td class="actions-sticky" style="width: 90px;">
-            <div style="width: 90%; display: flex">
-              <button class="btn btn-danger btn-sm" style="margin-right: 2px;" @click="$emit('open-task-modal', task)">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button class="btn btn-info btn-sm" @click="$emit('open-preview-modal', task)">
-                <i class="fas fa-eye"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
+          <tr v-for="task in tasks" :key="task.id" class="task-row">
+            <td
+              v-for="column in visibleColumns"
+              :style="{ backgroundColor: generatePriorityColor(task.priority ?? '') }"
+              :key="column"
+              v-html="getColumnData(task, column)"
+            ></td>
+            <td class="actions-sticky" style="width: 90px">
+              <div style="width: 90%; display: flex">
+                <button
+                  class="btn btn-danger btn-sm"
+                  style="margin-right: 2px"
+                  @click="$emit('open-task-modal', task)"
+                >
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-info btn-sm" @click="$emit('open-preview-modal', task)">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -41,8 +45,8 @@
 import { ref, computed, defineProps, defineEmits } from 'vue'
 import type { Task } from '@/stores/taskStore'
 import type { User } from '@/stores/authStore'
-import type { Project } from "@/stores/projectStore";
-import type {Sprint} from "@/stores/sprintStore";
+import type { Project } from '@/stores/projectStore'
+import type { Sprint } from '@/stores/sprintStore'
 
 const props = defineProps<{
   tasks: Task[]
@@ -133,10 +137,13 @@ const sortIconClass = (key: string) => {
 
 const sprintMap = computed(() => {
   const sprints = props.project?.sprints ?? []
-  return sprints.reduce((acc, sprint) => {
-    acc[sprint.id] = sprint
-    return acc
-  }, {} as Record<number, Sprint>)
+  return sprints.reduce(
+    (acc, sprint) => {
+      acc[sprint.id] = sprint
+      return acc
+    },
+    {} as Record<number, Sprint>
+  )
 })
 
 const getColumnData = (task: Task, column: string) => {
@@ -147,9 +154,13 @@ const getColumnData = (task: Task, column: string) => {
     case 'Status':
       return task.status
     case 'Sprint':
-      return task.sprintId && sprintMap.value[task.sprintId] ? sprintMap.value[task.sprintId].title ?? 'N/A' : 'N/A'
+      return task.sprintId && sprintMap.value[task.sprintId]
+        ? (sprintMap.value[task.sprintId].title ?? 'N/A')
+        : 'N/A'
     case 'Label':
-      return task.label ? `<span class="badge" style="background-color: ${task.label.color}">${task.label.name}</span>` : ''
+      return task.label
+        ? `<span class="badge" style="background-color: ${task.label.color}">${task.label.name}</span>`
+        : ''
     case 'Assignee':
       vals = []
       if (task.assignees?.length) {
@@ -162,23 +173,31 @@ const getColumnData = (task: Task, column: string) => {
       }
       return vals.join(', ')
     case 'Due Date':
-      return task.dueDate ? `<span class="circle" style="background-color: ${generateColor(task.dueDate.toString())}"></span> ${new Date(task.dueDate).toLocaleDateString()}` : 'N/A'
+      return task.dueDate
+        ? `<span class="circle" style="background-color: ${generateColor(task.dueDate.toString())}"></span> ${new Date(task.dueDate).toLocaleDateString()}`
+        : 'N/A'
     case 'Priority':
       return task.priority
     case 'Time': {
-      const timeValue = task.status !== 'Done' ? task.estimatedTime : task.actualTime;
-      const color = task.status === 'Done' ? 'green' : '#b1b151';
-      const tooltip = `Status: ${task.status}`;
-      return `<span style="color: ${color};font-weight: bold" title="${tooltip}">${timeValue}</span>`;
+      const timeValue = task.status !== 'Done' ? task.estimatedTime : task.actualTime
+      const color = task.status === 'Done' ? 'green' : '#b1b151'
+      const tooltip = `Status: ${task.status}`
+      return `<span style="color: ${color};font-weight: bold" title="${tooltip}">${timeValue}</span>`
     }
     case 'Type':
-      return task.type ? `<span class="circle" style="background-color: ${generateColor(task.type)}"></span> ${task.type}` : 'N/A'
+      return task.type
+        ? `<span class="circle" style="background-color: ${generateColor(task.type)}"></span> ${task.type}`
+        : 'N/A'
     case 'Planned Date':
-      return task.plannedDate ? `<span class="circle" style="background-color: ${generateColor(task.plannedDate.toString())}"></span> ${new Date(task.plannedDate).toLocaleDateString()}` : 'N/A'
+      return task.plannedDate
+        ? `<span class="circle" style="background-color: ${generateColor(task.plannedDate.toString())}"></span> ${new Date(task.plannedDate).toLocaleDateString()}`
+        : 'N/A'
     case 'Related Task':
       return task.relatedTaskId
     case 'Tags':
-      return task.tags?.map(tag => `<span class="badge bg-primary mr-2">${tag}</span>`).join('') || ''
+      return (
+        task.tags?.map((tag) => `<span class="badge bg-primary mr-2">${tag}</span>`).join('') || ''
+      )
     default:
       return task.customFields?.[column] || ''
   }
@@ -190,7 +209,7 @@ const generateColor = (value: string, alpha: number = 0.8): string => {
   for (let i = 0; i < value.length; i++) {
     hash = value.charCodeAt(i) + ((hash << 5) - hash)
   }
-  const color = Math.floor(Math.abs((Math.sin(hash) * 16777215)) % 16777215)
+  const color = Math.floor(Math.abs(Math.sin(hash) * 16777215) % 16777215)
   const r = (color >> 16) & 255
   const g = (color >> 8) & 255
   const b = color & 255

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useAlertStore } from './alertStore'
-import type {Sprint} from "@/stores/sprintStore";
+import type { Sprint } from '@/stores/sprintStore'
 
 export interface Project {
   id: number
@@ -10,8 +10,8 @@ export interface Project {
   ownerId: number
   customFields: { name: string; description: string; type: string }[]
   savedFilters: { name: string; filters: any }[]
-  priorities?: string[],
-  statuses?: string[],
+  priorities?: string[]
+  statuses?: string[]
   tags?: string[]
   types?: string[]
   sprints?: Sprint[]
@@ -23,12 +23,12 @@ interface ProjectState {
 }
 
 interface updateProjectInterface {
-  name?: string;
-  description?: string,
-  savedFilters?: { name: string; filters: any }[],
-  customFields?: { name: string; description: string; type: string }[],
-  priorities?: string[],
-  statuses?: string[],
+  name?: string
+  description?: string
+  savedFilters?: { name: string; filters: any }[]
+  customFields?: { name: string; description: string; type: string }[]
+  priorities?: string[]
+  statuses?: string[]
   tags?: string[]
   types?: string[]
 }
@@ -88,6 +88,6 @@ export const useProjectStore = defineStore('project', {
     async fetchUsers(projectId: number) {
       const response = await axios.get(`/projects/${projectId}/users`)
       return response.data
-    },
+    }
   }
 })

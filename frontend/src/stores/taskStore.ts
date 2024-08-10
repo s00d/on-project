@@ -2,27 +2,27 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useAlertStore } from './alertStore'
 import { socket } from '@/plugins/socketPlugin'
-import type {User} from "@/stores/authStore";
+import type { User } from '@/stores/authStore'
 
 export interface TaskBase {
-  title: string;
-  description: string; // Описание теперь обязательно, с значением по умолчанию ''
-  status: string; // Статус теперь обязателен, с значением по умолчанию ''
-  projectId: number; // Проект обязателен
-  assignees?: number[]; // Массив идентификаторов пользователей (опционально)
-  sprintId?: number | null; // Идентификатор метки (опционально)
-  labelId?: number | null; // Идентификатор метки (опционально)
-  startDate?: Date | null; // Дата завершения (опционально)
-  stopDate?: Date | null; // Дата завершения (опционально)
-  dueDate?: Date | null; // Дата завершения (опционально)
-  priority: string; // Приоритет теперь обязателен, с значением по умолчанию 'Medium'
-  estimatedTime: number; // Оценочное время теперь обязательно, с значением по умолчанию 0
-  actualTime: number; // Фактическое время теперь обязательно, с значением по умолчанию 0
-  type: string; // Тип задачи теперь обязателен, с значением по умолчанию ''
-  plannedDate?: Date | null; // Запланированная дата (опционально)
-  relatedTaskId?: number | null; // Идентификатор связанной задачи (опционально)
-  tags?: string[] | null; // Метки (опционально)
-  customFields?: { [name: string]: string }; // Кастомные поля (опционально)
+  title: string
+  description: string // Описание теперь обязательно, с значением по умолчанию ''
+  status: string // Статус теперь обязателен, с значением по умолчанию ''
+  projectId: number // Проект обязателен
+  assignees?: number[] // Массив идентификаторов пользователей (опционально)
+  sprintId?: number | null // Идентификатор метки (опционально)
+  labelId?: number | null // Идентификатор метки (опционально)
+  startDate?: Date | null // Дата завершения (опционально)
+  stopDate?: Date | null // Дата завершения (опционально)
+  dueDate?: Date | null // Дата завершения (опционально)
+  priority: string // Приоритет теперь обязателен, с значением по умолчанию 'Medium'
+  estimatedTime: number // Оценочное время теперь обязательно, с значением по умолчанию 0
+  actualTime: number // Фактическое время теперь обязательно, с значением по умолчанию 0
+  type: string // Тип задачи теперь обязателен, с значением по умолчанию ''
+  plannedDate?: Date | null // Запланированная дата (опционально)
+  relatedTaskId?: number | null // Идентификатор связанной задачи (опционально)
+  tags?: string[] | null // Метки (опционально)
+  customFields?: { [name: string]: string } // Кастомные поля (опционально)
 }
 
 export interface Task extends TaskBase {
@@ -56,7 +56,7 @@ interface TaskState {
 interface TaskFilters {
   search?: string
   status?: string
-  sprintId?: number|null
+  sprintId?: number | null
   priority?: string
   assignee?: string
   pageSize?: number
@@ -75,7 +75,7 @@ export const useTaskStore = defineStore('task', {
     async fetchTasks(projectId: number, filters: TaskFilters) {
       try {
         const response = await axios.get(`/tasks/${projectId}`, { params: filters })
-        this.tasks = response.data.tasks;
+        this.tasks = response.data.tasks
         return { tasks: response.data.tasks, total: response.data.total }
       } catch (error) {
         useAlertStore().setAlert('Failed to fetch tasks', 'danger')
@@ -98,10 +98,7 @@ export const useTaskStore = defineStore('task', {
         useAlertStore().setAlert('Failed to fetch labels', 'danger')
       }
     },
-    async createTask(
-      projectId: number,
-      task: TaskBase
-    ) {
+    async createTask(projectId: number, task: TaskBase) {
       try {
         const response = await axios.post(`/tasks/${projectId}`, task)
         this.tasks.push(response.data)
@@ -110,11 +107,7 @@ export const useTaskStore = defineStore('task', {
         useAlertStore().setAlert('Failed to create task', 'danger')
       }
     },
-    async updateTask(
-      projectId: number,
-      taskId: number,
-      task: Partial<TaskBase>
-    ) {
+    async updateTask(projectId: number, taskId: number, task: Partial<TaskBase>) {
       try {
         const response = await axios.put(`/tasks/${projectId}/${taskId}`, task)
         useAlertStore().setAlert('Task updated successfully', 'success')

@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import { socket } from '@/plugins/socketPlugin'
 import { useAlertStore } from './alertStore'
-import type { Task } from "@/stores/taskStore";
+import type { Task } from '@/stores/taskStore'
 
 export interface Sprint {
   id: number
@@ -31,13 +31,16 @@ export const useSprintStore = defineStore('sprint', {
         useAlertStore().setAlert('Failed to fetch sprints', 'danger')
       }
     },
-    async createSprint(projectId: number, sprint: {
-      title: string
-      description?: string
-      startDate: Date
-      endDate: Date
-      roadmapId: number
-    }) {
+    async createSprint(
+      projectId: number,
+      sprint: {
+        title: string
+        description?: string
+        startDate: Date
+        endDate: Date
+        roadmapId: number
+      }
+    ) {
       try {
         const response = await axios.post(`/sprints/${projectId}`, sprint)
         this.sprints.push(response.data)
@@ -84,6 +87,6 @@ export const useSprintStore = defineStore('sprint', {
     }
   },
   getters: {
-    getSprints: (state) => state.sprints,
+    getSprints: (state) => state.sprints
   }
 })

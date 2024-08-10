@@ -58,43 +58,48 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany, Index
-} from 'typeorm';
-import { Roadmap } from './Roadmap';
-import {Task} from "./Task";
-import {Project} from "./Project";
+  OneToMany,
+  Index
+} from 'typeorm'
+import { Roadmap } from './Roadmap'
+import { Task } from './Task'
+import { Project } from './Project'
 
 @Entity('sprints')
 export class Sprint {
   @PrimaryGeneratedColumn()
-  id!: number;
+  id!: number
 
   @Column({ length: 128 })
-  title!: string;
+  title!: string
 
   @Column('text', { nullable: true })
-  description!: string;
+  description!: string
 
   @Column('date')
-  startDate!: Date;
+  startDate!: Date
 
   @Column('date')
-  endDate!: Date;
+  endDate!: Date
 
-  @ManyToOne(() => Roadmap, roadmap => roadmap.sprints, { nullable: false })
-  roadmap!: Roadmap;
+  @ManyToOne(() => Roadmap, (roadmap) => roadmap.sprints, { nullable: false })
+  roadmap!: Roadmap
 
-  @OneToMany(() => Task, task => task.sprint)  // Добавляем связь с задачами
-  tasks!: Task[];
+  @OneToMany(() => Task, (task) => task.sprint) // Добавляем связь с задачами
+  tasks!: Task[]
 
-  @ManyToOne(() => Project, project => project.sprints, { nullable: false })  // Связь с проектом
-  project!: Project;
+  @ManyToOne(() => Project, (project) => project.sprints, { nullable: false }) // Связь с проектом
+  project!: Project
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   @Index()
-  createdAt!: Date;
+  createdAt!: Date
 
-  @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  @UpdateDateColumn({
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP'
+  })
   @Index()
-  updatedAt!: Date;
+  updatedAt!: Date
 }

@@ -1,13 +1,13 @@
-import { Router } from 'express';
-import { importData, exportData, importFromGitHub } from '../controllers/importExportController';
-import { authenticateAll } from '../middlewares/authMiddleware';
-import { body } from 'express-validator';
-import { validateRequest } from '../middlewares/validateRequest';
-import multer from 'multer';
+import { Router } from 'express'
+import { importData, exportData, importFromGitHub } from '../controllers/importExportController'
+import { authenticateAll } from '../middlewares/authMiddleware'
+import { body } from 'express-validator'
+import { validateRequest } from '../middlewares/validateRequest'
+import multer from 'multer'
 
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: 'uploads/' })
 
-const router = Router();
+const router = Router()
 
 /**
  * @swagger
@@ -53,13 +53,13 @@ router.post(
   upload.single('file'),
   (req, res, next) => {
     if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      return res.status(400).json({ error: 'No file uploaded' })
     }
-    next();
+    next()
   },
   validateRequest,
   importData
-);
+)
 
 /**
  * @swagger
@@ -86,7 +86,7 @@ router.post(
  *                   type: string
  *                   example: Error exporting data
  */
-router.get('/export', authenticateAll, exportData);
+router.get('/export', authenticateAll, exportData)
 
 /**
  * @swagger
@@ -138,10 +138,10 @@ router.post(
   [
     body('token').isString().withMessage('GitHub Personal Access Token is required'),
     body('repoUrl').isString().withMessage('GitHub repository URL is required'),
-    body('projectId').isInt().withMessage('Project ID must be an integer'),
+    body('projectId').isInt().withMessage('Project ID must be an integer')
   ],
   validateRequest,
   importFromGitHub
-);
+)
 
-export { router as importExportRouter };
+export { router as importExportRouter }

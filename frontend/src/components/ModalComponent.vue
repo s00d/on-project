@@ -1,8 +1,20 @@
 <template>
   <div v-if="isOpen" class="modal-backdrop fade show" @click="closeModal"></div>
   <transition name="modal-fade">
-    <div v-if="isOpen" class="modal fade" :class="[pos, { show: isOpen }]" tabindex="-1" role="dialog" style="display: block" @click.self="closeModal">
-      <div class="modal-dialog" :class="{'modal-dialog-aside': pos === 'fixed-left' || pos === 'fixed-right'}" role="document">
+    <div
+      v-if="isOpen"
+      class="modal fade"
+      :class="[pos, { show: isOpen }]"
+      tabindex="-1"
+      role="dialog"
+      style="display: block"
+      @click.self="closeModal"
+    >
+      <div
+        class="modal-dialog"
+        :class="{ 'modal-dialog-aside': pos === 'fixed-left' || pos === 'fixed-right' }"
+        role="document"
+      >
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title">{{ title }}</h5>
@@ -21,27 +33,30 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits, watch } from 'vue';
+import { defineProps, defineEmits, watch } from 'vue'
 
 const props = defineProps({
   isOpen: Boolean,
   title: String,
   pos: String
-});
+})
 
-watch(() => props.isOpen, (newVal) => {
-  if (newVal) {
-    document.body.classList.add('overflow-hidden');
-  } else {
-    document.body.classList.remove('overflow-hidden');
+watch(
+  () => props.isOpen,
+  (newVal) => {
+    if (newVal) {
+      document.body.classList.add('overflow-hidden')
+    } else {
+      document.body.classList.remove('overflow-hidden')
+    }
   }
-});
+)
 
-const emits = defineEmits(['close']);
+const emits = defineEmits(['close'])
 
 const closeModal = () => {
-  emits('close');
-};
+  emits('close')
+}
 </script>
 
 <style scoped>
@@ -56,11 +71,15 @@ const closeModal = () => {
 }
 
 /* Анимация для плавного появления и скрытия модального окна */
-.modal-fade-enter-active, .modal-fade-leave-active {
-  transition: opacity 0.3s ease, transform 0.1s ease;
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition:
+    opacity 0.3s ease,
+    transform 0.1s ease;
 }
 
-.modal-fade-enter-from, .modal-fade-leave-to {
+.modal-fade-enter-from,
+.modal-fade-leave-to {
   opacity: 0;
   transform: translateY(-20px);
 }

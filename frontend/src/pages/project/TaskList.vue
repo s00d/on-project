@@ -17,7 +17,7 @@
             @open-settings-modal="openSettingsModal"
             @open-save-filter-modal="openSaveFilterModal"
             @create-task-modal="createTaskModal"
-            @update:search="(val) => search = val"
+            @update:search="(val) => (search = val)"
           />
           <TaskTable
             :tasks="taskStore.tasks"
@@ -28,10 +28,19 @@
             @open-task-modal="openTaskModal"
             @open-preview-modal="openPreviewModal"
           />
-          <PaginationComponent :total-pages="totalPages" :current-page="currentPage" @update:current-page="selectPage" />
+          <PaginationComponent
+            :total-pages="totalPages"
+            :current-page="currentPage"
+            @update:current-page="selectPage"
+          />
 
           <!-- Task Modal -->
-          <ModalComponent :isOpen="isTaskModalOpen" :title="selectedTask ? 'Edit Details' : 'Create Details'" @close="closeTaskModal" pos="fixed-left">
+          <ModalComponent
+            :isOpen="isTaskModalOpen"
+            :title="selectedTask ? 'Edit Details' : 'Create Details'"
+            @close="closeTaskModal"
+            pos="fixed-left"
+          >
             <template #body>
               <TaskCard
                 v-if="isTaskModalOpen && selectedTask && project"
@@ -57,7 +66,11 @@
             </template>
           </ModalComponent>
 
-          <ModalComponent :isOpen="isPreviewModalOpen" :title="selectedTask?.title ?? ''" @close="closeTaskModal">
+          <ModalComponent
+            :isOpen="isPreviewModalOpen"
+            :title="selectedTask?.title ?? ''"
+            @close="closeTaskModal"
+          >
             <template #body>
               <TaskPreviewCard
                 v-if="isPreviewModalOpen && selectedTask && project"
@@ -71,7 +84,12 @@
           </ModalComponent>
 
           <!-- Settings Modal -->
-          <ModalComponent :isOpen="isSettingsModalOpen" title="Settings" @close="closeTaskModal" pos="center">
+          <ModalComponent
+            :isOpen="isSettingsModalOpen"
+            title="Settings"
+            @close="closeTaskModal"
+            pos="center"
+          >
             <template #body>
               <SettingsModalContent
                 :status="status"
@@ -92,11 +110,22 @@
           </ModalComponent>
 
           <!-- Save Filter Modal -->
-          <ModalComponent :isOpen="isSaveFilterModalOpen" title="Save Filter" @close="closeTaskModal" pos="center">
+          <ModalComponent
+            :isOpen="isSaveFilterModalOpen"
+            title="Save Filter"
+            @close="closeTaskModal"
+            pos="center"
+          >
             <template #body>
               <div class="mb-3">
                 <label for="filterName" class="form-label">Filter Name</label>
-                <input v-model="filterName" type="text" id="filterName" class="form-control" placeholder="Enter filter name" />
+                <input
+                  v-model="filterName"
+                  type="text"
+                  id="filterName"
+                  class="form-control"
+                  placeholder="Enter filter name"
+                />
               </div>
             </template>
             <template #footer>
@@ -112,27 +141,27 @@
 
 <script lang="ts" setup>
 import { ref, onMounted, computed } from 'vue'
-import {type Task, useTaskStore} from '@/stores/taskStore'
+import { type Task, useTaskStore } from '@/stores/taskStore'
 import { useRoute } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
 import TaskCard from '@/components/tasks/TaskCard.vue'
 import Tabs from '@/components/Tabs.vue'
-import PaginationComponent from "@/components/PaginationComponent.vue"
+import PaginationComponent from '@/components/PaginationComponent.vue'
 import TabsComponent from '@/components/tasks/TabsComponent.vue'
 import Filters from '@/components/tasks/FiltersComponent.vue'
 import TaskTable from '@/components/tasks/TaskTable.vue'
-import ModalComponent from "@/components/ModalComponent.vue"
+import ModalComponent from '@/components/ModalComponent.vue'
 import SettingsModalContent from '@/components/tasks/SettingsModalContent.vue'
-import { useAlertStore } from "@/stores/alertStore"
-import type {User} from "@/stores/authStore";
-import TaskPreviewCard from "@/components/tasks/TaskPreviewCard.vue";
+import { useAlertStore } from '@/stores/alertStore'
+import type { User } from '@/stores/authStore'
+import TaskPreviewCard from '@/components/tasks/TaskPreviewCard.vue'
 
 const taskStore = useTaskStore()
 const projectStore = useProjectStore()
 const route = useRoute()
 const projectId = route.params.projectId.toString()
 
-const users = ref<{[key: number]: User}>([])
+const users = ref<{ [key: number]: User }>([])
 const search = ref('')
 const status = ref('')
 const priority = ref('')
@@ -150,11 +179,33 @@ const allTags = ref<string[]>([])
 const selectedTags = ref<string[]>([])
 const filterName = ref('')
 const visibleColumns = ref<string[]>([
-  'Title', 'Status', 'Label', 'Assignee', 'Due Date', 'Priority', 'Time', 'Type', 'Planned Date', 'Related Task', 'Tags', 'Sprint'
+  'Title',
+  'Status',
+  'Label',
+  'Assignee',
+  'Due Date',
+  'Priority',
+  'Time',
+  'Type',
+  'Planned Date',
+  'Related Task',
+  'Tags',
+  'Sprint'
 ])
 
 const allColumns = [
-  'Title', 'Status', 'Label', 'Assignee', 'Due Date', 'Priority', 'Time', 'Type', 'Planned Date', 'Related Task', 'Tags', 'Sprint'
+  'Title',
+  'Status',
+  'Label',
+  'Assignee',
+  'Due Date',
+  'Priority',
+  'Time',
+  'Type',
+  'Planned Date',
+  'Related Task',
+  'Tags',
+  'Sprint'
 ]
 
 export interface Filter {
@@ -192,9 +243,9 @@ const applyFilters = async () => {
 
 const extractTags = (tasks: Task[]) => {
   const tagsSet = new Set<string>()
-  tasks.forEach(task => {
+  tasks.forEach((task) => {
     if (task.tags) {
-      task.tags.forEach(tag => tagsSet.add(tag))
+      task.tags.forEach((tag) => tagsSet.add(tag))
     }
   })
   allTags.value = Array.from(tagsSet)
@@ -256,7 +307,10 @@ const saveFilter = async () => {
     visibleColumns: visibleColumns.value
   }
   const pId = parseInt(projectId.toString())
-  const savedFilters = [...projectStore.project?.savedFilters ?? [], { name: filterName.value, filters }]
+  const savedFilters = [
+    ...(projectStore.project?.savedFilters ?? []),
+    { name: filterName.value, filters }
+  ]
   await projectStore.updateProject(pId, { savedFilters })
   filterName.value = ''
   closeTaskModal()
@@ -303,7 +357,6 @@ const removeSavedFilter = async (index: number) => {
   await projectStore.fetchProject(Number(projectId))
   loadSavedFilters()
 }
-
 
 const selectPage = (page: number) => {
   currentPage.value = page

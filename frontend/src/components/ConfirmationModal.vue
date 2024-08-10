@@ -14,7 +14,7 @@
 
 <script lang="ts" setup>
 import { defineProps, defineEmits, computed } from 'vue'
-import ModalComponent from "@/components/ModalComponent.vue";
+import ModalComponent from '@/components/ModalComponent.vue'
 
 const props = defineProps({
   isOpen: {

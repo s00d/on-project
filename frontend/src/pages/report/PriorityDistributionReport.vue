@@ -9,12 +9,14 @@
             </div>
 
             <div class="col p-0">
-              <div class="project-board"> <!-- Изменили класс на project-board -->
+              <div class="project-board">
+                <!-- Изменили класс на project-board -->
                 <div class="board-header">
                   <h1 class="board-title">Task Distribution Report</h1>
                 </div>
 
-                <div class="board-filters"> <!-- Новый элемент для фильтров -->
+                <div class="board-filters">
+                  <!-- Новый элемент для фильтров -->
                   <label for="period">Select Period:</label>
                   <select id="period" v-model="selectedPeriod" @change="fetchReport">
                     <option value="week">Last Week</option>
@@ -26,7 +28,9 @@
                   <label for="user">Select User:</label>
                   <select id="user" v-model="selectedUser" @change="fetchReport">
                     <option value="all">All Users</option>
-                    <option v-for="user in users" :key="user.id" :value="user.id">{{ user.username }}</option>
+                    <option v-for="user in users" :key="user.id" :value="user.id">
+                      {{ user.username }}
+                    </option>
                   </select>
 
                   <label for="reportType">Select Report Type:</label>
@@ -53,16 +57,33 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
-import { Chart, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, PieController, BarController } from 'chart.js'
+import {
+  Chart,
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  PieController,
+  BarController
+} from 'chart.js'
 import type { ChartConfiguration } from 'chart.js'
 import Tabs from '@/components/Tabs.vue'
-import ReportsLinks from "@/components/ReportsLinks.vue";
-import { useRoute } from "vue-router";
-import {useProjectStore} from "@/stores/projectStore";
-import {useAlertStore} from "@/stores/alertStore";
-import {startOfMonth, startOfWeek, startOfYear} from "date-fns";
+import ReportsLinks from '@/components/ReportsLinks.vue'
+import { useRoute } from 'vue-router'
+import { useProjectStore } from '@/stores/projectStore'
+import { useAlertStore } from '@/stores/alertStore'
+import { startOfMonth, startOfWeek, startOfYear } from 'date-fns'
 
-Chart.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, PieController, BarController)
+Chart.register(
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  PieController,
+  BarController
+)
 
 interface ReportData {
   [key: string]: number
@@ -79,13 +100,15 @@ const route = useRoute()
 const projectId = route.params.projectId.toString()
 const selectedPeriod = ref('month')
 const selectedUser = ref('all')
-const selectedChartType = ref<'bar'|'pie'>('bar')
+const selectedChartType = ref<'bar' | 'pie'>('bar')
 
-const users = ref<{[key: number]: User}>([])
+const users = ref<{ [key: number]: User }>([])
 const report = ref<ReportData | null>(null)
 const distributionChart = ref<Chart | null>(null) // Объединяем графики в один
 
-const totalTasks = computed(() => Object.values(report.value || {}).reduce((sum, count) => sum + count, 0))
+const totalTasks = computed(() =>
+  Object.values(report.value || {}).reduce((sum, count) => sum + count, 0)
+)
 
 const fetchUsers = async () => {
   try {
@@ -107,7 +130,10 @@ const createChart = () => {
     labels,
     datasets: [
       {
-        label: selectedChartType.value === 'pie' ? 'Task Distribution by Priority' : 'Task Distribution by Status',
+        label:
+          selectedChartType.value === 'pie'
+            ? 'Task Distribution by Priority'
+            : 'Task Distribution by Status',
 
         data,
         backgroundColor: [
@@ -139,7 +165,7 @@ const createChart = () => {
     },
     plugins: {
       legend: {
-        position: 'top',
+        position: 'top'
       },
       tooltip: {
         callbacks: {
@@ -159,23 +185,22 @@ const createChart = () => {
 
 const fetchReport = async () => {
   try {
-    const now = new Date();
-    let startDate: Date;
+    const now = new Date()
+    let startDate: Date
 
     switch (selectedPeriod.value) {
       case 'week':
-        startDate = startOfWeek(now);
-        break;
+        startDate = startOfWeek(now)
+        break
       case 'month':
-        startDate = startOfMonth(now);
-        break;
+        startDate = startOfMonth(now)
+        break
       case 'year':
-        startDate = startOfYear(now);
-        break;
+        startDate = startOfYear(now)
+        break
       default:
-        startDate = new Date(0); // Все время
+        startDate = new Date(0) // Все время
     }
-
 
     const response = await axios.get(`/reports/project/${projectId}/priority_distribution`, {
       params: {
@@ -192,11 +217,10 @@ const fetchReport = async () => {
   }
 }
 
-onMounted(async  () => {
+onMounted(async () => {
   await fetchUsers()
   await fetchReport()
 })
-
 </script>
 <style scoped>
 .project-board {
@@ -256,7 +280,6 @@ onMounted(async  () => {
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   padding: 20px;
-
 }
 
 .chart-container canvas {
@@ -264,4 +287,3 @@ onMounted(async  () => {
   width: 600px;
 }
 </style>
-

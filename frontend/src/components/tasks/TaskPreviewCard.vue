@@ -1,14 +1,16 @@
 <template>
   <div class="card-body p-4">
     <div class="d-flex flex-start mb-3">
-      <div v-html="parsedDescription" class="text-muted markdown-content" style="width: 100%;"></div>
+      <div v-html="parsedDescription" class="text-muted markdown-content" style="width: 100%"></div>
     </div>
 
     <div class="d-flex flex-start mb-3" v-if="assignedUsers.length > 0">
       <div>
         <h6 class="fw-bold mb-1 text-left">Assigned Users</h6>
         <p class="text-muted">
-          <span v-for="user in assignedUsers" :key="user.id" class="badge bg-primary me-1">{{ user.username }}</span>
+          <span v-for="user in assignedUsers" :key="user.id" class="badge bg-primary me-1">{{
+            user.username
+          }}</span>
         </p>
       </div>
     </div>
@@ -42,7 +44,6 @@
         <span v-if="taskData.stopDate" class="badge bg-info">{{ taskData.stopDate }}</span>
       </div>
     </div>
-
 
     <hr />
 
@@ -78,7 +79,7 @@ import { ref, computed, onMounted, defineProps, defineEmits } from 'vue'
 import { type Task, type Comment, useTaskStore } from '@/stores/taskStore'
 import { type Project } from '@/stores/projectStore'
 import CommentCard from '@/components/CommentCard.vue'
-import { useAuthStore, type User } from "@/stores/authStore"
+import { useAuthStore, type User } from '@/stores/authStore'
 import { marked } from 'marked'
 
 const props = defineProps<{
@@ -100,12 +101,14 @@ const newCommentContent = ref('')
 
 const labels = computed(() => taskStore.labels)
 const labelName = computed(() => {
-  const label = labels.value.find(l => l.id === props.taskData.labelId)
+  const label = labels.value.find((l) => l.id === props.taskData.labelId)
   return label ? label.name : 'No Label'
 })
 
 const assignedUsers = computed(() => {
-  return Object.values(props.users).filter(user => props.taskData.assignees?.includes(user.id)) ?? []
+  return (
+    Object.values(props.users).filter((user) => props.taskData.assignees?.includes(user.id)) ?? []
+  )
 })
 
 const parsedDescription = computed(() => marked.parse(props.taskData.description))
@@ -119,7 +122,7 @@ const formattedPlannedDate = computed(() => {
 })
 
 const relatedTaskTitle = computed(() => {
-  const relatedTask = taskStore.tasks.find(task => task.id === props.taskData.relatedTaskId)
+  const relatedTask = taskStore.tasks.find((task) => task.id === props.taskData.relatedTaskId)
   return relatedTask ? relatedTask.title : 'No Related Task'
 })
 

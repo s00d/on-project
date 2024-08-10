@@ -1,5 +1,5 @@
-import { Router } from 'express';
-import { check, validationResult } from 'express-validator';
+import { Router } from 'express'
+import { check, validationResult } from 'express-validator'
 import {
   register,
   login,
@@ -10,11 +10,11 @@ import {
   disable2FA,
   requestPasswordReset,
   resetPassword
-} from '../controllers/userController';
-import { authenticateAll } from '../middlewares/authMiddleware';
-import {validateRequest} from "../middlewares/validateRequest";
+} from '../controllers/userController'
+import { authenticateAll } from '../middlewares/authMiddleware'
+import { validateRequest } from '../middlewares/validateRequest'
 
-const router = Router();
+const router = Router()
 
 /**
  * @swagger
@@ -57,13 +57,17 @@ const router = Router();
 router.post(
   '/register',
   [
-    check('username').isLength({ min: 3 }).withMessage('Username must be at least 3 characters long'),
+    check('username')
+      .isLength({ min: 3 })
+      .withMessage('Username must be at least 3 characters long'),
     check('email').isEmail().withMessage('Please provide a valid email'),
-    check('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+    check('password')
+      .isLength({ min: 6 })
+      .withMessage('Password must be at least 6 characters long')
   ],
   validateRequest,
   register
-);
+)
 
 /**
  * @swagger
@@ -97,11 +101,11 @@ router.post(
   '/login',
   [
     check('email').isEmail().withMessage('Please provide a valid email'),
-    check('password').notEmpty().withMessage('Password is required'),
+    check('password').notEmpty().withMessage('Password is required')
   ],
   validateRequest,
   login
-);
+)
 
 /**
  * @swagger
@@ -115,7 +119,7 @@ router.post(
  *       500:
  *         description: Failed to logout
  */
-router.post('/logout', logout);
+router.post('/logout', logout)
 
 /**
  * @swagger
@@ -129,7 +133,7 @@ router.post('/logout', logout);
  *       401:
  *         description: Unauthorized
  */
-router.get('/me', authenticateAll, getMe);
+router.get('/me', authenticateAll, getMe)
 
 /**
  * @swagger
@@ -143,7 +147,7 @@ router.get('/me', authenticateAll, getMe);
  *       500:
  *         description: Failed to generate QR code
  */
-router.post('/2fa/enable', authenticateAll, enable2FA);
+router.post('/2fa/enable', authenticateAll, enable2FA)
 
 /**
  * @swagger
@@ -171,7 +175,7 @@ router.post(
   [check('token').notEmpty().withMessage('Token is required')],
   validateRequest,
   verify2FA
-);
+)
 
 /**
  * @swagger
@@ -185,7 +189,7 @@ router.post(
  *       400:
  *         description: Failed to disable 2FA
  */
-router.post('/2fa/disable', authenticateAll, disable2FA);
+router.post('/2fa/disable', authenticateAll, disable2FA)
 
 /**
  * @swagger
@@ -216,7 +220,7 @@ router.post(
   [check('email').isEmail().withMessage('Please provide a valid email')],
   validateRequest,
   requestPasswordReset
-);
+)
 
 /**
  * @swagger
@@ -246,12 +250,12 @@ router.post(
   '/reset-password',
   [
     check('token').notEmpty().withMessage('Token is required'),
-    check('newPassword').isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
+    check('newPassword')
+      .isLength({ min: 6 })
+      .withMessage('Password must be at least 6 characters long')
   ],
   validateRequest,
   resetPassword
-);
+)
 
-export { router as userRouter };
-
-
+export { router as userRouter }

@@ -55,6 +55,6 @@ export const useNotificationStore = defineStore('notification', {
   },
   getters: {
     unreadNotifications: (state) => state.notifications.filter((n) => !n.read),
-    getNotifications: (state) => state.notifications,
+    getNotifications: (state) => state.notifications
   }
 })

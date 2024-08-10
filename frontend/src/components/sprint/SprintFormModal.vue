@@ -16,73 +16,76 @@
       <label for="endDate">End Date</label>
       <input v-model="form.endDate" type="datetime-local" id="endDate" required />
     </div>
-    <button type="submit" class="btn btn-primary">{{ isEditMode ? 'Save Changes' : 'Create Sprint' }}</button>
+    <button type="submit" class="btn btn-primary">
+      {{ isEditMode ? 'Save Changes' : 'Create Sprint' }}
+    </button>
     <button type="button" class="btn btn-secondary" @click="closeModal">Cancel</button>
   </form>
 </template>
 
 <script lang="ts" setup>
-import { ref, defineProps, defineEmits, onMounted, watch } from 'vue';
-import type {Sprint} from "@/stores/sprintStore";
-
+import { ref, defineProps, defineEmits, onMounted, watch } from 'vue'
+import type { Sprint } from '@/stores/sprintStore'
 
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-};
+  const date = new Date(dateString)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
 
 const props = defineProps<{
   isEditMode: boolean
   sprintData: Sprint
 }>()
 
-const emit = defineEmits(['save', 'close']);
+const emit = defineEmits(['save', 'close'])
 
 const form = ref<Sprint>({
   id: 0,
   title: '',
   description: '',
-  startDate: formatDate((new Date).toLocaleDateString()),
-  endDate: formatDate((new Date).toLocaleDateString()),
+  startDate: formatDate(new Date().toLocaleDateString()),
+  endDate: formatDate(new Date().toLocaleDateString()),
   roadmapId: 0,
-  tasks: [],
-});
+  tasks: []
+})
 
 const submitForm = () => {
-  emit('save', { ...form.value });
-};
+  emit('save', { ...form.value })
+}
 
 const closeModal = () => {
-  emit('close');
-};
+  emit('close')
+}
 
 onMounted(() => {
   if (props.isEditMode && props.sprintData) {
-    form.value = { ...props.sprintData };
+    form.value = { ...props.sprintData }
     form.value = {
       ...props.sprintData,
       startDate: formatDate(props.sprintData.startDate.toString()),
-      endDate: formatDate(props.sprintData.endDate.toString()),
-    };
-
+      endDate: formatDate(props.sprintData.endDate.toString())
+    }
   }
-});
+})
 
-watch(() => props.sprintData, (newVal) => {
-  if (props.isEditMode && newVal) {
-    form.value = { ...newVal };
-    form.value = {
-      ...newVal,
-      startDate: formatDate(newVal.startDate.toString()),
-      endDate: formatDate(newVal.endDate.toString()),
-    };
+watch(
+  () => props.sprintData,
+  (newVal) => {
+    if (props.isEditMode && newVal) {
+      form.value = { ...newVal }
+      form.value = {
+        ...newVal,
+        startDate: formatDate(newVal.startDate.toString()),
+        endDate: formatDate(newVal.endDate.toString())
+      }
+    }
   }
-});
+)
 </script>
 
 <style scoped>

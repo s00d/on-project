@@ -39,26 +39,37 @@
  *           example: "2023-08-02T12:34:56Z"
  */
 
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { User } from './User';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn
+} from 'typeorm'
+import { User } from './User'
 
 @Entity('notifications')
 export class Notification {
   @PrimaryGeneratedColumn()
-  id!: number;
+  id!: number
 
-  @ManyToOne(() => User, user => user.notifications, { nullable: false })
-  user!: User;
+  @ManyToOne(() => User, (user) => user.notifications, { nullable: false })
+  user!: User
 
   @Column({ length: 255 })
-  message!: string;
+  message!: string
 
   @Column({ default: false })
-  read!: boolean;
+  read!: boolean
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt!: Date;
+  createdAt!: Date
 
-  @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
-  updatedAt!: Date;
+  @UpdateDateColumn({
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP'
+  })
+  updatedAt!: Date
 }

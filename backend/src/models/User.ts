@@ -103,83 +103,87 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
   Index
-} from 'typeorm';
-import { Project } from './Project';
-import { Notification } from './Notification';
-import { Comment } from './Comment';
-import { Task } from './Task';
-import { ProjectUser } from './ProjectUser';
-import { TaskHistory } from './TaskHistory';
-import { TaskTemplate } from './TaskTemplate';
-import { Label } from './Label';
-import { Exclude } from 'class-transformer';
+} from 'typeorm'
+import { Project } from './Project'
+import { Notification } from './Notification'
+import { Comment } from './Comment'
+import { Task } from './Task'
+import { ProjectUser } from './ProjectUser'
+import { TaskHistory } from './TaskHistory'
+import { TaskTemplate } from './TaskTemplate'
+import { Label } from './Label'
+import { Exclude } from 'class-transformer'
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
-  id!: number;
+  id!: number
 
   @Column({ unique: true, nullable: true })
   @Index()
-  apikey!: string;
+  apikey!: string
 
   @Column({ unique: true })
   @Index()
-  username!: string;
+  username!: string
 
   @Column({ unique: true })
   @Index()
-  email!: string;
+  email!: string
 
   @Column()
   @Exclude()
-  password!: string;
+  password!: string
 
   @Column({ default: false })
   @Index()
-  twoFactorEnabled!: boolean;
+  twoFactorEnabled!: boolean
 
   @Column({ type: 'text', nullable: true })
   @Exclude()
-  twoFactorSecret!: string | null;
+  twoFactorSecret!: string | null
 
   @Column({ type: 'text', nullable: true })
   @Exclude()
-  resetPasswordToken!: string | null;
+  resetPasswordToken!: string | null
 
   @Column({ type: 'datetime', nullable: true })
   @Exclude()
-  resetPasswordExpires!: Date | null;
+  resetPasswordExpires!: Date | null
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   @Index()
-  createdAt!: Date;
+  createdAt!: Date
 
-  @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  @UpdateDateColumn({
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP'
+  })
   @Index()
-  updatedAt!: Date;
+  updatedAt!: Date
 
-  @OneToMany(() => Project, project => project.owner)
-  projects!: Project[];
+  @OneToMany(() => Project, (project) => project.owner)
+  projects!: Project[]
 
   @OneToMany(() => Notification, (notification) => notification.user)
-  notifications!: Notification[];
+  notifications!: Notification[]
 
   @OneToMany(() => Comment, (comment) => comment.user)
-  comments!: Comment[];
+  comments!: Comment[]
 
-  @ManyToMany(() => Task, task => task.assignees)
-  tasks!: Task[];
+  @ManyToMany(() => Task, (task) => task.assignees)
+  tasks!: Task[]
 
-  @OneToMany(() => ProjectUser, projectUser => projectUser.user)
-  projectUsers!: ProjectUser[];
+  @OneToMany(() => ProjectUser, (projectUser) => projectUser.user)
+  projectUsers!: ProjectUser[]
 
-  @OneToMany(() => TaskHistory, history => history.user)
-  history!: TaskHistory[];
+  @OneToMany(() => TaskHistory, (history) => history.user)
+  history!: TaskHistory[]
 
-  @OneToMany(() => TaskTemplate, taskTemplate => taskTemplate.user)
-  taskTemplates!: TaskTemplate[];
+  @OneToMany(() => TaskTemplate, (taskTemplate) => taskTemplate.user)
+  taskTemplates!: TaskTemplate[]
 
-  @OneToMany(() => Label, label => label.user)
-  labels!: Label[];
+  @OneToMany(() => Label, (label) => label.user)
+  labels!: Label[]
 }

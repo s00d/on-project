@@ -10,9 +10,7 @@
             >
               < Roadmap
             </router-link>
-            <h1 class="board-title">
-              Sprints Overview
-            </h1>
+            <h1 class="board-title">Sprints Overview</h1>
           </div>
 
           <div class="board-columns">
@@ -25,16 +23,22 @@
                 <p>{{ sprint.description }}</p>
                 <p>Start Date: {{ formatDate(sprint.startDate) }}</p>
                 <p>End Date: {{ formatDate(sprint.endDate) }}</p>
-                <button @click="openEditSprintModal(sprint)" class="btn btn-secondary btn-sm">Edit Sprint</button>
+                <button @click="openEditSprintModal(sprint)" class="btn btn-secondary btn-sm">
+                  Edit Sprint
+                </button>
 
                 <div class="task-list">
                   <div v-for="task in sprint.tasks" :key="task.id" class="task-item">
                     <div class="task-header">
                       <span class="task-title">{{ task.title }}</span>
-                      <span class="task-priority" :class="getPriorityClass(task.priority)">{{ task.priority }}</span>
+                      <span class="task-priority" :class="getPriorityClass(task.priority)">{{
+                        task.priority
+                      }}</span>
                     </div>
                     <div class="task-dates">
-                      <span v-if="task.plannedDate">Planned: {{ formatDate(task.plannedDate) }}</span>
+                      <span v-if="task.plannedDate"
+                        >Planned: {{ formatDate(task.plannedDate) }}</span
+                      >
                       <span v-if="task.dueDate">Due: {{ formatDate(task.dueDate) }}</span>
                     </div>
                   </div>
@@ -48,13 +52,16 @@
           </div>
         </div>
 
-
         <div class="project-board" v-if="isLoaded">
           <ScrumRoadmapTimeline v-if="sprints" :sprints="sprints" />
         </div>
       </Tabs>
 
-      <ModalComponent :isOpen="isModalOpen" :title="isEditMode ? 'Edit Sprint' : 'Create Sprint'" @close="closeModal">
+      <ModalComponent
+        :isOpen="isModalOpen"
+        :title="isEditMode ? 'Edit Sprint' : 'Create Sprint'"
+        @close="closeModal"
+      >
         <template #body>
           <SprintFormModal
             v-if="isModalOpen && currentSprintData"
@@ -65,95 +72,93 @@
           />
         </template>
       </ModalComponent>
-
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted } from 'vue';
-import {type Sprint, useSprintStore} from '@/stores/sprintStore';
-import Tabs from "@/components/Tabs.vue";
-import { useRoute } from "vue-router";
-import SprintFormModal from "@/components/sprint/SprintFormModal.vue";
-import ScrumRoadmapTimeline from "@/components/sprint/ScrumRoadmapTimeline.vue";
-import ModalComponent from "@/components/ModalComponent.vue";
+import { ref, computed, onMounted } from 'vue'
+import { type Sprint, useSprintStore } from '@/stores/sprintStore'
+import Tabs from '@/components/Tabs.vue'
+import { useRoute } from 'vue-router'
+import SprintFormModal from '@/components/sprint/SprintFormModal.vue'
+import ScrumRoadmapTimeline from '@/components/sprint/ScrumRoadmapTimeline.vue'
+import ModalComponent from '@/components/ModalComponent.vue'
 
-const route = useRoute();
+const route = useRoute()
 
-const roadmapId = Number(route.params.roadmapId);
-const projectId = Number(route.params.projectId);
+const roadmapId = Number(route.params.roadmapId)
+const projectId = Number(route.params.projectId)
 
-const sprintStore = useSprintStore();
+const sprintStore = useSprintStore()
 
-const sprints = computed(() => sprintStore.getSprints);
+const sprints = computed(() => sprintStore.getSprints)
 
-const isLoaded = ref(false);
-const isModalOpen = ref(false);
-const isEditMode = ref(false);
-const currentSprintData = ref<Sprint|null>(null);
+const isLoaded = ref(false)
+const isModalOpen = ref(false)
+const isEditMode = ref(false)
+const currentSprintData = ref<Sprint | null>(null)
 
 const openCreateSprintModal = () => {
-  isEditMode.value = false;
+  isEditMode.value = false
   currentSprintData.value = {
     id: 0,
     title: '',
     description: '',
-    startDate: (new Date).toString(),
-    endDate: (new Date).toString(),
+    startDate: new Date().toString(),
+    endDate: new Date().toString(),
     roadmapId: 0,
-    tasks: [],
-  };
-  isModalOpen.value = true;
-};
+    tasks: []
+  }
+  isModalOpen.value = true
+}
 
 const openEditSprintModal = (sprint: any) => {
-  isEditMode.value = true;
-  currentSprintData.value = { ...sprint };
-  isModalOpen.value = true;
-};
+  isEditMode.value = true
+  currentSprintData.value = { ...sprint }
+  isModalOpen.value = true
+}
 
 const handleSaveSprint = async (sprintData: any) => {
   if (isEditMode.value) {
-    await sprintStore.updateSprint(projectId, sprintData.id, sprintData);
+    await sprintStore.updateSprint(projectId, sprintData.id, sprintData)
   } else {
-    await sprintStore.createSprint(projectId, { ...sprintData, roadmapId });
+    await sprintStore.createSprint(projectId, { ...sprintData, roadmapId })
   }
-  closeModal();
-  fetchSprints();
-};
+  closeModal()
+  fetchSprints()
+}
 
 const closeModal = () => {
-  isModalOpen.value = false;
-};
+  isModalOpen.value = false
+}
 
 const deleteSprint = async (sprintId: number) => {
-  await sprintStore.deleteSprint(projectId, sprintId);
-};
+  await sprintStore.deleteSprint(projectId, sprintId)
+}
 
-const formatDate = (date: Date|string) => {
-  return new Date(date).toLocaleDateString();
-};
+const formatDate = (date: Date | string) => {
+  return new Date(date).toLocaleDateString()
+}
 
 const getPriorityClass = (priority: string) => {
   return {
     'priority-high': priority === 'High',
     'priority-medium': priority === 'Medium',
-    'priority-low': priority === 'Low',
-  };
-};
+    'priority-low': priority === 'Low'
+  }
+}
 
 const fetchSprints = async () => {
-  await sprintStore.fetchSprints(projectId, roadmapId);
-  isLoaded.value = true;
-};
+  await sprintStore.fetchSprints(projectId, roadmapId)
+  isLoaded.value = true
+}
 
 onMounted(() => {
-  fetchSprints();
-  sprintStore.subscribeToSocketEvents();
-});
+  fetchSprints()
+  sprintStore.subscribeToSocketEvents()
+})
 </script>
-
 
 <style scoped>
 .project-board {

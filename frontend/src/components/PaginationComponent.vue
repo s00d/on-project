@@ -22,41 +22,41 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed } from 'vue'
 
 const props = defineProps<{
-  totalPages: number;
-  currentPage: number;
+  totalPages: number
+  currentPage: number
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:currentPage', value: number): void;
+  (e: 'update:currentPage', value: number): void
 }>()
 
-const maxVisiblePages = 5;
+const maxVisiblePages = 5
 
 const paginatedPages = computed(() => {
-  const pages = [];
-  let startPage = Math.max(1, props.currentPage - Math.floor(maxVisiblePages / 2));
-  let endPage = startPage + maxVisiblePages - 1;
+  const pages = []
+  let startPage = Math.max(1, props.currentPage - Math.floor(maxVisiblePages / 2))
+  let endPage = startPage + maxVisiblePages - 1
 
   if (endPage > props.totalPages) {
-    endPage = props.totalPages;
-    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    endPage = props.totalPages
+    startPage = Math.max(1, endPage - maxVisiblePages + 1)
   }
 
   for (let i = startPage; i <= endPage; i++) {
-    pages.push(i);
+    pages.push(i)
   }
 
-  return pages;
-});
+  return pages
+})
 
 const changePage = (page: number) => {
   if (page >= 1 && page <= props.totalPages) {
-    emit('update:currentPage', page);
+    emit('update:currentPage', page)
   }
-};
+}
 </script>
 
 <style scoped>

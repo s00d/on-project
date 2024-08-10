@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 export const useAlertStore = defineStore('alert', {
   state: () => ({
-    alerts: [] as Array<{ message: string, type: string }>, // Array of alerts
+    alerts: [] as Array<{ message: string; type: string }> // Array of alerts
   }),
   actions: {
     setAlert(message: string, type: string = 'danger') {
@@ -12,7 +12,7 @@ export const useAlertStore = defineStore('alert', {
       }, 5000)
     },
     clearAlert(message: string) {
-      this.alerts = this.alerts.filter(alert => alert.message !== message)
+      this.alerts = this.alerts.filter((alert) => alert.message !== message)
     },
     clearAllAlerts() {
       this.alerts = []

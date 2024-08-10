@@ -122,106 +122,113 @@ import {
   JoinTable,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany, Index, JoinColumn, RelationId
-} from 'typeorm';
-import { Project } from './Project';
-import { Label } from './Label';
-import { Comment } from './Comment';
-import {TaskAttachment} from "./TaskAttachment";
-import {TaskHistory} from "./TaskHistory";
-import {ProjectUser} from "./ProjectUser";
-import {Sprint} from "./Sprint";
-import {User} from "./User";
+  OneToMany,
+  Index,
+  JoinColumn,
+  RelationId
+} from 'typeorm'
+import { Project } from './Project'
+import { Label } from './Label'
+import { Comment } from './Comment'
+import { TaskAttachment } from './TaskAttachment'
+import { TaskHistory } from './TaskHistory'
+import { ProjectUser } from './ProjectUser'
+import { Sprint } from './Sprint'
+import { User } from './User'
 
 @Entity('tasks')
 export class Task {
   @PrimaryGeneratedColumn()
-  id!: number;
+  id!: number
 
   @Column({ length: 128 })
   @Index()
-  title!: string;
+  title!: string
 
   @Column('text', { default: '' })
   @Index()
-  description!: string;
+  description!: string
 
   @Column({ length: 128, default: '' })
   @Index()
-  status!: string;
+  status!: string
 
-  @ManyToOne(() => Project, project => project.tasks, { nullable: false })
-  project!: Project;
+  @ManyToOne(() => Project, (project) => project.tasks, { nullable: false })
+  project!: Project
 
-  @ManyToOne(() => Label, label => label.tasks, { nullable: true })
-  label!: Label;
-
-  @Column('datetime', { nullable: true })
-  @Index()
-  startDate!: Date|null;
+  @ManyToOne(() => Label, (label) => label.tasks, { nullable: true })
+  label!: Label
 
   @Column('datetime', { nullable: true })
   @Index()
-  stopDate!: Date|null;
+  startDate!: Date | null
+
+  @Column('datetime', { nullable: true })
+  @Index()
+  stopDate!: Date | null
 
   @Column('date', { nullable: true })
   @Index()
-  dueDate!: Date|null;
+  dueDate!: Date | null
 
   @Column({ length: 128, default: 'Medium' })
-  priority!: string;
+  priority!: string
 
   @Column('int', { default: 0 })
-  estimatedTime!: number;
+  estimatedTime!: number
 
   @Column('int', { default: 0 })
-  actualTime!: number;
+  actualTime!: number
 
-  @ManyToMany(() => ProjectUser, projectUser => projectUser.tasks)
+  @ManyToMany(() => ProjectUser, (projectUser) => projectUser.tasks)
   @JoinTable()
-  assignees!: ProjectUser[];
+  assignees!: ProjectUser[]
 
   @Column({ length: 128, default: '' })
   @Index()
-  type!: string;
+  type!: string
 
   @Column('date', { nullable: true })
-  plannedDate!: Date;
+  plannedDate!: Date
 
-  @ManyToOne(() => Task, task => task.relatedTasks, { nullable: true })
-  relatedTask!: Task;
+  @ManyToOne(() => Task, (task) => task.relatedTasks, { nullable: true })
+  relatedTask!: Task
 
-  @ManyToOne(() => Project, project => project.tasks, { nullable: true })
-  relatedTasks!: Task[];
+  @ManyToOne(() => Project, (project) => project.tasks, { nullable: true })
+  relatedTasks!: Task[]
 
-  @ManyToOne(() => Task, task => task.sprint, { nullable: true })
+  @ManyToOne(() => Task, (task) => task.sprint, { nullable: true })
   @JoinColumn({ name: 'sprintId' })
-  sprint!: Sprint|null;
+  sprint!: Sprint | null
 
   @RelationId((task: Task) => task.sprint)
-  sprintId!: number;
+  sprintId!: number
 
   @Column('simple-array', { nullable: true })
   @Index()
-  tags!: string[];
+  tags!: string[]
 
   @Column('simple-json', { nullable: true })
-  customFields!: { [name: string]: string };
+  customFields!: { [name: string]: string }
 
-  @OneToMany(() => Comment, comment => comment.task)
-  comments!: Comment[];
+  @OneToMany(() => Comment, (comment) => comment.task)
+  comments!: Comment[]
 
-  @OneToMany(() => TaskAttachment, attachment => attachment.task)
-  attachments!: TaskAttachment[];
+  @OneToMany(() => TaskAttachment, (attachment) => attachment.task)
+  attachments!: TaskAttachment[]
 
-  @OneToMany(() => TaskHistory, history => history.task)
-  history!: TaskHistory[];
+  @OneToMany(() => TaskHistory, (history) => history.task)
+  history!: TaskHistory[]
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   @Index()
-  createdAt!: Date;
+  createdAt!: Date
 
-  @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  @UpdateDateColumn({
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP'
+  })
   @Index()
-  updatedAt!: Date;
+  updatedAt!: Date
 }

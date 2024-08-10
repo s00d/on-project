@@ -45,15 +45,32 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import { Chart, BarElement, ArcElement, CategoryScale, LinearScale, Tooltip, PieController, BarController } from 'chart.js'
+import {
+  Chart,
+  BarElement,
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  PieController,
+  BarController
+} from 'chart.js'
 import type { ChartConfiguration } from 'chart.js'
 import Tabs from '@/components/Tabs.vue'
-import { useRoute } from "vue-router";
-import ReportsLinks from "@/components/ReportsLinks.vue";
-import { startOfWeek, startOfMonth, startOfYear } from 'date-fns';
-import {useAlertStore} from "@/stores/alertStore";
+import { useRoute } from 'vue-router'
+import ReportsLinks from '@/components/ReportsLinks.vue'
+import { startOfWeek, startOfMonth, startOfYear } from 'date-fns'
+import { useAlertStore } from '@/stores/alertStore'
 
-Chart.register(BarElement, ArcElement, CategoryScale, LinearScale, Tooltip, PieController, BarController)
+Chart.register(
+  BarElement,
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  PieController,
+  BarController
+)
 
 interface WorkloadData {
   [assignee: string]: number
@@ -62,7 +79,7 @@ interface WorkloadData {
 const route = useRoute()
 const projectId = ref(route.params.projectId.toString())
 const selectedPeriod = ref('month')
-const selectedChartType = ref<'bar'|'pie'>('bar')
+const selectedChartType = ref<'bar' | 'pie'>('bar')
 
 const report = ref<WorkloadData | null>(null)
 const teamWorkloadChart = ref<Chart | null>(null)
@@ -96,7 +113,7 @@ const createChart = () => {
     },
     plugins: {
       legend: {
-        position: 'top',
+        position: 'top'
       },
       tooltip: {
         callbacks: {
@@ -114,21 +131,21 @@ const createChart = () => {
 }
 
 const fetchReport = async () => {
-  const now = new Date();
-  let startDate: Date;
+  const now = new Date()
+  let startDate: Date
 
   switch (selectedPeriod.value) {
     case 'week':
-      startDate = startOfWeek(now);
-      break;
+      startDate = startOfWeek(now)
+      break
     case 'month':
-      startDate = startOfMonth(now);
-      break;
+      startDate = startOfMonth(now)
+      break
     case 'year':
-      startDate = startOfYear(now);
-      break;
+      startDate = startOfYear(now)
+      break
     default:
-      startDate = new Date(0); // Все время
+      startDate = new Date(0) // Все время
   }
 
   try {

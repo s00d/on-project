@@ -26,7 +26,9 @@
                   <label for="user">Select User:</label>
                   <select id="user" v-model="selectedUser" @change="fetchReport">
                     <option value="all">All Users</option>
-                    <option v-for="user in users" :key="user.id" :value="user.id">{{ user.username }}</option>
+                    <option v-for="user in users" :key="user.id" :value="user.id">
+                      {{ user.username }}
+                    </option>
                   </select>
                 </div>
 
@@ -58,13 +60,32 @@
 import { onMounted, ref } from 'vue'
 import axios from 'axios'
 import Tabs from '@/components/Tabs.vue'
-import { useRoute } from "vue-router";
-import ReportsLinks from "@/components/ReportsLinks.vue";
-import { Chart, ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend, DoughnutController, BarController } from 'chart.js'
-import { startOfWeek, startOfMonth, startOfYear } from 'date-fns';
-import {useAlertStore} from "@/stores/alertStore";
+import { useRoute } from 'vue-router'
+import ReportsLinks from '@/components/ReportsLinks.vue'
+import {
+  Chart,
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+  DoughnutController,
+  BarController
+} from 'chart.js'
+import { startOfWeek, startOfMonth, startOfYear } from 'date-fns'
+import { useAlertStore } from '@/stores/alertStore'
 
-Chart.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend, DoughnutController, BarController)
+Chart.register(
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+  DoughnutController,
+  BarController
+)
 
 interface ProjectReport {
   project: string
@@ -115,21 +136,23 @@ const createCharts = () => {
     type: 'doughnut',
     data: {
       labels: ['Completed', 'Remaining'],
-      datasets: [{
-        data: [
-          report.value?.completedTasks || 0,
-          (report.value?.totalTasks || 0) - (report.value?.completedTasks || 0)
-        ],
-        backgroundColor: ['#4caf50', '#f44336']
-      }]
+      datasets: [
+        {
+          data: [
+            report.value?.completedTasks || 0,
+            (report.value?.totalTasks || 0) - (report.value?.completedTasks || 0)
+          ],
+          backgroundColor: ['#4caf50', '#f44336']
+        }
+      ]
     },
     options: {
       plugins: {
         legend: {
-          position: 'top',
-        },
-      },
-    },
+          position: 'top'
+        }
+      }
+    }
   })
 
   // Диаграмма распределения задач по статусам
@@ -137,11 +160,13 @@ const createCharts = () => {
     type: 'bar',
     data: {
       labels: Object.keys(report.value?.taskStatusDistribution || {}),
-      datasets: [{
-        label: 'Task Status Distribution',
-        data: Object.values(report.value?.taskStatusDistribution || {}),
-        backgroundColor: ['#2196f3', '#ffeb3b', '#9c27b0', '#f44336', '#4caf50']
-      }]
+      datasets: [
+        {
+          label: 'Task Status Distribution',
+          data: Object.values(report.value?.taskStatusDistribution || {}),
+          backgroundColor: ['#2196f3', '#ffeb3b', '#9c27b0', '#f44336', '#4caf50']
+        }
+      ]
     },
     options: {
       scales: {
@@ -151,29 +176,29 @@ const createCharts = () => {
       },
       plugins: {
         legend: {
-          position: 'top',
-        },
-      },
+          position: 'top'
+        }
+      }
     }
   })
 }
 
 const fetchReport = async () => {
-  const now = new Date();
-  let startDate: Date;
+  const now = new Date()
+  let startDate: Date
 
   switch (selectedPeriod.value) {
     case 'week':
-      startDate = startOfWeek(now);
-      break;
+      startDate = startOfWeek(now)
+      break
     case 'month':
-      startDate = startOfMonth(now);
-      break;
+      startDate = startOfMonth(now)
+      break
     case 'year':
-      startDate = startOfYear(now);
-      break;
+      startDate = startOfYear(now)
+      break
     default:
-      startDate = new Date(0); // Все время
+      startDate = new Date(0) // Все время
   }
 
   try {
@@ -196,7 +221,6 @@ onMounted(async () => {
   await fetchReport()
 })
 </script>
-
 
 <style scoped>
 .project-board {
@@ -273,5 +297,3 @@ onMounted(async () => {
   height: 100%;
 }
 </style>
-
-

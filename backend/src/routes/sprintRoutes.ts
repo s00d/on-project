@@ -1,16 +1,16 @@
-import { Router } from 'express';
+import { Router } from 'express'
 import {
   getSprints,
   createSprint,
   updateSprint,
-  deleteSprint,
-} from '../controllers/sprintController';
-import { authenticateAll } from '../middlewares/authMiddleware';
-import { isProjectCreator } from '../middlewares/roleMiddleware';
-import { check } from 'express-validator';
-import { validateRequest } from '../middlewares/validateRequest';  // Assuming you have a middleware for handling validation errors
+  deleteSprint
+} from '../controllers/sprintController'
+import { authenticateAll } from '../middlewares/authMiddleware'
+import { isProjectCreator } from '../middlewares/roleMiddleware'
+import { check } from 'express-validator'
+import { validateRequest } from '../middlewares/validateRequest' // Assuming you have a middleware for handling validation errors
 
-const router = Router();
+const router = Router()
 
 /**
  * @swagger
@@ -50,11 +50,11 @@ router.get(
   authenticateAll,
   [
     check('projectId').isInt().withMessage('Project ID must be an integer'),
-    check('roadmapId').isInt().withMessage('Roadmap ID must be an integer'),
+    check('roadmapId').isInt().withMessage('Roadmap ID must be an integer')
   ],
   validateRequest,
   getSprints
-);
+)
 
 /**
  * @swagger
@@ -113,11 +113,11 @@ router.post(
     check('description').isString().optional(),
     check('startDate').isISO8601().toDate().withMessage('Start Date must be a valid date'),
     check('endDate').isISO8601().toDate().withMessage('End Date must be a valid date'),
-    check('roadmapId').isInt().withMessage('Roadmap ID must be an integer'),
+    check('roadmapId').isInt().withMessage('Roadmap ID must be an integer')
   ],
   validateRequest,
   createSprint
-);
+)
 
 /**
  * @swagger
@@ -179,11 +179,11 @@ router.put(
     check('title').isString().notEmpty().withMessage('Title is required'),
     check('description').isString().optional(),
     check('startDate').isISO8601().toDate().withMessage('Start Date must be a valid date'),
-    check('endDate').isISO8601().toDate().withMessage('End Date must be a valid date'),
+    check('endDate').isISO8601().toDate().withMessage('End Date must be a valid date')
   ],
   validateRequest,
   updateSprint
-);
+)
 
 /**
  * @swagger
@@ -220,10 +220,10 @@ router.delete(
   isProjectCreator,
   [
     check('projectId').isInt().withMessage('Project ID must be an integer'),
-    check('id').isInt().withMessage('Sprint ID must be an integer'),
+    check('id').isInt().withMessage('Sprint ID must be an integer')
   ],
   validateRequest,
   deleteSprint
-);
+)
 
-export { router as sprintRouter };
+export { router as sprintRouter }

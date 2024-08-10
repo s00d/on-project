@@ -49,38 +49,49 @@
  *           example: "2023-08-09T12:34:56Z"
  */
 
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { User } from './User';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn
+} from 'typeorm'
+import { User } from './User'
 
 @Entity('task_templates')
 export class TaskTemplate {
   @PrimaryGeneratedColumn()
-  id!: number;
+  id!: number
 
-  @ManyToOne(() => User, user => user.taskTemplates, { nullable: false })
-  user!: User;
+  @ManyToOne(() => User, (user) => user.taskTemplates, { nullable: false })
+  user!: User
 
   @Column()
-  title!: string;
+  title!: string
 
   @Column('text', { nullable: true })
-  description!: string;
+  description!: string
 
   @Column({ default: 'Medium' })
-  priority!: string;
+  priority!: string
 
   @Column({ default: '' })
-  status!: string;
+  status!: string
 
   @Column({ default: '' })
-  tag!: string;
+  tag!: string
 
   @Column({ default: '' })
-  type!: string;
+  type!: string
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt!: Date;
+  createdAt!: Date
 
-  @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
-  updatedAt!: Date;
+  @UpdateDateColumn({
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP'
+  })
+  updatedAt!: Date
 }

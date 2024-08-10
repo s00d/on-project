@@ -1,4 +1,4 @@
-import swaggerJSDoc from "swagger-jsdoc";
+import swaggerJSDoc from 'swagger-jsdoc'
 
 const options = {
   failOnErrors: true,
@@ -7,12 +7,12 @@ const options = {
     info: {
       title: 'On Project API',
       version: '1.0.0',
-      description: 'This is a simple API application',
+      description: 'This is a simple API application'
     },
     servers: [
       {
-        url: 'http://localhost:3055/api',
-      },
+        url: 'http://localhost:3055/api'
+      }
     ],
     components: {
       securitySchemes: {
@@ -20,7 +20,8 @@ const options = {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT',
-          description: 'JWT authorization using the Bearer scheme. Example: "Authorization: Bearer {token}"'
+          description:
+            'JWT authorization using the Bearer scheme. Example: "Authorization: Bearer {token}"'
         },
         sessionAuth: {
           type: 'apiKey',
@@ -42,11 +43,11 @@ const options = {
         sessionAuth: [],
         apiKeyAuth: []
       }
-    ],
+    ]
   },
-  apis: ['./src/routes/**/*.ts', './src/models/**/*.ts'],
-};
+  apis: ['./src/routes/**/*.ts', './src/models/**/*.ts']
+}
 
-const swaggerSpec = swaggerJSDoc(options);
+const swaggerSpec = swaggerJSDoc(options)
 
-export { swaggerSpec };
+export { swaggerSpec }

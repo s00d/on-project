@@ -32,26 +32,37 @@
  *           example: "2023-08-02T12:34:56Z"
  */
 
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { Task } from './Task';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn
+} from 'typeorm'
+import { Task } from './Task'
 
 @Entity('task_attachments')
 export class TaskAttachment {
   @PrimaryGeneratedColumn()
-  id!: number;
+  id!: number
 
-  @ManyToOne(() => Task, task => task.attachments, { nullable: false })
-  task!: Task;
+  @ManyToOne(() => Task, (task) => task.attachments, { nullable: false })
+  task!: Task
 
   @Column({ length: 128 })
-  filename!: string;
+  filename!: string
 
   @Column({ length: 255 })
-  filePath!: string;
+  filePath!: string
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt!: Date;
+  createdAt!: Date
 
-  @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
-  updatedAt!: Date;
+  @UpdateDateColumn({
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP'
+  })
+  updatedAt!: Date
 }

@@ -1,10 +1,10 @@
-import { Router } from 'express';
-import { getNotifications, markAsRead } from '../controllers/notificationController';
-import { authenticateAll } from '../middlewares/authMiddleware';
-import { param } from 'express-validator';
-import { validateRequest } from '../middlewares/validateRequest';
+import { Router } from 'express'
+import { getNotifications, markAsRead } from '../controllers/notificationController'
+import { authenticateAll } from '../middlewares/authMiddleware'
+import { param } from 'express-validator'
+import { validateRequest } from '../middlewares/validateRequest'
 
-const router = Router();
+const router = Router()
 
 /**
  * @swagger
@@ -32,7 +32,7 @@ const router = Router();
  *                   type: string
  *                   example: Error fetching notifications
  */
-router.get('/', authenticateAll, getNotifications);
+router.get('/', authenticateAll, getNotifications)
 
 /**
  * @swagger
@@ -78,11 +78,9 @@ router.get('/', authenticateAll, getNotifications);
 router.put(
   '/:id/read',
   authenticateAll,
-  [
-    param('id').isInt().withMessage('Notification ID must be an integer'),
-  ],
+  [param('id').isInt().withMessage('Notification ID must be an integer')],
   validateRequest,
   markAsRead
-);
+)
 
-export { router as notificationRouter };
+export { router as notificationRouter }

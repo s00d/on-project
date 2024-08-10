@@ -21,28 +21,43 @@
             <div class="mb-3" v-if="project?.priorities">
               <label for="priority" class="form-label">Priority</label>
               <select v-model="priority" id="priority" class="form-select" required>
-                <option v-for="priority in project.priorities" :value="priority" :key="priority" v-text="priority"></option>
+                <option
+                  v-for="priority in project.priorities"
+                  :value="priority"
+                  :key="priority"
+                  v-text="priority"
+                ></option>
               </select>
             </div>
 
             <div class="mb-3" v-if="project?.statuses">
               <label for="status" class="form-label">Status</label>
               <select v-model="status" id="status" class="form-select">
-                <option v-for="status in project.statuses" :value="status"  :key="status" v-text="status"></option>
+                <option
+                  v-for="status in project.statuses"
+                  :value="status"
+                  :key="status"
+                  v-text="status"
+                ></option>
               </select>
             </div>
 
             <div class="mb-3" v-if="project?.tags">
               <label for="status" class="form-label">Tag</label>
               <select v-model="tag" id="status" class="form-select">
-                <option v-for="tag in project.tags" :value="tag"  :key="tag" v-text="tag"></option>
+                <option v-for="tag in project.tags" :value="tag" :key="tag" v-text="tag"></option>
               </select>
             </div>
 
             <div class="mb-3" v-if="project?.types">
               <label for="status" class="form-label">Type</label>
               <select v-model="type" id="status" class="form-select">
-                <option v-for="type in project.types" :value="type" :key="type" v-text="type"></option>
+                <option
+                  v-for="type in project.types"
+                  :value="type"
+                  :key="type"
+                  v-text="type"
+                ></option>
               </select>
             </div>
 
@@ -64,11 +79,11 @@
 </template>
 
 <script lang="ts" setup>
-import {ref, onMounted, computed} from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import axios from 'axios'
 import Tabs from '@/components/Tabs.vue'
-import {useRoute} from "vue-router";
-import {useProjectStore} from "@/stores/projectStore";
+import { useRoute } from 'vue-router'
+import { useProjectStore } from '@/stores/projectStore'
 
 interface TaskTemplate {
   id: number
@@ -105,7 +120,7 @@ const createTemplate = async () => {
     priority: priority.value,
     status: status.value,
     tag: tag.value,
-    type: type.value,
+    type: type.value
   }
   await axios.post('/api/templates', newTemplate)
   fetchTemplates()
@@ -119,7 +134,7 @@ const applyTemplate = async (template: TaskTemplate) => {
     priority: template.priority,
     status: template.status,
     tag: template.tag,
-    type: template.type,
+    type: template.type
   })
 }
 

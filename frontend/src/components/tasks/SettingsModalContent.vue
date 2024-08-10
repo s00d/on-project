@@ -4,14 +4,18 @@
       <label for="status" class="form-label">Status</label>
       <select v-model="localStatus" @change="applyFilters" class="form-select">
         <option value="">All</option>
-        <option v-for="status in project?.statuses" :value="status" :key="status">{{ status }}</option>
+        <option v-for="status in project?.statuses" :value="status" :key="status">
+          {{ status }}
+        </option>
       </select>
     </div>
     <div class="mb-3">
       <label for="priority" class="form-label">Priority</label>
       <select v-model="localPriority" @change="applyFilters" class="form-select">
         <option value="">All</option>
-        <option v-for="priority in project?.priorities" :value="priority" :key="priority">{{ priority }}</option>
+        <option v-for="priority in project?.priorities" :value="priority" :key="priority">
+          {{ priority }}
+        </option>
       </select>
     </div>
     <div class="mb-3">
@@ -27,7 +31,9 @@
         <option value="priority">Priority</option>
         <option value="status">Status</option>
         <option value="assignee">Assignee</option>
-        <option v-for="field in projectCustomFields" :key="field.name" :value="field.name">{{ field.name }}</option>
+        <option v-for="field in projectCustomFields" :key="field.name" :value="field.name">
+          {{ field.name }}
+        </option>
       </select>
     </div>
     <div class="mb-3">
@@ -58,8 +64,8 @@
 
 <script lang="ts" setup>
 import { ref, defineProps, defineEmits, watch } from 'vue'
-import type {Project} from "@/stores/projectStore";
-import type {User} from "@/stores/authStore";
+import type { Project } from '@/stores/projectStore'
+import type { User } from '@/stores/authStore'
 
 const props = defineProps<{
   status: string
@@ -71,7 +77,7 @@ const props = defineProps<{
   visibleColumns: string[]
   allTags: string[]
   allColumns: string[]
-  users: {[key: number]: User}
+  users: { [key: number]: User }
   project: Project | null
   projectCustomFields: { name: string }[]
 }>()
@@ -85,7 +91,6 @@ const localGroupBy = ref(props.groupBy)
 const localAssignee = ref(props.assignee)
 const localPageSize = ref(props.pageSize)
 const localVisibleColumns = ref(props.visibleColumns)
-
 
 const applyFilters = () => {
   emit('apply-filters', {

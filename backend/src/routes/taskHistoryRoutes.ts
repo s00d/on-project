@@ -1,11 +1,15 @@
-import { Router } from 'express';
-import { getTaskHistory, clearTaskHistoryByTask, clearTaskHistoryByProject } from '../controllers/taskHistoryController';
-import { authenticateAll } from '../middlewares/authMiddleware';
-import { check } from 'express-validator';
-import {validateRequest} from "../middlewares/validateRequest";
-import {isProjectCreator} from "../middlewares/roleMiddleware";
+import { Router } from 'express'
+import {
+  getTaskHistory,
+  clearTaskHistoryByTask,
+  clearTaskHistoryByProject
+} from '../controllers/taskHistoryController'
+import { authenticateAll } from '../middlewares/authMiddleware'
+import { check } from 'express-validator'
+import { validateRequest } from '../middlewares/validateRequest'
+import { isProjectCreator } from '../middlewares/roleMiddleware'
 
-const router = Router();
+const router = Router()
 
 /**
  * @swagger
@@ -40,7 +44,7 @@ router.get(
   [check('taskId').isInt().withMessage('Task ID must be an integer')],
   validateRequest,
   getTaskHistory
-);
+)
 
 /**
  * @swagger
@@ -70,7 +74,7 @@ router.delete(
   [check('taskId').isInt().withMessage('Task ID must be an integer')],
   validateRequest,
   clearTaskHistoryByTask
-);
+)
 
 /**
  * @swagger
@@ -100,6 +104,6 @@ router.delete(
   [check('projectId').isInt().withMessage('Project ID must be an integer')],
   validateRequest,
   clearTaskHistoryByProject
-);
+)
 
-export { router as taskHistoryRouter };
+export { router as taskHistoryRouter }

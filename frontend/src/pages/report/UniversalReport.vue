@@ -16,14 +16,18 @@
                   <div class="form-group">
                     <label>Select Model:</label>
                     <select v-model="selectedModel">
-                      <option v-for="model in availableModels" :key="model" :value="model">{{ model }}</option>
+                      <option v-for="model in availableModels" :key="model" :value="model">
+                        {{ model }}
+                      </option>
                     </select>
                   </div>
 
                   <div class="form-group">
                     <label>Select Fields:</label>
                     <select v-model="selectedFields" multiple>
-                      <option v-for="field in availableFields" :key="field" :value="field">{{ field }}</option>
+                      <option v-for="field in availableFields" :key="field" :value="field">
+                        {{ field }}
+                      </option>
                     </select>
                   </div>
 
@@ -33,20 +37,26 @@
                       <label>{{ field }}:</label>
                       <input v-model="selectedFilters[field]" />
                     </div>
-                    <button type="button" class="add-filter-btn" @click="addFilter">Add Filter</button>
+                    <button type="button" class="add-filter-btn" @click="addFilter">
+                      Add Filter
+                    </button>
                   </div>
 
                   <div class="form-group">
                     <label>Group By:</label>
                     <select v-model="groupBy">
-                      <option v-for="field in availableFields" :key="field" :value="field">{{ field }}</option>
+                      <option v-for="field in availableFields" :key="field" :value="field">
+                        {{ field }}
+                      </option>
                     </select>
                   </div>
 
                   <div class="form-group">
                     <label>Sort By:</label>
                     <select v-model="sortBy">
-                      <option v-for="field in availableFields" :key="field" :value="field">{{ field }}</option>
+                      <option v-for="field in availableFields" :key="field" :value="field">
+                        {{ field }}
+                      </option>
                     </select>
                     <select v-model="sortOrder" class="sort-order">
                       <option value="ASC">Ascending</option>
@@ -77,14 +87,16 @@
                 <div v-if="reportData && reportData.reportData && reportData.reportData.length">
                   <table class="report-table">
                     <thead>
-                    <tr>
-                      <th v-for="field in selectedFields" :key="field">{{ field }}</th>
-                    </tr>
+                      <tr>
+                        <th v-for="field in selectedFields" :key="field">{{ field }}</th>
+                      </tr>
                     </thead>
                     <tbody>
-                    <tr v-for="item in reportData.reportData" :key="item.entity_id">
-                      <td v-for="field in selectedFields" :key="field">{{ item[`entity_${field}`] }}</td>
-                    </tr>
+                      <tr v-for="item in reportData.reportData" :key="item.entity_id">
+                        <td v-for="field in selectedFields" :key="field">
+                          {{ item[`entity_${field}`] }}
+                        </td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -101,62 +113,86 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
-import {nextTick, ref, watch} from 'vue'
+import { nextTick, ref, watch } from 'vue'
 import axios from 'axios'
-import { Chart, BarElement, ArcElement, LineElement, ScatterController, CategoryScale, LinearScale, Tooltip, BarController, PieController, LineController, PointElement } from 'chart.js'
-import {useRoute} from "vue-router";
-import ReportsLinks from "@/components/ReportsLinks.vue";
-import Tabs from "@/components/Tabs.vue";
-import {useAlertStore} from "@/stores/alertStore";
+import {
+  Chart,
+  BarElement,
+  ArcElement,
+  LineElement,
+  ScatterController,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  BarController,
+  PieController,
+  LineController,
+  PointElement
+} from 'chart.js'
+import { useRoute } from 'vue-router'
+import ReportsLinks from '@/components/ReportsLinks.vue'
+import Tabs from '@/components/Tabs.vue'
+import { useAlertStore } from '@/stores/alertStore'
 
-Chart.register(BarElement, ArcElement, LineElement, ScatterController, CategoryScale, LinearScale, Tooltip, BarController, PieController, LineController, PointElement)
+Chart.register(
+  BarElement,
+  ArcElement,
+  LineElement,
+  ScatterController,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  BarController,
+  PieController,
+  LineController,
+  PointElement
+)
 
 const route = useRoute()
 const projectId = ref(route.params.projectId.toString())
 
-const availableModels = ['Task', 'User', 'Project', 'Sprint', 'Label'];
+const availableModels = ['Task', 'User', 'Project', 'Sprint', 'Label']
 
 const modelFields = {
   Task: ['id', 'title', 'status', 'priority', 'dueDate', 'createdAt', 'updatedAt', 'type', 'tags'],
   User: ['id', 'username', 'email', 'password', 'createdAt', 'updatedAt'],
   Project: ['id', 'name', 'description', 'createdAt', 'updatedAt'],
   Sprint: ['id', 'title', 'startDate', 'endDate', 'createdAt', 'updatedAt'],
-  Label: ['id', 'name', 'color', 'createdAt', 'updatedAt'],
-};
+  Label: ['id', 'name', 'color', 'createdAt', 'updatedAt']
+}
 
-const selectedModel = ref<string>('Task');
+const selectedModel = ref<string>('Task')
 // @ts-ignore
-const availableFields = ref<string[]>(modelFields[selectedModel.value]);
-const selectedFields = ref<string[]>([]);
-const selectedFilters = ref<Record<string, string>>({});
-const groupBy = ref('createdAt');
-const sortBy = ref('createdAt');
-const sortOrder = ref<'ASC' | 'DESC'>('ASC');
-const chartType = ref<'bar' | 'pie' | 'line' | 'scatter'>('bar');
-const startDate = ref('');
-const endDate = ref('');
+const availableFields = ref<string[]>(modelFields[selectedModel.value])
+const selectedFields = ref<string[]>([])
+const selectedFilters = ref<Record<string, string>>({})
+const groupBy = ref('createdAt')
+const sortBy = ref('createdAt')
+const sortOrder = ref<'ASC' | 'DESC'>('ASC')
+const chartType = ref<'bar' | 'pie' | 'line' | 'scatter'>('bar')
+const startDate = ref('')
+const endDate = ref('')
 
 const updateFields = () => {
   // @ts-ignore
-  availableFields.value = modelFields[selectedModel.value];
-  selectedFields.value = [];
-  groupBy.value = '';
-  sortBy.value = '';
-  selectedFilters.value = {};
-};
+  availableFields.value = modelFields[selectedModel.value]
+  selectedFields.value = []
+  groupBy.value = ''
+  sortBy.value = ''
+  selectedFilters.value = {}
+}
 
 watch(selectedModel, () => {
-  updateFields();
-});
+  updateFields()
+})
 
-const reportData = ref<any>(null);
-const select = ref<any>(null);
+const reportData = ref<any>(null)
+const select = ref<any>(null)
 
 const addFilter = () => {
-  selectedFilters.value[''] = '';
-};
+  selectedFilters.value[''] = ''
+}
 
 const generateReport = async () => {
   try {
@@ -169,28 +205,28 @@ const generateReport = async () => {
       sortOrder: sortOrder.value,
       chartType: chartType.value,
       startDate: startDate.value,
-      endDate: endDate.value,
+      endDate: endDate.value
     })
-    reportData.value = response.data;
-    createChart();
+    reportData.value = response.data
+    createChart()
   } catch (error: any) {
-    console.error('Failed to generate report', error);
+    console.error('Failed to generate report', error)
     useAlertStore().setAlert(`Failed to generate report: ${error.response?.data?.error}`, 'danger')
   }
-};
+}
 
 const createChart = () => {
   if (reportData.value) {
-    const ctx = document.getElementById('reportChart') as HTMLCanvasElement;
+    const ctx = document.getElementById('reportChart') as HTMLCanvasElement
 
     // Перебираем данные, чтобы создать массив для графика
-    const labels: string[] = [];
-    const data: number[] = [];
+    const labels: string[] = []
+    const data: number[] = []
 
     reportData.value.reportData.forEach((item: any) => {
-      labels.push(item.groupByField || 'Other');
-      data.push(parseInt(item.count));
-    });
+      labels.push(item.groupByField || 'Other')
+      data.push(parseInt(item.count))
+    })
 
     const chartData = {
       labels,
@@ -200,20 +236,20 @@ const createChart = () => {
           data,
           backgroundColor: 'rgba(75, 192, 192, 0.2)',
           borderColor: 'rgba(75, 192, 192, 1)',
-          borderWidth: 1,
-        },
-      ],
-    };
+          borderWidth: 1
+        }
+      ]
+    }
 
-    if (select.value) select.value.destroy();
+    if (select.value) select.value.destroy()
     nextTick(() => {
       select.value = new Chart(ctx, {
         type: chartType.value,
-        data: chartData,
-      });
+        data: chartData
+      })
     })
   }
-};
+}
 </script>
 
 <style scoped>

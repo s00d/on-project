@@ -1,10 +1,10 @@
-import { Router } from 'express';
-import { getLabels, createLabel, updateLabel, deleteLabel } from '../controllers/labelController';
-import { authenticateAll } from '../middlewares/authMiddleware';
-import { param, body } from 'express-validator';
-import { validateRequest } from '../middlewares/validateRequest';
+import { Router } from 'express'
+import { getLabels, createLabel, updateLabel, deleteLabel } from '../controllers/labelController'
+import { authenticateAll } from '../middlewares/authMiddleware'
+import { param, body } from 'express-validator'
+import { validateRequest } from '../middlewares/validateRequest'
 
-const router = Router();
+const router = Router()
 
 /**
  * @swagger
@@ -42,12 +42,10 @@ const router = Router();
 router.get(
   '/:projectId/',
   authenticateAll,
-  [
-    param('projectId').isInt().withMessage('Project ID must be an integer'),
-  ],
+  [param('projectId').isInt().withMessage('Project ID must be an integer')],
   validateRequest,
   getLabels
-);
+)
 
 /**
  * @swagger
@@ -97,11 +95,11 @@ router.post(
   [
     param('projectId').isInt().withMessage('Project ID must be an integer'),
     body('name').isString().withMessage('Name is required'),
-    body('color').isString().withMessage('Color is required'),
+    body('color').isString().withMessage('Color is required')
   ],
   validateRequest,
   createLabel
-);
+)
 
 /**
  * @swagger
@@ -168,11 +166,11 @@ router.put(
     param('projectId').isInt().withMessage('Project ID must be an integer'),
     param('id').isInt().withMessage('Label ID must be an integer'),
     body('name').isString().withMessage('Name is required'),
-    body('color').isString().withMessage('Color is required'),
+    body('color').isString().withMessage('Color is required')
   ],
   validateRequest,
   updateLabel
-);
+)
 
 /**
  * @swagger
@@ -222,10 +220,10 @@ router.delete(
   authenticateAll,
   [
     param('projectId').isInt().withMessage('Project ID must be an integer'),
-    param('id').isInt().withMessage('Label ID must be an integer'),
+    param('id').isInt().withMessage('Label ID must be an integer')
   ],
   validateRequest,
   deleteLabel
-);
+)
 
-export { router as labelRouter };
+export { router as labelRouter }

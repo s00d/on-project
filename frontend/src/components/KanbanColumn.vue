@@ -14,7 +14,6 @@
       class="task-card"
       draggable="true"
       @dragstart="(event) => onDragStart(event, task.id)"
-
       @click="showEdit(task)"
     >
       <h5 class="card-title">{{ task.title }}</h5>
@@ -27,7 +26,12 @@
     </div>
   </div>
 
-  <ModalComponent :isOpen="!!selectedTask" title="Edit Details" @close="closeTaskModal" pos="fixed-left">
+  <ModalComponent
+    :isOpen="!!selectedTask"
+    title="Edit Details"
+    @close="closeTaskModal"
+    pos="fixed-left"
+  >
     <template #body>
       <TaskCard
         v-if="selectedTask"
@@ -48,16 +52,16 @@
 import { ref, computed } from 'vue'
 import { useTaskStore } from '@/stores/taskStore'
 import type { Task } from '@/stores/taskStore'
-import type {User} from "@/stores/authStore";
-import TaskCard from "@/components/tasks/TaskCard.vue";
-import ModalComponent from "@/components/ModalComponent.vue";
-import {useProjectStore} from "@/stores/projectStore";
+import type { User } from '@/stores/authStore'
+import TaskCard from '@/components/tasks/TaskCard.vue'
+import ModalComponent from '@/components/ModalComponent.vue'
+import { useProjectStore } from '@/stores/projectStore'
 
 interface Props {
   status: string
   tasks: Task[]
   projectId: string
-  users: {[key: string]: User}
+  users: { [key: string]: User }
 }
 
 const props = defineProps<Props>()
@@ -66,7 +70,7 @@ const emit = defineEmits(['task-dropped'])
 const projectStore = useProjectStore()
 
 const isDragOver = ref(false)
-const selectedTask = ref<Task|null>(null)
+const selectedTask = ref<Task | null>(null)
 
 const onDragStart = (event: DragEvent, taskId: number) => {
   event.dataTransfer?.setData('text/plain', taskId.toString())
@@ -86,13 +90,13 @@ const onDragEnter = () => {
 }
 
 const onDragLeave = (event: DragEvent) => {
-  const currentTarget = event.currentTarget as HTMLElement | null;
-  const relatedTarget = event.relatedTarget as HTMLElement | null;
+  const currentTarget = event.currentTarget as HTMLElement | null
+  const relatedTarget = event.relatedTarget as HTMLElement | null
 
   // Проверяем, что курсор действительно покидает колонку
-  const isLeaving = !relatedTarget || (currentTarget && !currentTarget.contains(relatedTarget));
+  const isLeaving = !relatedTarget || (currentTarget && !currentTarget.contains(relatedTarget))
   if (isLeaving) {
-    isDragOver.value = false;
+    isDragOver.value = false
   }
 }
 

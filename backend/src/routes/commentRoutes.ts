@@ -1,15 +1,15 @@
-import { Router } from 'express';
+import { Router } from 'express'
 import {
   getComments,
   addComment,
   updateComment,
   deleteComment
-} from '../controllers/commentController';
-import { authenticateAll } from '../middlewares/authMiddleware';
-import { body, param } from 'express-validator';
-import { validateRequest } from '../middlewares/validateRequest';
+} from '../controllers/commentController'
+import { authenticateAll } from '../middlewares/authMiddleware'
+import { body, param } from 'express-validator'
+import { validateRequest } from '../middlewares/validateRequest'
 
-const router = Router();
+const router = Router()
 
 /**
  * @swagger
@@ -43,7 +43,13 @@ const router = Router();
  *       404:
  *         description: Task not found
  */
-router.get('/:taskId', authenticateAll, [param('taskId').isInt().withMessage('Task ID must be an integer')], validateRequest, getComments);
+router.get(
+  '/:taskId',
+  authenticateAll,
+  [param('taskId').isInt().withMessage('Task ID must be an integer')],
+  validateRequest,
+  getComments
+)
 
 /**
  * @swagger
@@ -97,7 +103,7 @@ router.post(
   ],
   validateRequest,
   addComment
-);
+)
 
 /**
  * @swagger
@@ -141,7 +147,7 @@ router.put(
   ],
   validateRequest,
   updateComment
-);
+)
 
 /**
  * @swagger
@@ -168,6 +174,6 @@ router.delete(
   [param('id').isInt().withMessage('Comment ID must be an integer')],
   validateRequest,
   deleteComment
-);
+)
 
-export { router as commentRouter };
+export { router as commentRouter }

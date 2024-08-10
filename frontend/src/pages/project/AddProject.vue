@@ -10,7 +10,13 @@
           </div>
           <div class="mb-3">
             <label for="description" class="form-label">Description</label>
-            <MdEditor v-model="description" language="en-US" previewTheme="github" noMermaid :preview="false" />
+            <MdEditor
+              v-model="description"
+              language="en-US"
+              previewTheme="github"
+              noMermaid
+              :preview="false"
+            />
           </div>
           <button type="submit" class="btn btn-primary">Add Project</button>
         </form>

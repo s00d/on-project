@@ -9,48 +9,53 @@
       <label for="description">Description</label>
       <textarea v-model="form.description" id="description" required></textarea>
     </div>
-    <button type="submit" class="btn btn-primary">{{ isEditMode ? 'Save Changes' : 'Create Roadmap' }}</button>
+    <button type="submit" class="btn btn-primary">
+      {{ isEditMode ? 'Save Changes' : 'Create Roadmap' }}
+    </button>
     <button type="button" class="btn btn-secondary" @click="closeModal">Cancel</button>
   </form>
 </template>
 
 <script lang="ts" setup>
-import { ref, defineProps, defineEmits, onMounted, watch } from 'vue';
-import type { Roadmap } from "@/stores/roadmapStore";
+import { ref, defineProps, defineEmits, onMounted, watch } from 'vue'
+import type { Roadmap } from '@/stores/roadmapStore'
 
 const props = defineProps<{
-  isEditMode: boolean,
+  isEditMode: boolean
   roadmapData: Roadmap
-}>();
+}>()
 
-const emit = defineEmits(['save', 'close']);
+const emit = defineEmits(['save', 'close'])
 
 const form = ref<Roadmap>({
   id: 0,
   title: '',
   description: '',
   projectId: 0
-});
+})
 
 const submitForm = () => {
-  emit('save', { ...form.value });
-};
+  emit('save', { ...form.value })
+}
 
 const closeModal = () => {
-  emit('close');
-};
+  emit('close')
+}
 
 onMounted(() => {
   if (props.isEditMode && props.roadmapData) {
-    form.value = { ...props.roadmapData };
+    form.value = { ...props.roadmapData }
   }
-});
+})
 
-watch(() => props.roadmapData, (newVal) => {
-  if (props.isEditMode && newVal) {
-    form.value = { ...newVal };
+watch(
+  () => props.roadmapData,
+  (newVal) => {
+    if (props.isEditMode && newVal) {
+      form.value = { ...newVal }
+    }
   }
-});
+)
 </script>
 
 <style scoped>

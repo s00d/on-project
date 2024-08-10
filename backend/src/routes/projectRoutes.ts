@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router } from 'express'
 import {
   getProjects,
   createProject,
@@ -8,13 +8,13 @@ import {
   getProjectUsers,
   getProject,
   deActiveUser
-} from '../controllers/projectController';
-import { authenticateAll } from '../middlewares/authMiddleware';
-import { isProjectCreator } from '../middlewares/roleMiddleware';
-import { check, param, body } from 'express-validator';
-import { validateRequest } from '../middlewares/validateRequest';
+} from '../controllers/projectController'
+import { authenticateAll } from '../middlewares/authMiddleware'
+import { isProjectCreator } from '../middlewares/roleMiddleware'
+import { check, param, body } from 'express-validator'
+import { validateRequest } from '../middlewares/validateRequest'
 
-const router = Router();
+const router = Router()
 
 /**
  * @swagger
@@ -32,7 +32,7 @@ const router = Router();
  *               items:
  *                 $ref: '#/components/schemas/Project'
  */
-router.get('/', authenticateAll, getProjects);
+router.get('/', authenticateAll, getProjects)
 
 /**
  * @swagger
@@ -59,11 +59,11 @@ router.post(
   authenticateAll,
   [
     body('name').notEmpty().withMessage('Project name is required'),
-    body('description').optional().isString().withMessage('Description must be a string'),
+    body('description').optional().isString().withMessage('Description must be a string')
   ],
   validateRequest,
   createProject
-);
+)
 
 /**
  * @swagger
@@ -91,12 +91,10 @@ router.post(
 router.get(
   '/:projectId',
   authenticateAll,
-  [
-    param('projectId').isInt().withMessage('Project ID must be an integer'),
-  ],
+  [param('projectId').isInt().withMessage('Project ID must be an integer')],
   validateRequest,
   getProject
-);
+)
 
 /**
  * @swagger
@@ -140,11 +138,11 @@ router.put(
     body('statuses').optional().isArray().withMessage('Statuses must be an array'),
     body('tags').optional().isArray().withMessage('Tags must be an array'),
     body('types').optional().isArray().withMessage('Types must be an array'),
-    body('savedFilters').optional().isArray().withMessage('Saved filters must be an array'),
+    body('savedFilters').optional().isArray().withMessage('Saved filters must be an array')
   ],
   validateRequest,
   updateProject
-);
+)
 
 /**
  * @swagger
@@ -169,12 +167,10 @@ router.delete(
   '/:projectId',
   authenticateAll,
   isProjectCreator,
-  [
-    param('projectId').isInt().withMessage('Project ID must be an integer'),
-  ],
+  [param('projectId').isInt().withMessage('Project ID must be an integer')],
   validateRequest,
   deleteProject
-);
+)
 
 /**
  * @swagger
@@ -219,11 +215,11 @@ router.post(
     param('projectId').isInt().withMessage('Project ID must be an integer'),
     body('userId').optional().isInt().withMessage('User ID must be an integer'),
     body('email').optional().isEmail().withMessage('Email must be a valid email address'),
-    body('username').optional().isString().withMessage('Username must be a string'),
+    body('username').optional().isString().withMessage('Username must be a string')
   ],
   validateRequest,
   inviteUser
-);
+)
 
 /**
  * @swagger
@@ -251,12 +247,10 @@ router.post(
 router.get(
   '/:projectId/users',
   authenticateAll,
-  [
-    param('projectId').isInt().withMessage('Project ID must be an integer'),
-  ],
+  [param('projectId').isInt().withMessage('Project ID must be an integer')],
   validateRequest,
   getProjectUsers
-);
+)
 
 /**
  * @swagger
@@ -291,10 +285,10 @@ router.delete(
   isProjectCreator,
   [
     param('projectId').isInt().withMessage('Project ID must be an integer'),
-    param('userId').isInt().withMessage('User ID must be an integer'),
+    param('userId').isInt().withMessage('User ID must be an integer')
   ],
   validateRequest,
   deActiveUser
-);
+)
 
-export { router as projectRouter };
+export { router as projectRouter }

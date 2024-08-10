@@ -42,7 +42,6 @@
   </div>
 </template>
 
-
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
@@ -60,12 +59,22 @@ import {
 } from 'chart.js'
 import type { ChartConfiguration } from 'chart.js'
 import Tabs from '@/components/Tabs.vue'
-import { useRoute } from "vue-router";
-import ReportsLinks from "@/components/ReportsLinks.vue";
-import { startOfWeek, startOfMonth, startOfYear } from 'date-fns';
-import {useAlertStore} from "@/stores/alertStore";
+import { useRoute } from 'vue-router'
+import ReportsLinks from '@/components/ReportsLinks.vue'
+import { startOfWeek, startOfMonth, startOfYear } from 'date-fns'
+import { useAlertStore } from '@/stores/alertStore'
 
-Chart.register(LineElement, BarElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, LineController, BarController)
+Chart.register(
+  LineElement,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Tooltip,
+  Legend,
+  LineController,
+  BarController
+)
 
 interface ProgressData {
   [date: string]: {
@@ -77,49 +86,49 @@ interface ProgressData {
 const route = useRoute()
 const projectId = ref(route.params.projectId.toString())
 const selectedPeriod = ref('month')
-const selectedChartType = ref<"line"|"bar">('line')
+const selectedChartType = ref<'line' | 'bar'>('line')
 
 const report = ref<ProgressData | null>(null)
 const progressChart = ref<Chart | null>(null)
 
 const fetchReport = async () => {
-  const now = new Date();
-  let startDate: Date;
+  const now = new Date()
+  let startDate: Date
 
   switch (selectedPeriod.value) {
     case 'week':
-      startDate = startOfWeek(now);
-      break;
+      startDate = startOfWeek(now)
+      break
     case 'month':
-      startDate = startOfMonth(now);
-      break;
+      startDate = startOfMonth(now)
+      break
     case 'year':
-      startDate = startOfYear(now);
-      break;
+      startDate = startOfYear(now)
+      break
     default:
-      startDate = new Date(0); // Все время
+      startDate = new Date(0) // Все время
   }
 
   try {
     const response = await axios.get(`/reports/project/${projectId.value}/progress`, {
       params: { startDate: startDate.toISOString() }
-    });
-    report.value = response.data;
-    createChart();
+    })
+    report.value = response.data
+    createChart()
   } catch (error: any) {
-    console.error('Failed to generate report', error);
+    console.error('Failed to generate report', error)
     useAlertStore().setAlert(`Failed to generate report: ${error.response?.data?.error}`, 'danger')
   }
 }
 
 const createChart = () => {
   if (progressChart.value) {
-    progressChart.value.destroy();
+    progressChart.value.destroy()
   }
 
-  const labels = Object.keys(report.value || {});
-  const totalData = Object.values(report.value || {}).map(val => val.total);
-  const completedData = Object.values(report.value || {}).map(val => val.completed);
+  const labels = Object.keys(report.value || {})
+  const totalData = Object.values(report.value || {}).map((val) => val.total)
+  const completedData = Object.values(report.value || {}).map((val) => val.completed)
 
   const chartData = {
     labels,
@@ -141,7 +150,7 @@ const createChart = () => {
         borderWidth: 1
       }
     ]
-  };
+  }
 
   const options: ChartConfiguration['options'] = {
     scales: {
@@ -149,19 +158,19 @@ const createChart = () => {
         beginAtZero: true
       }
     }
-  };
+  }
 
-  const ctx = document.getElementById('progressChart') as HTMLCanvasElement;
+  const ctx = document.getElementById('progressChart') as HTMLCanvasElement
   progressChart.value = new Chart(ctx, {
     type: selectedChartType.value,
     data: chartData,
     options
-  });
+  })
 }
 
 onMounted(() => {
-  fetchReport();
-});
+  fetchReport()
+})
 </script>
 
 <style scoped>

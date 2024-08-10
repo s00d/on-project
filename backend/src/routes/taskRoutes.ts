@@ -1,17 +1,17 @@
-import { Router } from 'express';
+import { Router } from 'express'
 import {
   getTasks,
   getTask,
   createTask,
   updateTask,
-  deleteTask,
-} from '../controllers/taskController';
-import { authenticateAll } from '../middlewares/authMiddleware';
-import { isProjectCreator } from '../middlewares/roleMiddleware';
-import { check, validationResult } from 'express-validator';
-import {validateRequest} from "../middlewares/validateRequest";
+  deleteTask
+} from '../controllers/taskController'
+import { authenticateAll } from '../middlewares/authMiddleware'
+import { isProjectCreator } from '../middlewares/roleMiddleware'
+import { check, validationResult } from 'express-validator'
+import { validateRequest } from '../middlewares/validateRequest'
 
-const router = Router();
+const router = Router()
 
 /**
  * @swagger
@@ -39,7 +39,7 @@ router.get(
   [check('projectId').isInt().withMessage('Project ID must be an integer')],
   validateRequest,
   getTasks
-);
+)
 
 /**
  * @swagger
@@ -73,11 +73,11 @@ router.post(
     check('dueDate').optional().isISO8601().toDate().withMessage('Due date should be a valid date'),
     check('assignees').optional().isArray().withMessage('Assignees should be an array of user IDs'),
     check('labelId').optional().isInt().withMessage('Label ID should be an integer'),
-    check('sprintId').optional().isInt().withMessage('Sprint ID should be an integer'),
+    check('sprintId').optional().isInt().withMessage('Sprint ID should be an integer')
   ],
   validateRequest,
   createTask
-);
+)
 
 /**
  * @swagger
@@ -109,11 +109,11 @@ router.get(
   authenticateAll,
   [
     check('projectId').isInt().withMessage('Project ID must be an integer'),
-    check('id').isInt().withMessage('Task ID must be an integer'),
+    check('id').isInt().withMessage('Task ID must be an integer')
   ],
   validateRequest,
   getTask
-);
+)
 
 /**
  * @swagger
@@ -154,11 +154,11 @@ router.put(
     check('dueDate').optional().isISO8601().toDate().withMessage('Due date should be a valid date'),
     check('assignees').optional().isArray().withMessage('Assignees should be an array of user IDs'),
     check('labelId').optional().isInt().withMessage('Label ID should be an integer'),
-    check('sprintId').optional().isInt().withMessage('Sprint ID should be an integer'),
+    check('sprintId').optional().isInt().withMessage('Sprint ID should be an integer')
   ],
   validateRequest,
   updateTask
-);
+)
 
 /**
  * @swagger
@@ -193,10 +193,10 @@ router.delete(
   isProjectCreator,
   [
     check('projectId').isInt().withMessage('Project ID must be an integer'),
-    check('id').isInt().withMessage('Task ID must be an integer'),
+    check('id').isInt().withMessage('Task ID must be an integer')
   ],
   validateRequest,
   deleteTask
-);
+)
 
-export { router as taskRouter };
+export { router as taskRouter }

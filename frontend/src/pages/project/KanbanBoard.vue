@@ -4,10 +4,7 @@
       <Tabs>
         <div class="project-board">
           <div class="board-header">
-            <h1 class="board-title">
-              Kanban Board
-
-            </h1>
+            <h1 class="board-title">Kanban Board</h1>
             <div class="selectors">
               <button @click="createTaskModal" class="btn btn-primary">New Task</button>
               <div class="selector-item">
@@ -48,7 +45,9 @@
               :tasks="filteredTasks(status)"
               :project-id="projectId"
               :users="users"
-              @task-dropped="(taskId, newStatus) => onTaskDropped(taskId, newStatus, selectedSprint)"
+              @task-dropped="
+                (taskId, newStatus) => onTaskDropped(taskId, newStatus, selectedSprint)
+              "
             />
           </div>
         </div>
@@ -56,7 +55,12 @@
     </div>
   </div>
 
-  <ModalComponent :isOpen="isTaskModalOpen" title="create Task" @close="isTaskModalOpen = false" pos="fixed-left">
+  <ModalComponent
+    :isOpen="isTaskModalOpen"
+    title="create Task"
+    @close="isTaskModalOpen = false"
+    pos="fixed-left"
+  >
     <template #body>
       <TaskCard
         v-if="isTaskModalOpen"
@@ -73,109 +77,109 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue';
-import KanbanColumn from '../../components/KanbanColumn.vue';
-import { useRoute } from 'vue-router';
-import Tabs from '@/components/Tabs.vue';
-import { useProjectStore } from "@/stores/projectStore";
-import { useSprintStore } from "@/stores/sprintStore";
-import { useRoadmapStore } from "@/stores/roadmapStore";
-import type { Task } from "@/stores/taskStore";
-import { useTaskStore } from '@/stores/taskStore';
-import type { User } from "@/stores/authStore";
-import TaskCard from "@/components/tasks/TaskCard.vue";
-import ModalComponent from "@/components/ModalComponent.vue";
+import { computed, onMounted, ref } from 'vue'
+import KanbanColumn from '../../components/KanbanColumn.vue'
+import { useRoute } from 'vue-router'
+import Tabs from '@/components/Tabs.vue'
+import { useProjectStore } from '@/stores/projectStore'
+import { useSprintStore } from '@/stores/sprintStore'
+import { useRoadmapStore } from '@/stores/roadmapStore'
+import type { Task } from '@/stores/taskStore'
+import { useTaskStore } from '@/stores/taskStore'
+import type { User } from '@/stores/authStore'
+import TaskCard from '@/components/tasks/TaskCard.vue'
+import ModalComponent from '@/components/ModalComponent.vue'
 
-const projectStore = useProjectStore();
-const roadmapStore = useRoadmapStore();
-const sprintStore = useSprintStore();
-const taskStore = useTaskStore();
+const projectStore = useProjectStore()
+const roadmapStore = useRoadmapStore()
+const sprintStore = useSprintStore()
+const taskStore = useTaskStore()
 
-const route = useRoute();
-const projectId = route.params.projectId.toString();
+const route = useRoute()
+const projectId = route.params.projectId.toString()
 
-const users = ref<{ [key: string]: User }>({});
-const selectedRoadmap = ref<number | null>(null);
-const selectedSprint = ref<number | null>(null);
-const isTaskModalOpen = ref(false);
+const users = ref<{ [key: string]: User }>({})
+const selectedRoadmap = ref<number | null>(null)
+const selectedSprint = ref<number | null>(null)
+const isTaskModalOpen = ref(false)
 
-const roadmaps = computed(() => roadmapStore.getRoadmaps);
-const sprints = computed(() => sprintStore.getSprints);
-const project = computed(() => projectStore.project);
+const roadmaps = computed(() => roadmapStore.getRoadmaps)
+const sprints = computed(() => sprintStore.getSprints)
+const project = computed(() => projectStore.project)
 
 // Все задачи из проекта
 const tasks = computed(() => {
-  const sprint = sprints.value.find((s) => s.id === selectedSprint.value);
+  const sprint = sprints.value.find((s) => s.id === selectedSprint.value)
   if (sprint) {
-    return sprint.tasks;
+    return sprint.tasks
   }
-  return [];
-});
+  return []
+})
 
 // Задачи без спринта
 const tasksWithoutSprint = computed(() => {
-  return taskStore.tasks.filter((task) => task.sprintId === null);
-});
+  return taskStore.tasks.filter((task) => task.sprintId === null)
+})
 
 onMounted(async () => {
-  const pId = parseInt(projectId);
-  await projectStore.fetchProject(pId);
-  await roadmapStore.fetchRoadmaps(pId);
+  const pId = parseInt(projectId)
+  await projectStore.fetchProject(pId)
+  await roadmapStore.fetchRoadmaps(pId)
 
   if (roadmaps.value.length > 0) {
-    const savedRoadmapId = localStorage.getItem(`selectedRoadmap_${projectId}`);
-    const initialRoadmapId = savedRoadmapId ? parseInt(savedRoadmapId) : roadmaps.value[0].id;
-    selectedRoadmap.value = initialRoadmapId;
-    await sprintStore.fetchSprints(pId, initialRoadmapId);
+    const savedRoadmapId = localStorage.getItem(`selectedRoadmap_${projectId}`)
+    const initialRoadmapId = savedRoadmapId ? parseInt(savedRoadmapId) : roadmaps.value[0].id
+    selectedRoadmap.value = initialRoadmapId
+    await sprintStore.fetchSprints(pId, initialRoadmapId)
   }
 
   if (sprints.value.length > 0) {
-    const savedSprintId = localStorage.getItem(`selectedSprint_${projectId}`);
-    selectedSprint.value = savedSprintId ? parseInt(savedSprintId) : sprints.value[0].id;
+    const savedSprintId = localStorage.getItem(`selectedSprint_${projectId}`)
+    selectedSprint.value = savedSprintId ? parseInt(savedSprintId) : sprints.value[0].id
   }
 
-  users.value = await projectStore.fetchUsers(pId);
-  await taskStore.fetchTasks(pId, { sprintId: 0 });
-});
+  users.value = await projectStore.fetchUsers(pId)
+  await taskStore.fetchTasks(pId, { sprintId: 0 })
+})
 
 const onRoadmapChange = async () => {
   if (selectedRoadmap.value !== null) {
-    localStorage.setItem(`selectedRoadmap_${projectId}`, selectedRoadmap.value.toString());
-    await sprintStore.fetchSprints(parseInt(projectId), selectedRoadmap.value);
+    localStorage.setItem(`selectedRoadmap_${projectId}`, selectedRoadmap.value.toString())
+    await sprintStore.fetchSprints(parseInt(projectId), selectedRoadmap.value)
     if (sprints.value.length > 0) {
-      selectedSprint.value = sprints.value[0].id;
-      onSprintChange();
+      selectedSprint.value = sprints.value[0].id
+      onSprintChange()
     } else {
-      selectedSprint.value = null;
+      selectedSprint.value = null
     }
   }
-};
+}
 
 const onSprintChange = () => {
   if (selectedSprint.value !== null) {
-    localStorage.setItem(`selectedSprint_${projectId}`, selectedSprint.value.toString());
+    localStorage.setItem(`selectedSprint_${projectId}`, selectedSprint.value.toString())
   }
-};
+}
 
 const filteredTasks = (status: string): Task[] => {
-  if (selectedSprint.value === null) return [];
-  return tasks.value.filter((task) => task.status === status);
-};
+  if (selectedSprint.value === null) return []
+  return tasks.value.filter((task) => task.status === status)
+}
 
-const onTaskDropped = async (taskId: number, newStatus: string, sprintId: number|null) => {
-  await taskStore.updateTask(parseInt(projectId), taskId, { status: newStatus, sprintId });
+const onTaskDropped = async (taskId: number, newStatus: string, sprintId: number | null) => {
+  await taskStore.updateTask(parseInt(projectId), taskId, { status: newStatus, sprintId })
   if (selectedRoadmap.value) {
-    await sprintStore.fetchSprints(parseInt(projectId), selectedRoadmap.value);
-    const pId = parseInt(projectId);
-    await taskStore.fetchTasks(pId, { sprintId: 0 });
+    await sprintStore.fetchSprints(parseInt(projectId), selectedRoadmap.value)
+    const pId = parseInt(projectId)
+    await taskStore.fetchTasks(pId, { sprintId: 0 })
   }
-};
+}
 
 const closeTaskModal = async () => {
   if (selectedRoadmap.value) {
-    await sprintStore.fetchSprints(parseInt(projectId), selectedRoadmap.value);
-    const pId = parseInt(projectId);
-    await taskStore.fetchTasks(pId, { sprintId: 0 });
+    await sprintStore.fetchSprints(parseInt(projectId), selectedRoadmap.value)
+    const pId = parseInt(projectId)
+    await taskStore.fetchTasks(pId, { sprintId: 0 })
   }
   isTaskModalOpen.value = false
 }
@@ -280,7 +284,9 @@ const createTaskModal = () => {
   font-size: 1rem;
   color: #4a5568;
   outline: none;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 

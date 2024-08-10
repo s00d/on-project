@@ -6,10 +6,7 @@
         <div class="days">
           <div class="day-label" v-for="day in month" :key="formatDay(day)">
             {{ formatDay(day) }}
-            <div
-              v-if="isToday(day)"
-              class="current-day-marker"
-            ></div>
+            <div v-if="isToday(day)" class="current-day-marker"></div>
           </div>
         </div>
       </div>
@@ -27,8 +24,9 @@
             <div class="sprint-info">
               <div class="sprint-info-title">{{ sprint.title }}</div>
               <div class="sprint-info-tasks">
-                Tasks: {{ completedTasks(sprint.tasks) }} / {{ sprint.tasks?.length }}
-                ({{ taskCompletionPercentage(sprint.tasks) }}%)
+                Tasks: {{ completedTasks(sprint.tasks) }} / {{ sprint.tasks?.length }} ({{
+                  taskCompletionPercentage(sprint.tasks)
+                }}%)
               </div>
             </div>
           </div>
@@ -39,11 +37,17 @@
 
   <!-- Tooltip Element -->
   <transition name="fade">
-    <div v-if="tooltipVisible" class="tooltip" :style="{ top: tooltipPosition.y + 'px', left: tooltipPosition.x + 'px' }">
+    <div
+      v-if="tooltipVisible"
+      class="tooltip"
+      :style="{ top: tooltipPosition.y + 'px', left: tooltipPosition.x + 'px' }"
+    >
       <ul>
         <li v-for="task in tooltipTasks" :key="task.id">
           <span>{{ task.title }} - {{ task.status }}</span>
-          <span class="task-priority" :class="getPriorityClass(task.priority)">{{ task.priority }}</span>
+          <span class="task-priority" :class="getPriorityClass(task.priority)">{{
+            task.priority
+          }}</span>
           <br />
           <small v-if="task.plannedDate">Planned: {{ formatDate(task.plannedDate) }}</small>
           <br />
@@ -55,160 +59,172 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, nextTick, onMounted, ref } from 'vue';
-import { addDays, differenceInDays, endOfMonth, endOfYear, format, isToday as checkIfToday, startOfYear } from 'date-fns';
-import type { Sprint } from "@/stores/sprintStore";
-import type { Task } from "@/stores/taskStore";
+import { defineProps, nextTick, onMounted, ref } from 'vue'
+import {
+  addDays,
+  differenceInDays,
+  endOfMonth,
+  endOfYear,
+  format,
+  isToday as checkIfToday,
+  startOfYear
+} from 'date-fns'
+import type { Sprint } from '@/stores/sprintStore'
+import type { Task } from '@/stores/taskStore'
 
 defineProps<{
   sprints: Sprint[]
-}>();
+}>()
 
-const months = ref<Date[][]>([]);  // To store months with days
-const timelineContainer = ref<HTMLDivElement | null>(null);
+const months = ref<Date[][]>([]) // To store months with days
+const timelineContainer = ref<HTMLDivElement | null>(null)
 
-const tooltipVisible = ref(false);
-const tooltipTasks = ref<Task[]>([]);
-const tooltipPosition = ref({ x: 0, y: 0 });
+const tooltipVisible = ref(false)
+const tooltipTasks = ref<Task[]>([])
+const tooltipPosition = ref({ x: 0, y: 0 })
 
-const dateWidth = 27;  // Width of each date column in pixels
+const dateWidth = 27 // Width of each date column in pixels
 
 const generateTimelineMonths = () => {
-  const currentYear = new Date().getFullYear();
-  const overallStartDate = startOfYear(new Date(currentYear, 0, 1));
-  const overallEndDate = endOfYear(new Date(currentYear, 11, 31));
+  const currentYear = new Date().getFullYear()
+  const overallStartDate = startOfYear(new Date(currentYear, 0, 1))
+  const overallEndDate = endOfYear(new Date(currentYear, 11, 31))
 
-  const currentMonths = [];
-  let currentDate = new Date(overallStartDate);
+  const currentMonths = []
+  let currentDate = new Date(overallStartDate)
 
   while (currentDate <= overallEndDate) {
-    const month = [];
-    const monthEnd = endOfMonth(currentDate);
+    const month = []
+    const monthEnd = endOfMonth(currentDate)
 
     while (currentDate <= monthEnd) {
-      month.push(new Date(currentDate));
-      currentDate = addDays(currentDate, 1);
+      month.push(new Date(currentDate))
+      currentDate = addDays(currentDate, 1)
     }
-    currentMonths.push(month);
+    currentMonths.push(month)
   }
 
-  months.value = currentMonths;
-};
+  months.value = currentMonths
+}
 
 const scrollToToday = () => {
-  if (!timelineContainer.value) return;
+  if (!timelineContainer.value) return
 
-  const today = new Date();
-  const daysFromStart = differenceInDays(today, months.value[0][0]);
+  const today = new Date()
+  const daysFromStart = differenceInDays(today, months.value[0][0])
 
-  timelineContainer.value.scrollLeft = daysFromStart * dateWidth - 200;
-};
+  timelineContainer.value.scrollLeft = daysFromStart * dateWidth - 200
+}
 
 const completedTasks = (tasks: Task[]) => {
-  return tasks ? tasks?.filter(task => task.status === 'Completed').length : false;
-};
+  return tasks ? tasks?.filter((task) => task.status === 'Completed').length : false
+}
 
 const showTooltip = (event: MouseEvent, tasks: Task[]) => {
-  tooltipTasks.value = tasks;
+  tooltipTasks.value = tasks
 
   // Рассчёт позиции тултипа
-  let xPosition = event.clientX + 10;
-  const yPosition = event.clientY + 10;
+  let xPosition = event.clientX + 10
+  const yPosition = event.clientY + 10
 
-  const tooltipWidth = 300; // ширина тултипа, установлена в стилях
+  const tooltipWidth = 300 // ширина тултипа, установлена в стилях
 
   // Если тултип выходит за границу экрана, сдвигаем его влево
   if (xPosition + tooltipWidth > window.innerWidth) {
-    xPosition = window.innerWidth - tooltipWidth - 10;
+    xPosition = window.innerWidth - tooltipWidth - 10
   }
 
-  tooltipPosition.value = { x: xPosition, y: yPosition };
-  tooltipVisible.value = true;
-};
+  tooltipPosition.value = { x: xPosition, y: yPosition }
+  tooltipVisible.value = true
+}
 
 const hideTooltip = () => {
-  tooltipVisible.value = false;
-  tooltipTasks.value = [];
-};
+  tooltipVisible.value = false
+  tooltipTasks.value = []
+}
 
 const taskCompletionPercentage = (tasks: Task[]) => {
-  const completed = completedTasks(tasks);
-  if (!completed || !tasks) return 0;
-  return tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0;
-};
+  const completed = completedTasks(tasks)
+  if (!completed || !tasks) return 0
+  return tasks.length > 0 ? Math.round((completed / tasks.length) * 100) : 0
+}
 
 const getPriorityClass = (priority: string) => {
   switch (priority) {
     case 'High':
-      return 'priority-high';
+      return 'priority-high'
     case 'Medium':
-      return 'priority-medium';
+      return 'priority-medium'
     case 'Low':
-      return 'priority-low';
+      return 'priority-low'
     default:
-      return '';
+      return ''
   }
-};
+}
 
 const getSprintBarStyle = (sprint: Sprint) => {
-  if (!months.value || months.value.length === 0 || !months.value[0] || months.value[0].length === 0) {
-    return {};
+  if (
+    !months.value ||
+    months.value.length === 0 ||
+    !months.value[0] ||
+    months.value[0].length === 0
+  ) {
+    return {}
   }
 
-  const sprintStart = new Date(sprint.startDate);
-  const sprintEnd = new Date(sprint.endDate);
-  const today = new Date();
+  const sprintStart = new Date(sprint.startDate)
+  const sprintEnd = new Date(sprint.endDate)
+  const today = new Date()
 
-  const offsetDays = differenceInDays(sprintStart, months.value[0][0]);
-  const durationDays = differenceInDays(sprintEnd, sprintStart) + 1;
+  const offsetDays = differenceInDays(sprintStart, months.value[0][0])
+  const durationDays = differenceInDays(sprintEnd, sprintStart) + 1
 
   // Определяем цвет в зависимости от состояния спринта
-  let backgroundColor = '#4caf50'; // Зеленый по умолчанию для текущих спринтов
+  let backgroundColor = '#4caf50' // Зеленый по умолчанию для текущих спринтов
 
   if (sprintEnd < today) {
-    backgroundColor = '#9e9e9e'; // Серый для завершенных спринтов
+    backgroundColor = '#9e9e9e' // Серый для завершенных спринтов
   } else if (sprintStart > today) {
-    backgroundColor = '#7c8ffa'; // Светло-голубой для будущих спринтов
+    backgroundColor = '#7c8ffa' // Светло-голубой для будущих спринтов
   } else {
-    const completionPercentage = taskCompletionPercentage(sprint.tasks);
+    const completionPercentage = taskCompletionPercentage(sprint.tasks)
     if (completionPercentage < 100 && completionPercentage > 0) {
-      backgroundColor = '#ffc107'; // Желтый для частично завершенных
+      backgroundColor = '#ffc107' // Желтый для частично завершенных
     } else if (completionPercentage === 0) {
-      backgroundColor = '#f44336'; // Красный для невыполненных
+      backgroundColor = '#f44336' // Красный для невыполненных
     }
   }
 
   return {
-    left: offsetDays * dateWidth + (offsetDays * 0.1) + 'px',
-    width: durationDays * dateWidth + (offsetDays * 0.1) + 'px',
+    left: offsetDays * dateWidth + offsetDays * 0.1 + 'px',
+    width: durationDays * dateWidth + offsetDays * 0.1 + 'px',
     backgroundColor: backgroundColor,
     borderRadius: '10px',
-    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-  };
-};
-
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
+  }
+}
 
 const formatDay = (date: Date) => {
-  return format(date, 'dd');  // Format date as "01"
-};
+  return format(date, 'dd') // Format date as "01"
+}
 
 const formatMonth = (date: Date) => {
-  return format(date, 'MMMM yyyy');  // Format month as "January 2024"
-};
+  return format(date, 'MMMM yyyy') // Format month as "January 2024"
+}
 
 const formatDate = (date: Date) => {
-  return format(date, 'yyyy-MM-dd');
-};
+  return format(date, 'yyyy-MM-dd')
+}
 
 const isToday = (date: Date) => {
-  return checkIfToday(date);
-};
+  return checkIfToday(date)
+}
 
 onMounted(async () => {
-  generateTimelineMonths();
-  await nextTick();
-  scrollToToday();
-});
+  generateTimelineMonths()
+  await nextTick()
+  scrollToToday()
+})
 </script>
 
 <style scoped>
@@ -295,7 +311,7 @@ onMounted(async () => {
 .sprint-bar-container {
   position: relative;
   flex: 1;
-  margin: 0;  /* Убедитесь, что нет margin */
+  margin: 0; /* Убедитесь, что нет margin */
   padding: 0; /* Убедитесь, что нет padding */
 
   border: 1px solid rgba(0, 0, 255, 0.23);
@@ -392,11 +408,13 @@ onMounted(async () => {
   align-items: center;
 }
 
-.fade-enter-active, .fade-leave-active {
+.fade-enter-active,
+.fade-leave-active {
   transition: opacity 0.3s ease;
 }
 
-.fade-enter-from, .fade-leave-to {
+.fade-enter-from,
+.fade-leave-to {
   opacity: 0;
 }
 </style>

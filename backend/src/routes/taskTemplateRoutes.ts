@@ -1,10 +1,10 @@
-import { Router } from 'express';
-import { getTemplates, createTemplate, deleteTemplate } from '../controllers/taskTemplateController';
-import { authenticateAll } from '../middlewares/authMiddleware';
-import { check, validationResult } from 'express-validator';
-import {validateRequest} from "../middlewares/validateRequest";
+import { Router } from 'express'
+import { getTemplates, createTemplate, deleteTemplate } from '../controllers/taskTemplateController'
+import { authenticateAll } from '../middlewares/authMiddleware'
+import { check, validationResult } from 'express-validator'
+import { validateRequest } from '../middlewares/validateRequest'
 
-const router = Router();
+const router = Router()
 
 /**
  * @swagger
@@ -18,7 +18,7 @@ const router = Router();
  *       400:
  *         description: Bad request
  */
-router.get('/', authenticateAll, getTemplates);
+router.get('/', authenticateAll, getTemplates)
 
 /**
  * @swagger
@@ -64,14 +64,17 @@ router.post(
   [
     check('title').isString().withMessage('Title is required and should be a string'),
     check('description').optional().isString().withMessage('Description should be a string'),
-    check('priority').optional().isIn(['Low', 'Medium', 'High']).withMessage('Priority should be Low, Medium, or High'),
+    check('priority')
+      .optional()
+      .isIn(['Low', 'Medium', 'High'])
+      .withMessage('Priority should be Low, Medium, or High'),
     check('status').optional().isString().withMessage('Status should be a string'),
     check('tag').optional().isString().withMessage('Tag should be a string'),
-    check('type').optional().isString().withMessage('Type should be a string'),
+    check('type').optional().isString().withMessage('Type should be a string')
   ],
   validateRequest,
   createTemplate
-);
+)
 
 /**
  * @swagger
@@ -98,7 +101,6 @@ router.delete(
   [check('id').isInt().withMessage('ID should be a valid integer')],
   validateRequest,
   deleteTemplate
-);
+)
 
-
-export { router as taskTemplateRouter };
+export { router as taskTemplateRouter }

@@ -39,14 +39,31 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import { Chart, LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, LineController } from 'chart.js'
+import {
+  Chart,
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Tooltip,
+  Legend,
+  LineController
+} from 'chart.js'
 import Tabs from '@/components/Tabs.vue'
-import ReportsLinks from "@/components/ReportsLinks.vue";
-import { useRoute } from "vue-router";
-import { startOfWeek, startOfMonth, startOfYear } from 'date-fns';
-import { useAlertStore } from "@/stores/alertStore";
+import ReportsLinks from '@/components/ReportsLinks.vue'
+import { useRoute } from 'vue-router'
+import { startOfWeek, startOfMonth, startOfYear } from 'date-fns'
+import { useAlertStore } from '@/stores/alertStore'
 
-Chart.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Legend, LineController)
+Chart.register(
+  LineElement,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  Tooltip,
+  Legend,
+  LineController
+)
 
 interface OverdueData {
   [date: string]: number
@@ -59,42 +76,42 @@ const report = ref<OverdueData | null>(null)
 const overdueChart = ref<Chart | null>(null)
 
 const fetchReport = async () => {
-  const now = new Date();
-  let startDate: Date;
+  const now = new Date()
+  let startDate: Date
 
   switch (selectedPeriod.value) {
     case 'week':
-      startDate = startOfWeek(now);
-      break;
+      startDate = startOfWeek(now)
+      break
     case 'month':
-      startDate = startOfMonth(now);
-      break;
+      startDate = startOfMonth(now)
+      break
     case 'year':
-      startDate = startOfYear(now);
-      break;
+      startDate = startOfYear(now)
+      break
     default:
-      startDate = new Date(0); // Все время
+      startDate = new Date(0) // Все время
   }
 
   try {
     const response = await axios.get(`/reports/project/${projectId.value}/overdue`, {
       params: { startDate: startDate.toISOString() }
-    });
-    report.value = response.data;
-    createChart();
+    })
+    report.value = response.data
+    createChart()
   } catch (error: any) {
-    console.error('Failed to generate report', error);
-    useAlertStore().setAlert(`Failed to generate report: ${error.response?.data?.error}`, 'danger');
+    console.error('Failed to generate report', error)
+    useAlertStore().setAlert(`Failed to generate report: ${error.response?.data?.error}`, 'danger')
   }
 }
 
 const createChart = () => {
   if (overdueChart.value) {
-    overdueChart.value.destroy();
+    overdueChart.value.destroy()
   }
 
-  const labels = Object.keys(report.value || {});
-  const data = Object.values(report.value || {});
+  const labels = Object.keys(report.value || {})
+  const data = Object.values(report.value || {})
 
   const chartData = {
     labels,
@@ -118,16 +135,16 @@ const createChart = () => {
     }
   }
 
-  const ctx = document.getElementById('overdueChart') as HTMLCanvasElement;
+  const ctx = document.getElementById('overdueChart') as HTMLCanvasElement
   overdueChart.value = new Chart(ctx, {
     type: 'line',
     data: chartData,
     options
-  });
+  })
 }
 
 onMounted(() => {
-  fetchReport();
+  fetchReport()
 })
 </script>
 <style scoped>

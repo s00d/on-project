@@ -146,7 +146,6 @@ export default defineComponent({
   border-radius: 5px;
 }
 
-
 .markdown-content table {
   width: 100%;
   border-collapse: collapse;
@@ -175,5 +174,4 @@ export default defineComponent({
 .overflow-hidden {
   overflow: hidden;
 }
-
 </style>

@@ -1,14 +1,14 @@
-import { Router } from 'express';
+import { Router } from 'express'
 import {
   getTaskAttachments,
   addTaskAttachment,
   deleteTaskAttachment
-} from '../controllers/taskAttachmentController';
-import { authenticateAll } from '../middlewares/authMiddleware';
-import { check } from 'express-validator';
-import {validateRequest} from "../middlewares/validateRequest";
+} from '../controllers/taskAttachmentController'
+import { authenticateAll } from '../middlewares/authMiddleware'
+import { check } from 'express-validator'
+import { validateRequest } from '../middlewares/validateRequest'
 
-const router = Router();
+const router = Router()
 
 /**
  * @swagger
@@ -43,7 +43,7 @@ router.get(
   [check('taskId').isInt().withMessage('Task ID must be an integer')],
   validateRequest,
   getTaskAttachments
-);
+)
 
 /**
  * @swagger
@@ -83,14 +83,14 @@ router.post(
     check('taskId').isInt().withMessage('Task ID must be an integer'),
     check('file').custom((value, { req }) => {
       if (!req.file) {
-        throw new Error('File not provided');
+        throw new Error('File not provided')
       }
-      return true;
+      return true
     })
   ],
   validateRequest,
   addTaskAttachment
-);
+)
 
 /**
  * @swagger
@@ -119,6 +119,6 @@ router.delete(
   [check('id').isInt().withMessage('Attachment ID must be an integer')],
   validateRequest,
   deleteTaskAttachment
-);
+)
 
-export { router as taskAttachmentRouter };
+export { router as taskAttachmentRouter }

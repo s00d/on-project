@@ -45,15 +45,34 @@
 <script lang="ts" setup>
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
-import { Chart, BarElement, ArcElement, CategoryScale, LinearScale, Title, Tooltip, PieController, BarController } from 'chart.js'
+import {
+  Chart,
+  BarElement,
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  Title,
+  Tooltip,
+  PieController,
+  BarController
+} from 'chart.js'
 import type { ChartConfiguration } from 'chart.js'
 import Tabs from '@/components/Tabs.vue'
-import { useRoute } from "vue-router";
-import ReportsLinks from "@/components/ReportsLinks.vue";
-import { startOfWeek, startOfMonth, startOfYear } from 'date-fns';
-import {useAlertStore} from "@/stores/alertStore";
+import { useRoute } from 'vue-router'
+import ReportsLinks from '@/components/ReportsLinks.vue'
+import { startOfWeek, startOfMonth, startOfYear } from 'date-fns'
+import { useAlertStore } from '@/stores/alertStore'
 
-Chart.register(BarElement, ArcElement, CategoryScale, LinearScale, Title, Tooltip, PieController, BarController)
+Chart.register(
+  BarElement,
+  ArcElement,
+  CategoryScale,
+  LinearScale,
+  Title,
+  Tooltip,
+  PieController,
+  BarController
+)
 
 interface ReportData {
   [key: string]: {
@@ -65,7 +84,7 @@ interface ReportData {
 const route = useRoute()
 const projectId = ref(route.params.projectId.toString())
 const selectedPeriod = ref('month')
-const selectedChartType = ref<'bar'|'pie'>('bar')
+const selectedChartType = ref<'bar' | 'pie'>('bar')
 
 const report = ref<ReportData | null>(null)
 const performanceChart = ref<Chart | null>(null)
@@ -108,7 +127,7 @@ const createChart = () => {
     },
     plugins: {
       legend: {
-        position: 'top',
+        position: 'top'
       },
       tooltip: {
         callbacks: {
@@ -126,37 +145,37 @@ const createChart = () => {
 }
 
 const fetchReport = async () => {
-  const now = new Date();
-  let startDate: Date;
+  const now = new Date()
+  let startDate: Date
 
   switch (selectedPeriod.value) {
     case 'week':
-      startDate = startOfWeek(now);
-      break;
+      startDate = startOfWeek(now)
+      break
     case 'month':
-      startDate = startOfMonth(now);
-      break;
+      startDate = startOfMonth(now)
+      break
     case 'year':
-      startDate = startOfYear(now);
-      break;
+      startDate = startOfYear(now)
+      break
     default:
-      startDate = new Date(0); // Все время
+      startDate = new Date(0) // Все время
   }
 
   try {
     const response = await axios.get(`/reports/project/${projectId.value}/performance`, {
       params: { startDate: startDate.toISOString() }
-    });
-    report.value = response.data;
-    createChart();
+    })
+    report.value = response.data
+    createChart()
   } catch (error: any) {
-    console.error('Failed to generate report', error);
+    console.error('Failed to generate report', error)
     useAlertStore().setAlert(`Failed to generate report: ${error.response?.data?.error}`, 'danger')
   }
 }
 
 onMounted(() => {
-  fetchReport();
+  fetchReport()
 })
 </script>
 <style scoped>
@@ -217,4 +236,3 @@ onMounted(() => {
   width: 600px;
 }
 </style>
-

@@ -10,14 +10,14 @@
         ></div>
         <span
           class="badge bg-primary mr-2"
-          :class="{ 'dragging': draggingIndex === index }"
+          :class="{ dragging: draggingIndex === index }"
           draggable="true"
           @dragstart="onDragStart(index)"
           @dragend="onDragEnd"
           @dragover.prevent="onDragOver(index)"
         >
           {{ tag }}
-          <span class="ml-2" @click="removeTag(index)" style="cursor: pointer;">&times;</span>
+          <span class="ml-2" @click="removeTag(index)" style="cursor: pointer">&times;</span>
         </span>
       </template>
       <!-- Добавляем placeholder в конец списка, если перетаскиваем в конец -->
@@ -34,74 +34,83 @@
       type="text"
       class="form-control d-inline-block"
       :placeholder="placeholder"
-      style="border: none; box-shadow: none; outline: none; background-color: transparent; padding: 0 6px; margin: 0; width: 100%; max-width: inherit;"
+      style="
+        border: none;
+        box-shadow: none;
+        outline: none;
+        background-color: transparent;
+        padding: 0 6px;
+        margin: 0;
+        width: 100%;
+        max-width: inherit;
+      "
     />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { defineProps, defineEmits, ref } from 'vue';
+import { defineProps, defineEmits, ref } from 'vue'
 
 const props = defineProps({
   modelValue: {
     type: Array as () => string[],
-    default: () => [],
+    default: () => []
   },
   placeholder: {
     type: String,
-    default: 'Add a tag',
-  },
-});
+    default: 'Add a tag'
+  }
+})
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue'])
 
-const newTag = ref('');
-let draggedIndex = -1;
-const draggingIndex = ref(-1);
-const dragOverIndex = ref(-1);
+const newTag = ref('')
+let draggedIndex = -1
+const draggingIndex = ref(-1)
+const dragOverIndex = ref(-1)
 
 const addTag = () => {
   if (newTag.value.trim()) {
-    emit('update:modelValue', [...props.modelValue, newTag.value.trim()]);
-    newTag.value = '';
+    emit('update:modelValue', [...props.modelValue, newTag.value.trim()])
+    newTag.value = ''
   }
-};
+}
 
 const removeTag = (index: number) => {
-  const updatedTags = props.modelValue.filter((_, i) => i !== index);
-  emit('update:modelValue', updatedTags);
-};
+  const updatedTags = props.modelValue.filter((_, i) => i !== index)
+  emit('update:modelValue', updatedTags)
+}
 
 const onDragStart = (index: number) => {
-  draggedIndex = index;
-  draggingIndex.value = index;
-};
+  draggedIndex = index
+  draggingIndex.value = index
+}
 
 const onDragEnd = () => {
-  resetDragState();
-};
+  resetDragState()
+}
 
 const onDragOver = (index: number) => {
   if (dragOverIndex.value !== index) {
-    dragOverIndex.value = index;
+    dragOverIndex.value = index
   }
-};
+}
 
 const onDrop = (index: number) => {
   if (draggedIndex !== -1 && draggedIndex !== index) {
-    const updatedTags = [...props.modelValue];
-    const [movedTag] = updatedTags.splice(draggedIndex, 1);
-    updatedTags.splice(index, 0, movedTag);
-    emit('update:modelValue', updatedTags);
+    const updatedTags = [...props.modelValue]
+    const [movedTag] = updatedTags.splice(draggedIndex, 1)
+    updatedTags.splice(index, 0, movedTag)
+    emit('update:modelValue', updatedTags)
   }
-  resetDragState();
-};
+  resetDragState()
+}
 
 const resetDragState = () => {
-  draggingIndex.value = -1;
-  dragOverIndex.value = -1;
-  draggedIndex = -1;
-};
+  draggingIndex.value = -1
+  dragOverIndex.value = -1
+  draggedIndex = -1
+}
 </script>
 
 <style scoped>

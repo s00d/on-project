@@ -27,7 +27,10 @@ export const useRoadmapStore = defineStore('roadmap', {
         useAlertStore().setAlert('Failed to fetch roadmaps', 'danger')
       }
     },
-    async createRoadmap(projectId: number, roadmap: { title: string; description?: string; projectId: number }) {
+    async createRoadmap(
+      projectId: number,
+      roadmap: { title: string; description?: string; projectId: number }
+    ) {
       try {
         const response = await axios.post(`/roadmaps/${projectId}`, roadmap)
         this.roadmaps.push(response.data)
@@ -36,7 +39,11 @@ export const useRoadmapStore = defineStore('roadmap', {
         useAlertStore().setAlert('Failed to create roadmap', 'danger')
       }
     },
-    async updateRoadmap(projectId: number, roadmapId: number, roadmap: { title: string; description?: string }) {
+    async updateRoadmap(
+      projectId: number,
+      roadmapId: number,
+      roadmap: { title: string; description?: string }
+    ) {
       try {
         const response = await axios.put(`/roadmaps/${projectId}/${roadmapId}`, roadmap)
         useAlertStore().setAlert('Roadmap updated successfully', 'success')
@@ -69,6 +76,6 @@ export const useRoadmapStore = defineStore('roadmap', {
     }
   },
   getters: {
-    getRoadmaps: (state) => state.roadmaps,
+    getRoadmaps: (state) => state.roadmaps
   }
 })

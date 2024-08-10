@@ -1,4 +1,4 @@
-import 'reflect-metadata';
+import 'reflect-metadata'
 
 import express from 'express'
 import bodyParser from 'body-parser'
@@ -6,7 +6,7 @@ import session from 'express-session'
 import connect_sqlite3 from 'connect-sqlite3'
 import morgan from 'morgan'
 import { errorReporter } from 'express-youch'
-import swaggerUi from "swagger-ui-express";
+import swaggerUi from 'swagger-ui-express'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import { createServer } from 'http'
 import { Server } from 'socket.io'
@@ -25,11 +25,11 @@ import { taskTemplateRouter } from './routes/taskTemplateRoutes'
 import { importExportRouter } from './routes/importExportRoutes'
 import dotenv from 'dotenv'
 import path from 'path'
-import { AppDataSource } from './ormconfig';
-import {User} from "./models/User";
-import {createUser} from "./controllers/userController";
-import {Project} from "./models/Project";
-import {swaggerSpec} from "./swagger";
+import { AppDataSource } from './ormconfig'
+import { User } from './models/User'
+import { createUser } from './controllers/userController'
+import { Project } from './models/Project'
+import { swaggerSpec } from './swagger'
 
 const isDev = process.env.NODE_ENV === 'development'
 
@@ -87,7 +87,7 @@ app.use('/api/import-export', importExportRouter)
 
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 app.use('/public', express.static(path.join(__dirname, '../public')))
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec))
 
 if (isDev) {
   // frontend proxy
@@ -112,28 +112,28 @@ app.set('io', io)
 
 AppDataSource.initialize()
   .then(async () => {
-    console.log('Data Source has been initialized!');
+    console.log('Data Source has been initialized!')
 
-    const adminUsername = process.env.DEFAULT_ADMIN ?? 'admin';
-    const adminUser = await AppDataSource.getRepository(User).findOneBy({ username: adminUsername });
+    const adminUsername = process.env.DEFAULT_ADMIN ?? 'admin'
+    const adminUser = await AppDataSource.getRepository(User).findOneBy({ username: adminUsername })
     if (!adminUser) {
-      const email = process.env.DEFAULT_ADMIN_EMAIL || 'admin@admin.ru';
-      const pass = process.env.DEFAULT_ADMIN_EMAIL || 'password';
+      const email = process.env.DEFAULT_ADMIN_EMAIL || 'admin@admin.ru'
+      const pass = process.env.DEFAULT_ADMIN_EMAIL || 'password'
       await createUser(adminUsername, email, pass)
-      console.log('Admin user created');
+      console.log('Admin user created')
     } else {
-      console.log('Admin user already exists');
+      console.log('Admin user already exists')
     }
 
-    const PORT = parseInt(process.env.PORT || '3000');
-    const HOST = process.env.HOST || 'localhost';
+    const PORT = parseInt(process.env.PORT || '3000')
+    const HOST = process.env.HOST || 'localhost'
 
     server.listen(PORT, HOST, () => {
-      console.log(`Server is running on port http://${HOST}:${PORT}`);
-    });
+      console.log(`Server is running on port http://${HOST}:${PORT}`)
+    })
   })
   .catch((err) => {
-    console.error('Error during Data Source initialization:', err);
-  });
+    console.error('Error during Data Source initialization:', err)
+  })
 
 export { io }

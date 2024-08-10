@@ -48,36 +48,41 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany, Index
-} from 'typeorm';
-import { Project } from './Project';
-import { User } from './User';
-import {Task} from "./Task";
+  OneToMany,
+  Index
+} from 'typeorm'
+import { Project } from './Project'
+import { User } from './User'
+import { Task } from './Task'
 
 @Entity('labels')
 export class Label {
   @PrimaryGeneratedColumn()
-  id!: number;
+  id!: number
 
-  @ManyToOne(() => Project, project => project.labels, { nullable: false })
-  project!: Project;
+  @ManyToOne(() => Project, (project) => project.labels, { nullable: false })
+  project!: Project
 
-  @ManyToOne(() => User, user => user.labels, { nullable: false })
-  user!: User;
+  @ManyToOne(() => User, (user) => user.labels, { nullable: false })
+  user!: User
 
-  @OneToMany(() => Task, task => task.label)
-  tasks!: Task[];
+  @OneToMany(() => Task, (task) => task.label)
+  tasks!: Task[]
 
   @Column({ length: 128 })
   @Index()
-  name!: string;
+  name!: string
 
   @Column({ length: 7 })
-  color!: string;
+  color!: string
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt!: Date;
+  createdAt!: Date
 
-  @UpdateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
-  updatedAt!: Date;
+  @UpdateDateColumn({
+    type: 'datetime',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP'
+  })
+  updatedAt!: Date
 }

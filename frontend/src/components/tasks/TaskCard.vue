@@ -6,18 +6,34 @@
     </div>
     <div class="mb-3">
       <label for="description" class="form-label">Description</label>
-      <MdEditor v-model="taskData.description" language="en-US" previewTheme="github" noMermaid :preview="false" />
+      <MdEditor
+        v-model="taskData.description"
+        language="en-US"
+        previewTheme="github"
+        noMermaid
+        :preview="false"
+      />
     </div>
     <div class="mb-3" v-if="project?.statuses">
       <label for="status" class="form-label">Status</label>
       <select v-model="taskData.status" id="status" class="form-select" required>
-        <option v-for="status in project.statuses" :value="status" :key="status" v-text="status"></option>
+        <option
+          v-for="status in project.statuses"
+          :value="status"
+          :key="status"
+          v-text="status"
+        ></option>
       </select>
     </div>
     <div class="mb-3" v-if="project?.priorities">
       <label for="priority" class="form-label">Priority</label>
       <select v-model="taskData.priority" id="priority" class="form-select" required>
-        <option v-for="priority in project.priorities" :value="priority" :key="priority" v-text="priority"></option>
+        <option
+          v-for="priority in project.priorities"
+          :value="priority"
+          :key="priority"
+          v-text="priority"
+        ></option>
       </select>
     </div>
     <div class="mb-3">
@@ -43,7 +59,12 @@
     </div>
     <div class="mb-3">
       <label for="estimatedTime" class="form-label">Estimated Time (hours)</label>
-      <input v-model="taskData.estimatedTime" type="number" id="estimatedTime" class="form-control" />
+      <input
+        v-model="taskData.estimatedTime"
+        type="number"
+        id="estimatedTime"
+        class="form-control"
+      />
     </div>
     <div class="mb-3" v-if="project?.types">
       <label for="type" class="form-label">Task Type</label>
@@ -53,7 +74,12 @@
     </div>
     <div class="mb-3">
       <label for="plannedDate" class="form-label">Planned Date</label>
-      <input v-model="taskData.plannedDate" type="datetime-local" id="plannedDate" class="form-control" />
+      <input
+        v-model="taskData.plannedDate"
+        type="datetime-local"
+        id="plannedDate"
+        class="form-control"
+      />
     </div>
     <div class="mb-3">
       <label for="relatedTaskId" class="form-label">Related Task</label>
@@ -79,9 +105,19 @@
 
     <div class="mb-3" v-if="taskData.customFields">
       <label for="customFields" class="form-label">Custom Fields</label>
-      <div v-for="(field, index) in customFieldsStrict" :key="index" class="mb-3" style="padding: 8px 4px 0;">
+      <div
+        v-for="(field, index) in customFieldsStrict"
+        :key="index"
+        class="mb-3"
+        style="padding: 8px 4px 0"
+      >
         <div class="d-flex align-items-center">
-          <label :for="field.description" class="form-label" v-text="field.description" style="padding: 10px 6px 0;"></label>
+          <label
+            :for="field.description"
+            class="form-label"
+            v-text="field.description"
+            style="padding: 10px 6px 0"
+          ></label>
           <input
             v-model="taskData.customFields[field.description]"
             :id="field.description"
@@ -118,36 +154,31 @@
     <div class="pef"></div>
 
     <div class="modal-footer">
-      <button type="button" class="btn btn-primary" @click.prevent="submitTask">{{ buttonText }}</button>
-      <button
-        type="button"
-        class="btn btn-secondary"
-        @click="$emit('close')"
-      >
-        Close
+      <button type="button" class="btn btn-primary" @click.prevent="submitTask">
+        {{ buttonText }}
       </button>
+      <button type="button" class="btn btn-secondary" @click="$emit('close')">Close</button>
     </div>
-
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed, onMounted, defineProps, defineEmits } from 'vue'
-import {type Task, type Comment, useTaskStore} from '@/stores/taskStore'
-import {type Project} from '@/stores/projectStore'
-import TagsInput from "@/components/TagsInput.vue";
+import { type Task, type Comment, useTaskStore } from '@/stores/taskStore'
+import { type Project } from '@/stores/projectStore'
+import TagsInput from '@/components/TagsInput.vue'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import CommentCard from '@/components/CommentCard.vue'
-import {useAuthStore, type User} from "@/stores/authStore";
+import { useAuthStore, type User } from '@/stores/authStore'
 
 const props = defineProps<{
   projectId: string
-  project: Project|null
+  project: Project | null
   initialTaskData?: any // Initial data for the task (used for editing)
   mode: 'create' | 'edit'
   showComments?: boolean
-  users: {[key: string]: User}
+  users: { [key: string]: User }
 }>()
 
 const emit = defineEmits(['task-saved', 'close'])
@@ -172,7 +203,7 @@ const taskData = ref<Task>({
   actualTime: 0,
   labelId: null as number | null,
   customFields: {} as Record<string, string>,
-  tags: [] as string[],
+  tags: [] as string[]
 })
 
 const tasks = ref<Task[]>([])
@@ -184,15 +215,15 @@ const customFieldsStrict = ref<{ name: string; description: string; type: string
 
 const labels = computed(() => taskStore.labels)
 
-const buttonText = computed(() => props.mode === 'create' ? 'Create Task' : 'Save Changes')
+const buttonText = computed(() => (props.mode === 'create' ? 'Create Task' : 'Save Changes'))
 
 onMounted(async () => {
   if (props.mode === 'edit' && props.initialTaskData) {
     taskData.value = { ...props.initialTaskData }
   }
-  customFieldsStrict.value = props.project?.customFields ?? [];
-  const {tasks} = await taskStore.fetchTasks(parseInt(props.projectId), {})
-  tasks.value = tasks;
+  customFieldsStrict.value = props.project?.customFields ?? []
+  const { tasks } = await taskStore.fetchTasks(parseInt(props.projectId), {})
+  tasks.value = tasks
   await taskStore.fetchLabels(parseInt(props.projectId))
 
   if (props.showComments) {

@@ -2,14 +2,16 @@
   <div class="sidebar">
     <ul class="list-group">
       <li class="list-group-item" v-for="link in links" :key="link.name">
-        <router-link :to="{ name: link.routeName, params: { projectId: projectId }}">{{ link.name }}</router-link>
+        <router-link :to="{ name: link.routeName, params: { projectId: projectId } }">{{
+          link.name
+        }}</router-link>
       </li>
     </ul>
   </div>
 </template>
 
 <script lang="ts" setup>
-import UniversalReport from "@/pages/report/UniversalReport.vue";
+import UniversalReport from '@/pages/report/UniversalReport.vue'
 
 const props = defineProps<{
   projectId: string

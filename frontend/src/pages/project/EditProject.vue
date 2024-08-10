@@ -10,7 +10,13 @@
           </div>
           <div class="mb-3">
             <label for="description" class="form-label">Description</label>
-            <MdEditor v-model="description" language="en-US" previewTheme="github" noMermaid :preview="false" />
+            <MdEditor
+              v-model="description"
+              language="en-US"
+              previewTheme="github"
+              noMermaid
+              :preview="false"
+            />
           </div>
 
           <h3>Manage Custom Fields</h3>
@@ -54,7 +60,7 @@
             Add Custom Field
           </button>
 
-          <hr>
+          <hr />
 
           <h3>Manage Priorities</h3>
           <TagsInput v-model="priorities" placeholder="Add a priority" />
@@ -67,7 +73,7 @@
           <h3>Manage Types</h3>
           <TagsInput v-model="types" placeholder="Add a type" />
 
-          <hr>
+          <hr />
 
           <div class="container mt-5">
             <div class="mb-4">
@@ -75,11 +81,24 @@
               <form @submit.prevent="createLabel" class="form-inline mb-3">
                 <div class="form-group mr-3">
                   <label for="name" class="sr-only">Label Name</label>
-                  <input v-model="labelName" type="text" id="name" class="form-control" placeholder="Label Name" required />
+                  <input
+                    v-model="labelName"
+                    type="text"
+                    id="name"
+                    class="form-control"
+                    placeholder="Label Name"
+                    required
+                  />
                 </div>
                 <div class="form-group mr-3">
                   <label for="color" class="sr-only">Label Color</label>
-                  <input v-model="labelColor" type="color" id="color" class="form-control" required />
+                  <input
+                    v-model="labelColor"
+                    type="color"
+                    id="color"
+                    class="form-control"
+                    required
+                  />
                 </div>
                 <button type="submit" class="btn btn-primary">Create Label</button>
               </form>
@@ -88,29 +107,37 @@
             <h2>Existing Labels</h2>
             <table class="table">
               <thead>
-              <tr>
-                <th>Badge</th>
-                <th>Actions</th>
-              </tr>
+                <tr>
+                  <th>Badge</th>
+                  <th>Actions</th>
+                </tr>
               </thead>
               <tbody>
-              <tr v-for="label in labels" :key="label.id">
-                <td>
-                  <span class="badge" :style="{ backgroundColor: label.color }">{{ label.name }}</span>
-                </td>
-                <td>
-                  <button @click="editLabel(label)" class="btn btn-sm btn-secondary">Edit</button>
-                  <button @click="deleteLabel(label.id)" class="btn btn-sm btn-danger">Delete</button>
-                </td>
-              </tr>
+                <tr v-for="label in labels" :key="label.id">
+                  <td>
+                    <span class="badge" :style="{ backgroundColor: label.color }">{{
+                      label.name
+                    }}</span>
+                  </td>
+                  <td>
+                    <button @click="editLabel(label)" class="btn btn-sm btn-secondary">Edit</button>
+                    <button @click="deleteLabel(label.id)" class="btn btn-sm btn-danger">
+                      Delete
+                    </button>
+                  </td>
+                </tr>
               </tbody>
             </table>
           </div>
 
-          <hr>
+          <hr />
 
-          <button type="button" class="btn btn-primary" @click.prevent="updateProject">Update Project</button>
-          <button type="button" class="btn btn-warning" style="margin-left: 10px;" @click="close">Close</button>
+          <button type="button" class="btn btn-primary" @click.prevent="updateProject">
+            Update Project
+          </button>
+          <button type="button" class="btn btn-warning" style="margin-left: 10px" @click="close">
+            Close
+          </button>
         </div>
       </div>
     </div>
@@ -120,11 +147,11 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useProjectStore } from '@/stores/projectStore'
-import { type Label, useTaskStore } from "@/stores/taskStore"
+import { type Label, useTaskStore } from '@/stores/taskStore'
 import { useRoute, useRouter } from 'vue-router'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
-import TagsInput from "@/components/TagsInput.vue";
+import TagsInput from '@/components/TagsInput.vue'
 
 const projectStore = useProjectStore()
 const route = useRoute()
@@ -152,20 +179,20 @@ const fetchProject = async () => {
     name.value = project.name
     description.value = project.description
     customFields.value = project.customFields
-    if(project.priorities) priorities.value = project.priorities
-    if(project.statuses) statuses.value = project.statuses
-    if(project.tags) tags.value = project.tags
-    if(project.types) types.value = project.types
+    if (project.priorities) priorities.value = project.priorities
+    if (project.statuses) statuses.value = project.statuses
+    if (project.tags) tags.value = project.tags
+    if (project.types) types.value = project.types
   }
 }
 
 const addCustomField = () => {
-  customFields.value.push({ name: '', description: '', type: 'text' });
-};
+  customFields.value.push({ name: '', description: '', type: 'text' })
+}
 
 const removeCustomField = (index: number) => {
-  customFields.value.splice(index, 1);
-};
+  customFields.value.splice(index, 1)
+}
 
 const updateProject = async () => {
   await projectStore.updateProject(Number(projectId), {
@@ -185,7 +212,10 @@ const fetchLabels = async () => {
 }
 
 const createLabel = async () => {
-  await taskStore.createLabel(parseInt(projectId), { name: labelName.value, color: labelColor.value })
+  await taskStore.createLabel(parseInt(projectId), {
+    name: labelName.value,
+    color: labelColor.value
+  })
   labelName.value = ''
   labelColor.value = '#000000'
   fetchLabels()
@@ -194,7 +224,10 @@ const createLabel = async () => {
 const editLabel = async (label: Label) => {
   labelName.value = label.name
   labelColor.value = label.color
-  await taskStore.updateLabel(parseInt(projectId), label.id, { name: labelName.value, color: labelColor.value })
+  await taskStore.updateLabel(parseInt(projectId), label.id, {
+    name: labelName.value,
+    color: labelColor.value
+  })
   fetchLabels()
 }
 
@@ -212,4 +245,3 @@ onMounted(async () => {
   await fetchLabels()
 })
 </script>
-

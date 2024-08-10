@@ -1,18 +1,12 @@
 <template>
   <div class="admin-panel">
     <div class="content">
-
       <div class="project-board">
         <div class="board-header">
-          <router-link
-            class="btn btn-primary"
-            :to="{ name: 'ProjectList' }"
-          >
+          <router-link class="btn btn-primary" :to="{ name: 'ProjectList' }">
             < Cabinet
           </router-link>
-          <h1 class="board-title">
-            Notifications
-          </h1>
+          <h1 class="board-title">Notifications</h1>
         </div>
 
         <ul class="list-group mt-3">
@@ -33,13 +27,12 @@
           </li>
         </ul>
       </div>
-
     </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-import {computed, onMounted} from 'vue'
+import { computed, onMounted } from 'vue'
 import { useNotificationStore } from '@/stores/notificationStore'
 
 const notificationStore = useNotificationStore()
@@ -55,7 +48,6 @@ const markAsRead = async (notificationId: number) => {
   await notificationStore.markAsRead(notificationId)
 }
 </script>
-
 
 <style scoped>
 .project-board {
