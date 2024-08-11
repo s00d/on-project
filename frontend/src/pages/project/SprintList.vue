@@ -8,7 +8,7 @@
               class="btn btn-primary"
               :to="{ name: 'RoadmapList', params: { projectId: projectId } }"
             >
-              < Roadmap
+              <i class="fas fa-arrow-left"></i> Roadmaps
             </router-link>
             <h1 class="board-title">Sprints Overview</h1>
           </div>
@@ -16,29 +16,31 @@
           <div class="board-columns">
             <div class="board-column" v-for="sprint in sprints" :key="sprint.id">
               <div class="board-column-header">
-                <h2 class="board-column-title">{{ sprint.title }}</h2>
-                <button @click="deleteSprint(sprint.id)" class="btn btn-danger btn-sm">x</button>
+                <h2 class="board-column-title" :title="sprint.title">{{ sprint.title }}</h2>
+                <div class="actions">
+                  <button @click="openEditSprintModal(sprint)" class="btn btn-primary  m-0 btn-sm">
+                    <i class="fas fa-pencil-alt"></i>
+                  </button>
+                  <button @click="confirmDelete(sprint.id, sprint.title)" class="btn btn-danger btn-sm m-0 ms-1">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </div>
               </div>
               <div class="board-column-content">
                 <p>{{ sprint.description }}</p>
-                <p>Start Date: {{ formatDate(sprint.startDate) }}</p>
-                <p>End Date: {{ formatDate(sprint.endDate) }}</p>
-                <button @click="openEditSprintModal(sprint)" class="btn btn-warning btn-sm">
-                  Edit Sprint
-                </button>
+                <p><b>Start Date</b>: {{ formatDate(sprint.startDate) }}</p>
+                <p><b>End Date</b>: {{ formatDate(sprint.endDate) }}</p>
 
                 <div class="task-list">
                   <div v-for="task in sprint.tasks" :key="task.id" class="task-item">
                     <div class="task-header">
                       <span class="task-title">{{ task.title }}</span>
-                      <span class="task-priority" :class="getPriorityClass(task.priority)">{{
-                        task.priority
-                      }}</span>
+                      <span class="task-priority" :class="getPriorityClass(task.priority)">
+                        {{ task.priority }}
+                      </span>
                     </div>
                     <div class="task-dates">
-                      <span v-if="task.plannedDate"
-                        >Planned: {{ formatDate(task.plannedDate) }}</span
-                      >
+                      <span v-if="task.plannedDate">Planned: {{ formatDate(task.plannedDate) }}</span>
                       <span v-if="task.dueDate">Due: {{ formatDate(task.dueDate) }}</span>
                     </div>
                   </div>
@@ -56,6 +58,16 @@
           <ScrumRoadmapTimeline v-if="sprints" :sprints="sprints" />
         </div>
       </Tabs>
+
+      <ConfirmationModal
+        :isOpen="showDeleteModal"
+        actionType="Delete"
+        :itemName="sprintNameToDelete ?? ''"
+        buttonText="Delete Sprint"
+        buttonClass="btn btn-danger"
+        @confirm="deleteSprint"
+        @close="closeModal"
+      />
 
       <ModalComponent
         :isOpen="isModalOpen"
@@ -76,6 +88,7 @@
   </div>
 </template>
 
+
 <script lang="ts" setup>
 import { ref, computed, onMounted } from 'vue'
 import { type Sprint, useSprintStore } from '@/stores/sprintStore'
@@ -84,6 +97,7 @@ import { useRoute } from 'vue-router'
 import SprintFormModal from '@/components/sprint/SprintFormModal.vue'
 import ScrumRoadmapTimeline from '@/components/sprint/ScrumRoadmapTimeline.vue'
 import ModalComponent from '@/components/ModalComponent.vue'
+import ConfirmationModal from '@/components/ConfirmationModal.vue'
 
 const route = useRoute()
 
@@ -98,6 +112,10 @@ const isLoaded = ref(false)
 const isModalOpen = ref(false)
 const isEditMode = ref(false)
 const currentSprintData = ref<Sprint | null>(null)
+
+const showDeleteModal = ref(false)
+const sprintToDelete = ref<number | null>(null)
+const sprintNameToDelete = ref<string | null>(null)
 
 const openCreateSprintModal = () => {
   isEditMode.value = false
@@ -119,11 +137,34 @@ const openEditSprintModal = (sprint: any) => {
   isModalOpen.value = true
 }
 
+const confirmDelete = (sprintId: number, sprintName: string) => {
+  sprintToDelete.value = sprintId
+  sprintNameToDelete.value = sprintName
+  showDeleteModal.value = true
+}
+
+const deleteSprint = async () => {
+  if (sprintToDelete.value !== null) {
+    await sprintStore.deleteSprint(projectId, sprintToDelete.value)
+    closeModal()
+  }
+}
+
 const handleSaveSprint = async (sprintData: any) => {
   if (isEditMode.value) {
-    await sprintStore.updateSprint(projectId, sprintData.id, { title: sprintData.title, description: sprintData.description, startDate: sprintData.startDate, endDate: sprintData.endDate })
+    await sprintStore.updateSprint(projectId, sprintData.id, {
+      title: sprintData.title,
+      description: sprintData.description,
+      startDate: sprintData.startDate,
+      endDate: sprintData.endDate
+    })
   } else {
-    await sprintStore.createSprint(projectId, roadmapId, { title: sprintData.title, description: sprintData.description, startDate: sprintData.startDate, endDate: sprintData.endDate })
+    await sprintStore.createSprint(projectId, roadmapId, {
+      title: sprintData.title,
+      description: sprintData.description,
+      startDate: sprintData.startDate,
+      endDate: sprintData.endDate
+    })
   }
   closeModal()
   fetchSprints()
@@ -131,10 +172,9 @@ const handleSaveSprint = async (sprintData: any) => {
 
 const closeModal = () => {
   isModalOpen.value = false
-}
-
-const deleteSprint = async (sprintId: number) => {
-  await sprintStore.deleteSprint(projectId, sprintId)
+  showDeleteModal.value = false
+  sprintToDelete.value = null
+  sprintNameToDelete.value = null
 }
 
 const formatDate = (date: Date | string) => {
@@ -159,6 +199,7 @@ onMounted(() => {
   sprintStore.subscribeToSocketEvents()
 })
 </script>
+
 
 <style scoped>
 .project-board {
@@ -194,6 +235,10 @@ onMounted(() => {
   padding: 16px;
 }
 
+.board-column:hover {
+  transform: translateY(-5px);
+}
+
 .board-column-header {
   display: flex;
   justify-content: space-between;
@@ -204,6 +249,11 @@ onMounted(() => {
 .board-column-title {
   font-size: 1.5rem;
   font-weight: bold;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px; /* Ограничиваем ширину, чтобы текст обрезался */
 }
 
 .board-column-content {
