@@ -15,7 +15,7 @@
               </div>
               <div class="board-column-content">
                 <p>{{ roadmap.description }}</p>
-                <button @click="openEditRoadmapModal(roadmap)" class="btn btn-secondary btn-sm">
+                <button @click="openEditRoadmapModal(roadmap)" class="btn btn-warning btn-sm">
                   Edit Roadmap
                 </button>
                 <router-link

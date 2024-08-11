@@ -42,7 +42,7 @@
         <hr class="mt-5" />
         <h2>Two-Factor Authentication (2FA)</h2>
         <div v-if="!user?.twoFactorEnabled">
-          <button @click="enable2FA" class="btn btn-secondary">Enable 2FA</button>
+          <button @click="enable2FA" class="btn btn-info">Enable 2FA</button>
           <div v-if="qrCodeUrl">
             <h3>Scan this QR code with your authenticator app</h3>
             <img :src="qrCodeUrl" alt="QR Code" />
@@ -56,7 +56,7 @@
           </div>
         </div>
         <div v-else>
-          <button @click="disable2FA" class="btn btn-secondary">Disable 2FA</button>
+          <button @click="disable2FA" class="btn btn-danger">Disable 2FA</button>
         </div>
       </div>
     </div>

@@ -7,7 +7,7 @@ import {
   Tags,
   Security,
   Request,
-  Header,
+  Header, Middlewares,
 } from 'tsoa';
 import bcrypt from 'bcrypt';
 import speakeasy from 'speakeasy';
@@ -18,6 +18,8 @@ import { AppDataSource } from '../ormconfig';
 import { User } from '../models/User';
 import { transporter } from '../config/nodemailer';
 import { MoreThan } from 'typeorm';
+import {authenticateAll} from "../middlewares/authMiddleware";
+import {isProjectCreator} from "../middlewares/roleMiddleware";
 
 type UserDTO = Omit<User, 'password' | 'twoFactorSecret' | 'resetPasswordToken' | 'resetPasswordExpires' | 'projects' | 'notifications' | 'comments' | 'tasks' | 'projectUsers' | 'history' | 'taskTemplates' | 'labels'>
 
@@ -76,6 +78,9 @@ export class UserController extends Controller {
   }
 
   @Get('me')
+  @Middlewares([
+    authenticateAll,
+  ])
   public async getMe(@Request() req: Express.Request): Promise<{user: UserDTO|null}> {
     const userRepository = AppDataSource.getRepository(User);
     console.log(111, req.session);
@@ -87,6 +92,9 @@ export class UserController extends Controller {
   }
 
   @Post('2fa/enable')
+  @Middlewares([
+    authenticateAll,
+  ])
   public async enable2FA(@Request() req: Express.Request): Promise<{ qrCodeUrl: string }> {
     const userId = req.session.user!.id;
     const secret = speakeasy.generateSecret({ length: 20 });
@@ -111,6 +119,9 @@ export class UserController extends Controller {
   }
 
   @Post('2fa/verify')
+  @Middlewares([
+    authenticateAll,
+  ])
   public async verify2FA(
     @Body() body: { token: string },
     @Request() req: Express.Request
@@ -141,6 +152,9 @@ export class UserController extends Controller {
   }
 
   @Post('2fa/disable')
+  @Middlewares([
+    authenticateAll,
+  ])
   public async disable2FA(@Request() req: Express.Request): Promise<{ success: boolean }> {
     const userId = req.session.user!.id;
     const userRepository = AppDataSource.getRepository(User);
@@ -149,6 +163,9 @@ export class UserController extends Controller {
   }
 
   @Post('request-reset')
+  @Middlewares([
+    authenticateAll,
+  ])
   public async requestPasswordReset(
     @Header() host: string,
     @Body() body: { email: string }
@@ -191,6 +208,9 @@ export class UserController extends Controller {
   }
 
   @Post('reset-password')
+  @Middlewares([
+    authenticateAll,
+  ])
   public async resetPassword(
     @Body() body: { token: string; newPassword: string }
   ): Promise<{ message: string }> {

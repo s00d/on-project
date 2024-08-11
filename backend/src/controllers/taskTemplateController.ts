@@ -2,7 +2,7 @@ import {
   Body,
   Controller,
   Delete,
-  Get,
+  Get, Middlewares,
   Path,
   Post,
   Request,
@@ -16,6 +16,8 @@ import {AppDataSource} from '../ormconfig';
 import {TaskTemplate} from '../models/TaskTemplate';
 import {Project} from '../models/Project';
 import {Request as ExpressRequest} from "express";
+import {authenticateAll} from "../middlewares/authMiddleware";
+import {isProjectCreator} from "../middlewares/roleMiddleware";
 
 @Route('api/task-templates')
 @Tags('Task Templates')
@@ -29,6 +31,9 @@ export class TaskTemplateController extends Controller {
   @Get('/{projectId}')
   @Response(400, 'Bad request')
   @SuccessResponse(200, 'List of task templates')
+  @Middlewares([
+    authenticateAll,
+  ])
   public async getTemplates(
     @Path() projectId: number,
     @Request() req: ExpressRequest
@@ -54,6 +59,9 @@ export class TaskTemplateController extends Controller {
   @Post('/{projectId}')
   @Response(400, 'Bad request')
   @SuccessResponse(201, 'Task template created successfully')
+  @Middlewares([
+    authenticateAll,
+  ])
   public async createTemplate(
     @Path() projectId: number,
     @Request() req: ExpressRequest,
@@ -109,6 +117,10 @@ export class TaskTemplateController extends Controller {
   @Response(404, 'Template not found')
   @Response(400, 'Bad request')
   @SuccessResponse(204, 'Task template deleted successfully')
+  @Middlewares([
+    authenticateAll,
+    isProjectCreator
+  ])
   public async deleteTemplate(
     @Path() projectId: number,
     @Request() req: ExpressRequest,

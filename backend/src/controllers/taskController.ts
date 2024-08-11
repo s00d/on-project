@@ -1,4 +1,20 @@
-import { Controller, Get, Post, Put, Delete, Route, Tags, Path, Query, Body, Request, Security, Response, SuccessResponse } from 'tsoa';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Route,
+  Tags,
+  Path,
+  Query,
+  Body,
+  Request,
+  Security,
+  Response,
+  SuccessResponse,
+  Middlewares
+} from 'tsoa';
 import { AppDataSource } from '../ormconfig';
 import { Task } from '../models/Task';
 import { Label } from '../models/Label';
@@ -10,6 +26,9 @@ import { io } from '../index';
 import { logTaskHistory } from './taskHistoryController';
 import { createNotification } from './notificationController';
 import { Request as ExpressRequest } from 'express';
+import { isEqual } from 'lodash';
+import {authenticateAll} from "../middlewares/authMiddleware";
+import {isProjectCreator} from "../middlewares/roleMiddleware";
 
 interface TaskDTO {
   title: string,
@@ -40,6 +59,9 @@ export class TaskController extends Controller {
   @Get('{projectId}')
   @Response(400, 'Bad request')
   @SuccessResponse(200, 'List of tasks')
+  @Middlewares([
+    authenticateAll,
+  ])
   public async getTasks(
     @Path() projectId: number,
     @Query() status?: string,
@@ -127,6 +149,9 @@ export class TaskController extends Controller {
   @Get('{projectId}/{id}')
   @Response(404, 'Task not found')
   @SuccessResponse(200, 'Task details')
+  @Middlewares([
+    authenticateAll,
+  ])
   public async getTask(
     @Path() projectId: number,
     @Path() id: number
@@ -151,6 +176,9 @@ export class TaskController extends Controller {
   @Post('{projectId}')
   @Response(400, 'Bad request')
   @SuccessResponse(201, 'Task created successfully')
+  @Middlewares([
+    authenticateAll,
+  ])
   public async createTask(
     @Path() projectId: number,
     @Body() requestBody: Partial<TaskDTO>,
@@ -212,7 +240,12 @@ export class TaskController extends Controller {
 
       const task = taskRepository.create(newTask);
       await taskRepository.save(task);
-      await logTaskHistory(task.id, userId, 'created');
+
+      // Log all fields as changes
+      const changes: Record<string, { oldValue: any, newValue: any }> = {};
+      const title = newTask.title ?? ''
+      changes[title] = { oldValue: null, newValue: title };
+      await logTaskHistory(task.id, userId, 'created', changes);
 
       if (assignees.length) {
         for (let assignee of assignees) {
@@ -232,6 +265,9 @@ export class TaskController extends Controller {
   @Response(400, 'Bad request')
   @Response(404, 'Task not found')
   @SuccessResponse(200, 'Task updated successfully')
+  @Middlewares([
+    authenticateAll,
+  ])
   public async updateTask(
     @Path() projectId: number,
     @Path() id: number,
@@ -250,6 +286,23 @@ export class TaskController extends Controller {
       if (!task) {
         this.setStatus(404);
         throw new Error('Task not found');
+      }
+
+      const changes: Record<string, { oldValue: any, newValue: any }> = {};
+
+      // Проверяем изменения в каждом из полей
+
+      for (const key of Object.keys(requestBody)) {
+        if(key === 'assignees') continue;
+        const oldValue = task[key as keyof Task];
+        const newValue = requestBody[key as keyof TaskDTO];
+
+        if (!isEqual(oldValue, newValue)) {
+          changes[key] = {
+            oldValue: Array.isArray(oldValue) ? [...oldValue] : oldValue,
+            newValue: Array.isArray(newValue) ? [...newValue] : newValue,
+          };
+        }
       }
 
       const updatedTask = Object.assign(task, requestBody);
@@ -279,7 +332,7 @@ export class TaskController extends Controller {
       }
 
       await taskRepository.save(updatedTask);
-      await logTaskHistory(updatedTask.id, userId, 'updated');
+      await logTaskHistory(updatedTask.id, userId, 'updated', changes);
 
       io.emit('task:update', updatedTask);
       return updatedTask;
@@ -292,6 +345,10 @@ export class TaskController extends Controller {
   @Delete('{projectId}/{id}')
   @Response(404, 'Task not found')
   @SuccessResponse(200, 'Task deleted successfully')
+  @Middlewares([
+    authenticateAll,
+    isProjectCreator
+  ])
   public async deleteTask(
     @Path() projectId: number,
     @Path() id: number

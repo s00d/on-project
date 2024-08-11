@@ -23,7 +23,7 @@
                 <p>{{ sprint.description }}</p>
                 <p>Start Date: {{ formatDate(sprint.startDate) }}</p>
                 <p>End Date: {{ formatDate(sprint.endDate) }}</p>
-                <button @click="openEditSprintModal(sprint)" class="btn btn-secondary btn-sm">
+                <button @click="openEditSprintModal(sprint)" class="btn btn-warning btn-sm">
                   Edit Sprint
                 </button>
 

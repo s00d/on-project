@@ -130,7 +130,7 @@
               </div>
             </template>
             <template #footer>
-              <button type="button" class="btn btn-secondary" @click="closeTaskModal">Close</button>
+              <button type="button" class="btn btn-danger" @click="closeTaskModal">Close</button>
               <button type="button" class="btn btn-primary" @click="saveFilter">Save</button>
             </template>
           </ModalComponent>
@@ -147,6 +147,9 @@
                 :taskId="selectedTask.id"
                 :projectId="projectId"
               />
+            </template>
+            <template #footer>
+              <button class="btn btn-danger" @click="clearHistory">Clear History</button>
             </template>
           </ModalComponent>
         </div>
@@ -172,6 +175,7 @@ import { useAlertStore } from '@/stores/alertStore'
 import type { User } from '@/stores/authStore'
 import TaskPreviewCard from '@/components/tasks/TaskPreviewCard.vue'
 import TaskHistoryModalContent from "@/components/tasks/TaskHistoryModalContent.vue";
+import axios from "axios";
 
 const taskStore = useTaskStore()
 const projectStore = useProjectStore()
@@ -385,6 +389,15 @@ const removeSavedFilter = async (index: number) => {
 const selectPage = (page: number) => {
   currentPage.value = page
   applyFilters()
+}
+
+const clearHistory = async () => {
+  try {
+    await axios.delete(`/task-history/${Number(projectId)}/${selectedTask.value!.id}`)
+    closeTaskModal();
+  } catch (error) {
+    console.error('Error clearing task history:', error)
+  }
 }
 
 const projectCustomFields = computed(() => {

@@ -1,6 +1,6 @@
 <template>
   <div class="modal-body">
-    <div class="mb-3">
+    <div class="mb-3" v-if="mode === 'create'">
       <div class="input-group mb-3">
         <select id="templateSelect" class="form-select" v-model="selectedTemplate" @change="applyTemplate">
           <option :value="null" disabled>-- Select Template --</option>
@@ -169,13 +169,13 @@
     <div class="pef"></div>
 
     <div class="modal-footer">
-      <button type="button" class="btn btn-secondary" @click.prevent="saveAsTemplate">
+      <button type="button" class="btn btn-success" @click.prevent="saveAsTemplate">
         Save as Template
       </button>
       <button type="button" class="btn btn-primary" @click.prevent="submitTask">
         {{ buttonText }}
       </button>
-      <button type="button" class="btn btn-secondary" @click="$emit('close')">Close</button>
+      <button type="button" class="btn btn-danger" @click="$emit('close')">Close</button>
     </div>
   </div>
 </template>

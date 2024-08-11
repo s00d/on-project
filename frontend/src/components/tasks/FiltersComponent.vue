@@ -11,8 +11,8 @@
       />
     </div>
     <div class="ms-auto d-flex align-items-end">
-      <button @click="$emit('open-settings-modal')" class="btn btn-secondary mb-3">Settings</button>
-      <button @click="$emit('open-save-filter-modal')" class="btn btn-secondary mb-3 ms-3">
+      <button @click="$emit('open-settings-modal')" class="btn btn-info mb-3">Settings</button>
+      <button @click="$emit('open-save-filter-modal')" class="btn btn-success mb-3 ms-3">
         Save Filter
       </button>
       <button @click="$emit('create-task-modal')" class="btn btn-primary mb-3 ms-3">

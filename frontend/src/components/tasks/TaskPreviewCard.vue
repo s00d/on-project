@@ -70,7 +70,7 @@
   </div>
 
   <div class="card-footer text-end">
-    <button type="button" class="btn btn-secondary" @click="$emit('close')">Close</button>
+    <button type="button" class="btn btn-danger" @click="$emit('close')">Close</button>
   </div>
 </template>
 

@@ -21,6 +21,7 @@ import { io } from '../index';
 import fs from 'fs';
 import path from 'path';
 import { authenticateAll } from "../middlewares/authMiddleware";
+import {isProjectCreator} from "../middlewares/roleMiddleware";
 
 @Route('api/comments')
 @Tags('Comments')
@@ -95,7 +96,8 @@ export class CommentController extends Controller {
   @Put('{id}')
   @SuccessResponse('200', 'Comment updated successfully')
   @Middlewares([
-    authenticateAll
+    authenticateAll,
+    isProjectCreator
   ])
   public async updateComment(@Path() id: number, @Body() body: { content: string }): Promise<Comment> {
     const { content } = body;
@@ -114,7 +116,8 @@ export class CommentController extends Controller {
   @Delete('{id}')
   @SuccessResponse('204', 'Comment deleted successfully')
   @Middlewares([
-    authenticateAll
+    authenticateAll,
+    isProjectCreator
   ])
   public async deleteComment(@Path() id: number): Promise<void> {
     const commentRepository = AppDataSource.getRepository(Comment);

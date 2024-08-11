@@ -19,7 +19,7 @@
     <button type="submit" class="btn btn-primary">
       {{ isEditMode ? 'Save Changes' : 'Create Sprint' }}
     </button>
-    <button type="button" class="btn btn-secondary" @click="closeModal">Cancel</button>
+    <button type="button" class="btn btn-danger" @click="closeModal">Cancel</button>
   </form>
 </template>
 

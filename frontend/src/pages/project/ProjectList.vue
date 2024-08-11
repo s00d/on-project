@@ -23,7 +23,7 @@
               >
               <a
                 v-if="project.ownerId === userId"
-                class="btn btn-secondary ms-2"
+                class="btn btn-success ms-2"
                 @click="() => showEditProject(project)"
               >
                 Edit

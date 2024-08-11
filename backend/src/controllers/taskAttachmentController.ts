@@ -13,16 +13,11 @@ import {
 import { TaskAttachment } from '../models/TaskAttachment';
 import { AppDataSource } from '../ormconfig';
 import { authenticateAll } from '../middlewares/authMiddleware';
-import { check } from 'express-validator';
-import { validateRequest } from '../middlewares/validateRequest';
 import { Request as ExpressRequest } from 'express';
 import path from "path";
 import fs from "fs";
+import {isProjectCreator} from "../middlewares/roleMiddleware";
 
-// Define interfaces for request body validation
-interface AddTaskAttachmentRequest {
-  file: Express.Multer.File;
-}
 
 @Route('api/task-attachments')
 @Tags('Task Attachments')
@@ -54,6 +49,7 @@ export class TaskAttachmentController extends Controller {
 
   /**
    * Add an attachment to a task
+   * @param attachment
    * @param taskId ID of the task
    * @param request The attachment request containing the file
    */
@@ -103,8 +99,7 @@ export class TaskAttachmentController extends Controller {
   @Delete('attachments/{id}')
   @Middlewares([
     authenticateAll,
-    check('id').isInt().withMessage('Attachment ID must be an integer'),
-    validateRequest
+    isProjectCreator
   ])
   @SuccessResponse(204, 'Attachment deleted')
   public async deleteTaskAttachment(

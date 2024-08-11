@@ -142,7 +142,7 @@
       <button type="button" class="btn btn-primary" @click.prevent="submitProject">
         {{ mode === 'create' ? 'Create Project' : 'Save Changes' }}
       </button>
-      <button type="button" class="btn btn-secondary" @click="$emit('close')">Close</button>
+      <button type="button" class="btn btn-danger" @click="$emit('close')">Close</button>
     </div>
   </div>
 </template>

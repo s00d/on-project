@@ -5,38 +5,41 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn
-} from 'typeorm'
-import { User } from './User'
-import { Task } from './Task'
+} from 'typeorm';
+import { User } from './User';
+import { Task } from './Task';
 
 @Entity('task_histories')
 export class TaskHistory {
   @PrimaryGeneratedColumn()
-  id!: number
+  id!: number;
 
   @ManyToOne(() => Task, (task) => task.history, { nullable: false })
-  task!: Task
+  task!: Task;
 
   @ManyToOne(() => User, (user) => user.history, { nullable: false })
-  user!: User
+  user!: User;
 
   @Column({ length: 128 })
-  action!: string
+  action!: string;
+
+  @Column('json', { nullable: true })
+  changes!: Record<string, { oldValue: any, newValue: any }>; // JSON-объект, содержащий изменения
 
   @UpdateDateColumn({
     type: 'datetime',
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP'
   })
-  timestamp!: Date
+  timestamp!: Date;
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt!: Date
+  createdAt!: Date;
 
   @UpdateDateColumn({
     type: 'datetime',
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP'
   })
-  updatedAt!: Date
+  updatedAt!: Date;
 }

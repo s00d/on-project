@@ -85,7 +85,7 @@ export class SprintController extends Controller {
   /**
    * Create a new sprint
    * @param projectId ID of the project
-   * @param id
+   * @param roadmapId
    * @param requestBody Sprint details
    */
   @Post('{projectId}/{roadmapId}')

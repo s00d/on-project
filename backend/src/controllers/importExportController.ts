@@ -7,6 +7,7 @@ import { Task } from '../models/Task';
 import { Project } from '../models/Project';
 import { authenticateAll } from '../middlewares/authMiddleware';
 import multer from 'multer';
+import {isProjectCreator} from "../middlewares/roleMiddleware";
 
 const upload = multer({ dest: 'uploads/' }).single('file');
 
@@ -35,7 +36,8 @@ export class ImportExportController extends Controller {
 
   @Post('/import')
   @Middlewares([
-    authenticateAll
+    authenticateAll,
+    isProjectCreator
   ])
   public async importData(
     @UploadedFile('file') file: Express.Multer.File
@@ -56,7 +58,10 @@ export class ImportExportController extends Controller {
   }
 
   @Get('/export')
-  @Middlewares(authenticateAll)
+  @Middlewares([
+    authenticateAll,
+    isProjectCreator
+  ])
   public async exportData(): Promise<any> {
     try {
       const taskRepository = AppDataSource.getRepository(Task);
@@ -75,7 +80,8 @@ export class ImportExportController extends Controller {
 
   @Post('/github-import')
   @Middlewares([
-    authenticateAll
+    authenticateAll,
+    isProjectCreator
   ])
   @SuccessResponse('200', 'Data imported from GitHub successfully')
   public async importFromGitHub(

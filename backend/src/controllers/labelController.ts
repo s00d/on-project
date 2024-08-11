@@ -3,6 +3,7 @@ import { Label } from '../models/Label';
 import { AppDataSource } from '../ormconfig';
 import { Request as ExpressRequest } from 'express';
 import { authenticateAll } from '../middlewares/authMiddleware';
+import {isProjectCreator} from "../middlewares/roleMiddleware";
 
 @Route('api/labels')
 @Tags('Labels')
@@ -91,7 +92,8 @@ export class LabelController extends Controller {
 
   @Delete('{projectId}/{id}')
   @Middlewares([
-    authenticateAll
+    authenticateAll,
+    isProjectCreator
   ])
   public async deleteLabel(
     @Request() req: ExpressRequest,
