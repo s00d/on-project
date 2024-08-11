@@ -27,6 +27,7 @@
             :users="users"
             @open-task-modal="openTaskModal"
             @open-preview-modal="openPreviewModal"
+            @open-history-modal="openHistoryModal"
           />
           <PaginationComponent
             :total-pages="totalPages"
@@ -133,6 +134,21 @@
               <button type="button" class="btn btn-primary" @click="saveFilter">Save</button>
             </template>
           </ModalComponent>
+
+          <ModalComponent
+            :isOpen="isHistoryModalOpen"
+            :title="'Task History for ' + (selectedTask?.title ?? '')"
+            @close="closeTaskModal"
+            pos="center"
+          >
+            <template #body>
+              <TaskHistoryModalContent
+                v-if="isHistoryModalOpen && selectedTask"
+                :taskId="selectedTask.id"
+                :projectId="projectId"
+              />
+            </template>
+          </ModalComponent>
         </div>
       </Tabs>
     </div>
@@ -155,6 +171,7 @@ import SettingsModalContent from '@/components/tasks/SettingsModalContent.vue'
 import { useAlertStore } from '@/stores/alertStore'
 import type { User } from '@/stores/authStore'
 import TaskPreviewCard from '@/components/tasks/TaskPreviewCard.vue'
+import TaskHistoryModalContent from "@/components/tasks/TaskHistoryModalContent.vue";
 
 const taskStore = useTaskStore()
 const projectStore = useProjectStore()
@@ -174,6 +191,7 @@ const isTaskModalOpen = ref(false)
 const isPreviewModalOpen = ref(false)
 const isSettingsModalOpen = ref(false)
 const isSaveFilterModalOpen = ref(false)
+const isHistoryModalOpen = ref(false)
 const selectedTask = ref<null | Task>(null)
 const allTags = ref<string[]>([])
 const selectedTags = ref<string[]>([])
@@ -274,11 +292,17 @@ const openPreviewModal = (task: Task) => {
   isPreviewModalOpen.value = true
 }
 
+const openHistoryModal = (task: Task) => {
+  selectedTask.value = task
+  isHistoryModalOpen.value = true
+}
+
 const closeTaskModal = async () => {
   isTaskModalOpen.value = false
   isSettingsModalOpen.value = false
   isPreviewModalOpen.value = false
   isSaveFilterModalOpen.value = false
+  isHistoryModalOpen.value = false
   selectedTask.value = null
   await applyFilters()
 }

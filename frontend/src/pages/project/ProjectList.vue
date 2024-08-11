@@ -31,7 +31,7 @@
               <button
                 v-if="project.ownerId === userId"
                 class="btn btn-danger ms-2"
-                @click="confirmDelete(project.id, project.name)"
+                @click="confirmDelete(project.id!, project.name)"
               >
                 Delete
               </button>
@@ -61,10 +61,14 @@
         <ProjectCard
           v-if="isProjectModalOpen && selectedProject"
           :initialTaskData="selectedProject"
+          @save="closeModal"
+          @close="closeModal"
           mode="edit"
         />
         <ProjectCard
           v-if="isProjectModalOpen && !selectedProject"
+          @save="closeModal"
+          @close="closeModal"
           mode="create"
         />
       </template>

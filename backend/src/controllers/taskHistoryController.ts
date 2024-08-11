@@ -14,7 +14,7 @@ export class TaskHistoryController extends Controller {
    * @summary Get task history
    * @param taskId - ID of the task
    */
-  @Get('{taskId}/history')
+  @Get('{projectId}/{taskId}')
   @Response(404, 'Task not found')
   @Response(400, 'Bad request')
   @SuccessResponse(200, 'List of task history entries')
@@ -42,7 +42,7 @@ export class TaskHistoryController extends Controller {
    * @summary Clear history for a specific task
    * @param taskId - ID of the task
    */
-  @Delete('{taskId}/clear')
+  @Delete('{projectId}/{taskId}/clear')
   @Response(404, 'Task not found')
   @Response(400, 'Bad request')
   @SuccessResponse(204, 'Task history cleared successfully')
@@ -67,7 +67,7 @@ export class TaskHistoryController extends Controller {
    * @summary Clear history for all tasks in a project
    * @param projectId - ID of the project
    */
-  @Delete('project/{projectId}/clear')
+  @Delete('{projectId}/{projectId}/clear')
   @Response(404, 'Project or tasks not found')
   @Response(400, 'Bad request')
   @SuccessResponse(204, 'Project task history cleared successfully')

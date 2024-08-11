@@ -167,6 +167,8 @@ const labelColor = ref('#000000')
 
 const labels = computed(() => taskStore.labels)
 
+const emit = defineEmits(['save', 'close'])
+
 const props = defineProps<{
   initialTaskData?: Project | null
   mode: 'create' | 'edit'
@@ -211,6 +213,7 @@ const submitProject = async () => {
 
     await projectStore.updateProject(projectData.value.id!, dataToSave)
   }
+  emit('save')
   router.push({ name: 'ProjectList' })
 }
 

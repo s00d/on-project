@@ -29,8 +29,11 @@
                 >
                   <i class="fas fa-edit"></i>
                 </button>
-                <button class="btn btn-info btn-sm" @click="$emit('open-preview-modal', task)">
+                <button class="btn btn-info btn-sm" style="margin-right: 2px" @click="$emit('open-preview-modal', task)">
                   <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-primary btn-sm" @click="$emit('open-history-modal', task)">
+                  <i class="fas fa-history"></i>
                 </button>
               </div>
             </td>
@@ -59,6 +62,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'open-task-modal', task: Task): void
   (e: 'open-preview-modal', task: Task): void
+  (e: 'open-history-modal', task: Task): void
 }>()
 
 const sortKey = ref('')

@@ -20,6 +20,7 @@ import { ProjectUser } from './ProjectUser'
 import { Roadmap } from './Roadmap'
 import { Exclude } from 'class-transformer'
 import { Sprint } from './Sprint'
+import {TaskTemplate} from "./TaskTemplate";
 
 @Entity('projects')
 export class Project {
@@ -70,6 +71,9 @@ export class Project {
 
   @OneToMany(() => Label, (label) => label.project, { cascade: true, onDelete: 'CASCADE' })
   labels!: Label[]
+
+  @OneToMany(() => TaskTemplate, (taskTemplate) => taskTemplate.project, { cascade: true, onDelete: 'CASCADE' })
+  taskTemplates!: TaskTemplate[];
 
   @OneToMany(() => ProjectUser, (projectUser) => projectUser.project, {
     cascade: true,

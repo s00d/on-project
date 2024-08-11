@@ -1,6 +1,21 @@
 <template>
   <div class="modal-body">
     <div class="mb-3">
+      <div class="input-group mb-3">
+        <select id="templateSelect" class="form-select" v-model="selectedTemplate" @change="applyTemplate">
+          <option :value="null" disabled>-- Select Template --</option>
+          <option v-for="template in templates" :key="template.id" :value="template">
+            {{ template.title }}
+          </option>
+        </select>
+        <div class="input-group-append">
+          <button type="button" class="btn btn-danger" @click="deleteTemplate" :disabled="!selectedTemplate">
+            x
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="mb-3">
       <label for="title" class="form-label">Task Title</label>
       <input v-model="taskData.title" type="text" id="title" class="form-control" required />
     </div>
@@ -154,6 +169,9 @@
     <div class="pef"></div>
 
     <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" @click.prevent="saveAsTemplate">
+        Save as Template
+      </button>
       <button type="button" class="btn btn-primary" @click.prevent="submitTask">
         {{ buttonText }}
       </button>
@@ -171,6 +189,22 @@ import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import CommentCard from '@/components/CommentCard.vue'
 import { useAuthStore, type User } from '@/stores/authStore'
+import axios from "axios";
+
+interface ITaskTemplate {
+  id: number;
+  title: string;
+  description: string;
+  priority: string;
+  status: string;
+  tag: string;
+  type: string;
+  estimatedTime: number,
+  actualTime: number,
+  customFields: Record<string, string>,
+  tags: string[]
+}
+
 
 const props = defineProps<{
   projectId: string
@@ -211,11 +245,82 @@ const newCommentContent = ref('')
 const attachment = ref<File | null>(null)
 const comments = ref<Comment[]>([])
 
+
+const selectedTemplate = ref<ITaskTemplate | null>(null)
+const templates = ref<ITaskTemplate[]>([])
+
 const customFieldsStrict = ref<{ name: string; description: string; type: string }[]>([])
 
 const labels = computed(() => taskStore.labels)
 
 const buttonText = computed(() => (props.mode === 'create' ? 'Create Task' : 'Save Changes'))
+
+
+const saveAsTemplate = async () => {
+  try {
+    const dataToTemplate = {
+      ...taskData.value,
+      labelId: taskData.value.labelId || undefined,
+      relatedTaskId: taskData.value.relatedTaskId || undefined,
+      sprintId: taskData.value.sprintId || undefined,
+      label: taskData.value.label || undefined,
+      customFields: taskData.value.customFields || {},
+      tags: taskData.value.tags || [],
+    };
+    delete (dataToTemplate as { createdAt?: string }).createdAt
+    delete (dataToTemplate as { updatedAt?: string }).updatedAt
+    delete (dataToTemplate as { projectId?: number }).projectId
+    delete (dataToTemplate as { dueDate?: number }).dueDate
+    delete (dataToTemplate as { plannedDate?: number }).plannedDate
+    delete (dataToTemplate as { id?: number }).id
+    delete (dataToTemplate as { assignees?: number }).assignees
+
+
+    await axios.post(`/task-templates/${props.project!.id}`, dataToTemplate);
+    await fetchTemplates();
+  } catch (error) {
+    console.error('Error saving template:', error);
+    throw error;
+  }
+};
+
+const fetchTemplates = async () => {
+  if (props.project?.id) {
+    try {
+      const response = await axios.get(`/task-templates/${props.project.id}`);
+      templates.value = response.data;
+    } catch (error) {
+      console.error('Failed to load templates', error);
+    }
+  }
+}
+
+const applyTemplate = () => {
+  if (selectedTemplate.value) {
+    const template = selectedTemplate.value
+    taskData.value.title = template.title
+    taskData.value.description = template.description
+    taskData.value.priority = template.priority
+    taskData.value.status = template.status
+    taskData.value.type = template.type
+    taskData.value.tags = template.tags ?? []
+    taskData.value.customFields = template.customFields ?? {}
+  }
+}
+
+
+const deleteTemplate = async () => {
+  if (selectedTemplate.value) {
+    try {
+      await axios.delete(`/task-templates/${props.project!.id}/${selectedTemplate.value.id}`);
+      await fetchTemplates();
+      selectedTemplate.value = null;
+    } catch (error) {
+      console.error('Error deleting template:', error);
+      throw error;
+    }
+  }
+}
 
 onMounted(async () => {
   if (props.mode === 'edit' && props.initialTaskData) {
@@ -229,6 +334,8 @@ onMounted(async () => {
   if (props.showComments) {
     await fetchComments()
   }
+
+  await fetchTemplates()
 })
 
 const submitTask = async () => {
