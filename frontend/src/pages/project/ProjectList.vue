@@ -4,18 +4,20 @@
       <div class="project-board">
         <div class="board-header">
           <h1 class="board-title">{{ showArchivedProjects ? 'Archived Projects' : 'Projects' }}</h1>
-          <button
-            class="btn btn-secondary mb-3"
-            @click="toggleArchivedProjects"
-          >
-            {{ showArchivedProjects ? 'Show Active Projects' : 'Show Archived Projects' }}
-          </button>
-          <button
-            class="btn btn-primary mb-3 ms-2"
-            @click="() => showEditProject()"
-          >
-            Add Project
-          </button>
+          <div class="actions">
+            <button
+              class="btn btn-secondary mb-3"
+              @click="toggleArchivedProjects"
+            >
+              {{ showArchivedProjects ? 'Show Active Projects' : 'Show Archived Projects' }}
+            </button>
+            <button
+              class="btn btn-primary mb-3 ms-2"
+              @click="() => showEditProject()"
+            >
+              Add Project
+            </button>
+          </div>
         </div>
 
         <div class="board-columns">
