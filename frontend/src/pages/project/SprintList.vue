@@ -223,15 +223,16 @@ onMounted(() => {
 
 .board-columns {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
-  overflow-x: auto;
+  justify-content: space-between;
 }
 
 .board-column {
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-  width: 300px;
+  width: calc(25% - 16px);
   padding: 16px;
 }
 
@@ -315,10 +316,11 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 300px;
   background-color: #edf2f7;
   border-radius: 8px;
   border: 2px dashed #cbd5e0;
   cursor: pointer;
+  margin-right: auto;
+  min-height: 239px;
 }
 </style>

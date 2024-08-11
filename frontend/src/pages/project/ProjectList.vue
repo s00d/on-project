@@ -31,10 +31,10 @@
                 <button v-if="project.ownerId === userId" @click.stop.prevent="() => showEditProject(project)" class="btn btn-primary btn-sm m-0">
                   <i class="fas fa-pencil-alt"></i>
                 </button>
-                <button @click="confirmArchive(project.id!, project.name)" class="btn btn-warning btn-sm m-0 ms-1">
+                <button @click.stop.prevent="confirmArchive(project.id!, project.name)" class="btn btn-warning btn-sm m-0 ms-1">
                   <i class="fas fa-archive"></i>
                 </button>
-                <button @click="confirmDelete(project.id!, project.name)" class="btn btn-danger btn-sm m-0 ms-1">
+                <button @click.stop.prevent="confirmDelete(project.id!, project.name)" class="btn btn-danger btn-sm m-0 ms-1">
                   <i class="fas fa-trash-alt"></i>
                 </button>
               </div>
@@ -43,7 +43,7 @@
               <p v-html="parseMd(project.description)"></p>
               <router-link
                 :to="{ name: 'TaskList', params: { projectId: project.id } }"
-                class="btn btn-info btn-sm"
+                class="btn btn-dark btn-sm"
               >
                 Select
               </router-link>
@@ -220,15 +220,16 @@ const userId = computed(() => authStore.getUserId)
 
 .board-columns {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
-  overflow-x: auto;
+  justify-content: space-between;
 }
 
 .board-column {
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-  width: 300px;
+  width: calc(33.333% - 16px);
   padding: 16px;
   transition: transform 0.2s ease;
   cursor: pointer;
@@ -252,7 +253,7 @@ const userId = computed(() => authStore.getUserId)
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 150px; /* Ограничиваем ширину, чтобы текст обрезался */
+  max-width: 220px; /* Ограничиваем ширину, чтобы текст обрезался */
 }
 
 
@@ -266,11 +267,12 @@ const userId = computed(() => authStore.getUserId)
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 300px;
   background-color: #edf2f7;
   border-radius: 8px;
   border: 2px dashed #cbd5e0;
   cursor: pointer;
+  margin-right: auto;
+  min-height: 134px;
 }
 
 .add-column:hover {
