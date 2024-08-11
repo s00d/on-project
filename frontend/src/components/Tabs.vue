@@ -49,15 +49,6 @@
       <li class="nav-item">
         <router-link
           class="nav-link"
-          :class="{ active: isActive('EditProject') }"
-          :to="{ name: 'EditProject', params: { projectId: projectId } }"
-        >
-          Settings
-        </router-link>
-      </li>
-      <li class="nav-item">
-        <router-link
-          class="nav-link"
           :class="{ active: isActive('InviteUser') }"
           :to="{ name: 'InviteUser', params: { projectId: projectId } }"
         >

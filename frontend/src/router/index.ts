@@ -8,8 +8,6 @@ import ResetPassword from '../pages/auth/ResetPassword.vue'
 
 import ProfilePage from '../pages/ProfilePage.vue'
 import ProjectList from '../pages/project/ProjectList.vue'
-import AddProject from '../pages/project/AddProject.vue'
-import EditProject from '../pages/project/EditProject.vue'
 import KanbanBoard from '../pages/project/KanbanBoard.vue'
 import RoadmapList from '../pages/project/RoadmapList.vue'
 import SprintList from '../pages/project/SprintList.vue'
@@ -82,18 +80,6 @@ const routes = [
     path: '/cabinet/notifications',
     component: NotificationList,
     name: 'NotificationList',
-    beforeEnter: authGuard
-  },
-  {
-    path: '/cabinet/projects/add',
-    component: AddProject,
-    name: 'AddProject',
-    beforeEnter: authGuard
-  },
-  {
-    path: '/cabinet/projects/:projectId/edit',
-    component: EditProject,
-    name: 'EditProject',
     beforeEnter: authGuard
   },
   {

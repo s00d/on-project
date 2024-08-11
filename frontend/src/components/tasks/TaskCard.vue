@@ -232,10 +232,25 @@ onMounted(async () => {
 })
 
 const submitTask = async () => {
+  const dataToSave = {
+    ...taskData.value,
+    labelId: taskData.value.labelId || undefined,
+    relatedTaskId: taskData.value.relatedTaskId || undefined,
+    sprintId: taskData.value.sprintId || undefined,
+    label: taskData.value.label || undefined,
+  };
+  delete (dataToSave as { createdAt?: string }).createdAt
+  delete (dataToSave as { updatedAt?: string }).updatedAt
+  delete (dataToSave as { projectId?: number }).projectId
+  delete (dataToSave as { dueDate?: number }).dueDate
+  delete (dataToSave as { plannedDate?: number }).plannedDate
+  delete (dataToSave as { id?: number }).id
+
   if (props.mode === 'create') {
-    await taskStore.createTask(parseInt(props.projectId), taskData.value)
+    await taskStore.createTask(parseInt(props.projectId), dataToSave)
   } else {
-    await taskStore.updateTask(parseInt(props.projectId), taskData.value.id, taskData.value)
+
+    await taskStore.updateTask(parseInt(props.projectId), taskData.value.id, dataToSave)
   }
   emit('task-saved', 'close')
 }

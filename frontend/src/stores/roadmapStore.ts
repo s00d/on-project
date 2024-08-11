@@ -29,7 +29,7 @@ export const useRoadmapStore = defineStore('roadmap', {
     },
     async createRoadmap(
       projectId: number,
-      roadmap: { title: string; description?: string; projectId: number }
+      roadmap: { title: string; description?: string; }
     ) {
       try {
         const response = await axios.post(`/roadmaps/${projectId}`, roadmap)

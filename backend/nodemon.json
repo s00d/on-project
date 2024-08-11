@@ -1,0 +1,6 @@
+{
+  "exec": "NODE_ENV=development ts-node src/index.ts",
+  "watch": ["src"],
+  "ignore": ["lib/*.js", "README", "database.sqlite", "dist/*.**", "uploads/*.**", "src/routes/*.**"],
+  "ext": "ts"
+}

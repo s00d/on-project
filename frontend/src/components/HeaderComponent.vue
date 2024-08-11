@@ -26,7 +26,7 @@
           </li>
 
           <li class="nav-item">
-            <a class="nav-link" href="/api-docs">Api Docs</a>
+            <a class="nav-link" href="/docs">Api Docs</a>
           </li>
 
           <li class="nav-item" v-if="isAuthenticated">

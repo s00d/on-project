@@ -4,7 +4,7 @@ import { useAlertStore } from './alertStore'
 import type { Sprint } from '@/stores/sprintStore'
 
 export interface Project {
-  id: number
+  id?: number
   name: string
   description: string
   ownerId: number
@@ -15,6 +15,8 @@ export interface Project {
   tags?: string[]
   types?: string[]
   sprints?: Sprint[]
+  createdAt: string
+  updatedAt: string
 }
 
 interface ProjectState {
@@ -22,11 +24,17 @@ interface ProjectState {
   project: Project | null
 }
 
+interface CustomField {
+  name: string;
+  description: string;
+  type: string
+}
+
 interface updateProjectInterface {
   name?: string
   description?: string
   savedFilters?: { name: string; filters: any }[]
-  customFields?: { name: string; description: string; type: string }[]
+  customFields?: CustomField[]
   priorities?: string[]
   statuses?: string[]
   tags?: string[]
@@ -49,9 +57,6 @@ export const useProjectStore = defineStore('project', {
     },
     async fetchProject(id: number) {
       try {
-        if (this.project && this.project.id === id) {
-          return this.project
-        }
         const response = await axios.get(`/projects/${id}`)
         this.project = response.data
         return this.project
@@ -59,7 +64,7 @@ export const useProjectStore = defineStore('project', {
         useAlertStore().setAlert('Failedto fetch project', 'danger')
       }
     },
-    async createProject(project: { name: string; description: string }) {
+    async createProject(project: {name: string, description: string}) {
       try {
         const response = await axios.post('/projects', project)
         this.projects.push(response.data)

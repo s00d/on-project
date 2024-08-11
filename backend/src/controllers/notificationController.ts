@@ -1,43 +1,74 @@
-import { Request, Response } from 'express'
-import { Notification } from '../models/Notification'
-import { User } from '../models/User'
-import { AppDataSource } from '../ormconfig'
-import { io } from '../index'
-import { sendEmail } from '../services/emailService'
+import {
+  Controller,
+  Get,
+  Put,
+  Route,
+  Path,
+  Body,
+  Response,
+  SuccessResponse,
+  Request,
+  Middlewares,
+  Security,
+  Tags
+} from 'tsoa';
+import { Notification } from '../models/Notification';
+import { User } from '../models/User';
+import { AppDataSource } from '../ormconfig';
+import { io } from '../index';
+import { sendEmail } from '../services/emailService';
+import {Request as ExpressRequest} from "express";
+import {authenticateAll} from "../middlewares/authMiddleware";
 
-const getNotifications = async (req: Request, res: Response) => {
-  const userId = req.session.user!.id
-  try {
-    const notificationRepository = AppDataSource.getRepository(Notification)
-    const notifications = await notificationRepository.find({ where: { user: { id: userId } } })
-    res.json(notifications)
-  } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
-  }
-}
+@Route('api/notifications')
+@Tags('Notifications')
+@Security('session')
+@Security('apiKey')
+export class NotificationController extends Controller {
 
-const markAsRead = async (req: Request, res: Response) => {
-  const { id } = req.params
-  try {
-    const notificationRepository = AppDataSource.getRepository(Notification)
-    const notification = await notificationRepository.findOne({ where: { id: parseInt(id) } })
-
-    if (notification) {
-      notification.read = true
-      await notificationRepository.save(notification)
-      io.emit('notification:read', notification)
-      res.json(notification)
-    } else {
-      res.status(404).json({ error: 'Notification not found' })
+  @Get('/')
+  @Middlewares([
+    authenticateAll,
+  ])
+  public async getNotifications(@Request() req: ExpressRequest,): Promise<Notification[]> {
+    try {
+      const userId = req.session.user!.id
+      const notificationRepository = AppDataSource.getRepository(Notification);
+      return await notificationRepository.find({ where: { user: { id: userId } } });
+    } catch (err: any) {
+      throw new Error(`Error fetching notifications: ${err.message}`);
     }
-  } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+  }
+
+  @Put('{id}/read')
+  @Middlewares([
+    authenticateAll
+  ])
+  @SuccessResponse('200', 'Notification marked as read')
+  @Response('404', 'Notification not found')
+  public async markAsRead(
+    @Path() id: number
+  ): Promise<Notification> {
+    try {
+      const notificationRepository = AppDataSource.getRepository(Notification);
+      const notification = await notificationRepository.findOne({ where: { id } });
+
+      if (!notification) {
+        this.setStatus(404);
+        throw new Error('Notification not found');
+      }
+
+      notification.read = true;
+      await notificationRepository.save(notification);
+      io.emit('notification:read', notification);
+      return notification;
+    } catch (err: any) {
+      throw new Error(`Error marking notification as read: ${err.message}`);
+    }
   }
 }
 
-const createNotification = async (userId: number, message: string) => {
+export const createNotification = async (userId: number, message: string) => {
   try {
     const notificationRepository = AppDataSource.getRepository(Notification)
     const userRepository = AppDataSource.getRepository(User)
@@ -65,5 +96,3 @@ const createNotification = async (userId: number, message: string) => {
     console.error('Failed to create notification', err)
   }
 }
-
-export { getNotifications, markAsRead, createNotification }

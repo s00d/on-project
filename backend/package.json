@@ -1,12 +1,13 @@
 {
-  "name": "backend",
+  "name": "on-project-api",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "NODE_ENV=development ts-node ./src/index.ts",
-    "build": "run-p type-check \"build-only {@}\" --",
+    "dev": "concurrently \"nodemon\" \"nodemon -x tsoa spec-and-routes\"",
+    "build": "NODE_ENV=development tsoa spec-and-routes && NODE_ENV=development tsc",
+    "start": "NODE_ENV=production node build/src/server.js",
+
     "build-only": "tsc",
-    "start": "NODE_ENV=production node ./dist/index.js",
     "format": "prettier --write src/",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
     "type-check": "vue-tsc --build --force",
@@ -25,6 +26,7 @@
     "crypto": "^1.0.1",
     "express": "^4.19.2",
     "express-formidable": "^1.2.0",
+    "express-openapi-decorator": "^0.0.6",
     "express-session": "^1.18.0",
     "express-validator": "^7.1.0",
     "express-youch": "^1.0.1",
@@ -40,6 +42,7 @@
     "sqlite3": "^5.1.7",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
+    "tsoa": "^6.4.0",
     "typeorm": "^0.3.20",
     "uuid": "^10.0.0"
   },

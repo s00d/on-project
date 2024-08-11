@@ -1,151 +1,173 @@
-import { Request, Response } from 'express'
-import bcrypt from 'bcrypt'
-import speakeasy from 'speakeasy'
-import qrcode from 'qrcode'
-import crypto from 'crypto'
-import { v4 as uuidv4 } from 'uuid'
-import { AppDataSource } from '../ormconfig'
-import { User } from '../models/User'
-import { transporter } from '../config/nodemailer'
-import { MoreThan } from 'typeorm'
+import {
+  Body,
+  Controller,
+  Post,
+  Get,
+  Route,
+  Tags,
+  Security,
+  Request,
+  Header,
+} from 'tsoa';
+import bcrypt from 'bcrypt';
+import speakeasy from 'speakeasy';
+import qrcode from 'qrcode';
+import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
+import { AppDataSource } from '../ormconfig';
+import { User } from '../models/User';
+import { transporter } from '../config/nodemailer';
+import { MoreThan } from 'typeorm';
 
-const createUser = async (username: string, email: string, password: string) => {
-  const hashedPassword = await bcrypt.hash(password, 10)
-  const apikey = uuidv4()
-  const userRepository = AppDataSource.getRepository(User)
-  const user = userRepository.create({ username, email, password: hashedPassword, apikey })
-  return await userRepository.save(user)
-}
+type UserDTO = Omit<User, 'password' | 'twoFactorSecret' | 'resetPasswordToken' | 'resetPasswordExpires' | 'projects' | 'notifications' | 'comments' | 'tasks' | 'projectUsers' | 'history' | 'taskTemplates' | 'labels'>
 
-const register = async (req: Request, res: Response) => {
-  const { username, email, password } = req.body
-  try {
-    const user = await createUser(username, email, password)
-    res.json(user)
-  } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+@Route('api/users')
+@Tags('User')
+@Security('session')
+@Security('apiKey')
+export class UserController extends Controller {
+
+  @Post('register')
+  public async register(
+    @Body() body: { username: string; email: string; password: string }
+  ): Promise<User> {
+    const { username, email, password } = body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const apikey = uuidv4();
+    const userRepository = AppDataSource.getRepository(User);
+    const user = userRepository.create({ username, email, password: hashedPassword, apikey });
+    return await userRepository.save(user);
   }
-}
 
-const login = async (req: Request, res: Response) => {
-  const { email, password } = req.body
-  const userRepository = AppDataSource.getRepository(User)
-  const user = await userRepository.findOne({ where: { email } })
+  @Post('login')
+  public async login(
+    @Body() body: { email: string; password: string },
+    @Request() req: Express.Request
+  ): Promise<{ auth: boolean; twoFactorRequired?: boolean }> {
+    const { email, password } = body;
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOne({ where: { email } });
 
-  if (user && (await bcrypt.compare(password, user.password))) {
-    if (user.twoFactorEnabled) {
-      res.json({ auth: false, twoFactorRequired: true })
-    } else {
-      req.session.user = user
-      res.json({ auth: true })
-    }
-  } else {
-    res.status(401).json({ error: 'Invalid credentials' })
-  }
-}
-
-const logout = async (req: Request, res: Response) => {
-  try {
-    req.session.destroy((err) => {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to logout' })
+    if (user && (await bcrypt.compare(password, user.password))) {
+      if (user.twoFactorEnabled) {
+        return { auth: false, twoFactorRequired: true };
+      } else {
+        req.session.user = user;
+        return { auth: true };
       }
-      res.json({ success: true })
-    })
-  } catch (err: any) {
-    const error = err as Error
-    res.status(500).json({ error: error.message })
+    } else {
+      this.setStatus(401);
+      throw new Error('Invalid credentials');
+    }
   }
-}
 
-const getMe = async (req: Request, res: Response) => {
-  const userRepository = AppDataSource.getRepository(User)
-  const user = await userRepository.findOne({ where: { id: req.session.user?.id } })
-  res.json({ user: user ?? null })
-}
+  @Post('logout')
+  public async logout(@Request() req: Express.Request): Promise<{ success: boolean }> {
+    return new Promise((resolve, reject) => {
+      console.log(111, req.session);
+      req.session.destroy((err) => {
+        if (err) {
+          this.setStatus(500);
+          reject({ error: 'Failed to logout' });
+        }
+        resolve({ success: true });
+      });
+    });
+  }
 
-const enable2FA = async (req: Request, res: Response) => {
-  const userId = req.session.user!.id
-  try {
-    const secret = speakeasy.generateSecret({ length: 20 })
+  @Get('me')
+  public async getMe(@Request() req: Express.Request): Promise<{user: UserDTO|null}> {
+    const userRepository = AppDataSource.getRepository(User);
+    console.log(111, req.session);
+    if (!req.session.user) {
+      return { user: null };
+    }
+    const user = await userRepository.findOne({ where: { id: req.session.user?.id } });
+    return { user: user ?? null };
+  }
+
+  @Post('2fa/enable')
+  public async enable2FA(@Request() req: Express.Request): Promise<{ qrCodeUrl: string }> {
+    const userId = req.session.user!.id;
+    const secret = speakeasy.generateSecret({ length: 20 });
     const url = speakeasy.otpauthURL({
       secret: secret.base32,
       label: `MyApp (${req.session.user!.email})`,
-      issuer: 'MyApp'
-    })
+      issuer: 'MyApp',
+    });
 
-    const userRepository = AppDataSource.getRepository(User)
-    await userRepository.update(userId, { twoFactorSecret: secret.base32 })
+    const userRepository = AppDataSource.getRepository(User);
+    await userRepository.update(userId, { twoFactorSecret: secret.base32 });
 
-    qrcode.toDataURL(url, (err, dataUrl) => {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to generate QR code' })
-      }
-      res.json({ qrCodeUrl: dataUrl })
-    })
-  } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+    return new Promise((resolve, reject) => {
+      qrcode.toDataURL(url, (err, dataUrl) => {
+        if (err) {
+          this.setStatus(500);
+          reject({ error: 'Failed to generate QR code' });
+        }
+        resolve({ qrCodeUrl: dataUrl });
+      });
+    });
   }
-}
 
-const verify2FA = async (req: Request, res: Response) => {
-  const userId = req.session.user!.id
-  const { token } = req.body
-  try {
-    const userRepository = AppDataSource.getRepository(User)
-    const user = await userRepository.findOne({ where: { id: userId } })
+  @Post('2fa/verify')
+  public async verify2FA(
+    @Body() body: { token: string },
+    @Request() req: Express.Request
+  ): Promise<{ success: boolean }> {
+    const userId = req.session.user!.id;
+    const { token } = body;
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOne({ where: { id: userId } });
+
     if (user && user.twoFactorSecret) {
       const verified = speakeasy.totp.verify({
         secret: user.twoFactorSecret,
         encoding: 'base32',
-        token
-      })
+        token,
+      });
 
       if (verified) {
-        await userRepository.update(userId, { twoFactorEnabled: true })
-        res.json({ success: true })
+        await userRepository.update(userId, { twoFactorEnabled: true });
+        return { success: true };
       } else {
-        res.status(400).json({ error: 'Invalid token' })
+        this.setStatus(400);
+        throw new Error('Invalid token');
       }
     } else {
-      res.status(404).json({ error: 'User not found or 2FA secret missing' })
+      this.setStatus(404);
+      throw new Error('User not found or 2FA secret missing');
     }
-  } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
   }
-}
 
-const disable2FA = async (req: Request, res: Response) => {
-  const userId = req.session.user!.id
-  try {
-    const userRepository = AppDataSource.getRepository(User)
-    await userRepository.update(userId, { twoFactorEnabled: false, twoFactorSecret: null })
-    res.json({ success: true })
-  } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+  @Post('2fa/disable')
+  public async disable2FA(@Request() req: Express.Request): Promise<{ success: boolean }> {
+    const userId = req.session.user!.id;
+    const userRepository = AppDataSource.getRepository(User);
+    await userRepository.update(userId, { twoFactorEnabled: false, twoFactorSecret: null });
+    return { success: true };
   }
-}
 
-const requestPasswordReset = async (req: Request, res: Response) => {
-  const { email } = req.body
-  try {
-    const userRepository = AppDataSource.getRepository(User)
-    const user = await userRepository.findOne({ where: { email } })
+  @Post('request-reset')
+  public async requestPasswordReset(
+    @Header() host: string,
+    @Body() body: { email: string }
+  ): Promise<{ message: string }> {
+    const { email } = body;
+    const userRepository = AppDataSource.getRepository(User);
+    const user = await userRepository.findOne({ where: { email } });
     if (!user) {
-      return res.status(404).json({ error: 'User not found' })
+      this.setStatus(404);
+      throw new Error('User not found');
     }
 
-    const token = crypto.randomBytes(20).toString('hex')
-    const resetTokenExpiry = new Date(Date.now() + 3600000) // 1 hour
+    const token = crypto.randomBytes(20).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour
 
     await userRepository.update(user.id, {
       resetPasswordToken: token,
-      resetPasswordExpires: resetTokenExpiry
-    })
+      resetPasswordExpires: resetTokenExpiry,
+    });
 
     const mailOptions = {
       to: email,
@@ -153,60 +175,54 @@ const requestPasswordReset = async (req: Request, res: Response) => {
       subject: 'Password Reset',
       text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n
       Please click on the following link, or paste this into your browser to complete the process:\n\n
-      http://${req.headers.host}/reset/${token}\n\n
-      If you did not request this, please ignore this email and your password will remain unchanged.\n`
-    }
+      http://${host}/reset/${token}\n\n
+      If you did not request this, please ignore this email and your password will remain unchanged.\n`,
+    };
 
-    transporter.sendMail(mailOptions, (err) => {
-      if (err) {
-        return res.status(500).json({ error: 'Failed to send email' })
-      }
-      res.json({ message: 'Email sent' })
-    })
-  } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+    return new Promise((resolve, reject) => {
+      transporter.sendMail(mailOptions, (err) => {
+        if (err) {
+          this.setStatus(500);
+          reject({ error: 'Failed to send email' });
+        }
+        resolve({ message: 'Email sent' });
+      });
+    });
   }
-}
 
-const resetPassword = async (req: Request, res: Response) => {
-  const { token, newPassword } = req.body
-  try {
-    const userRepository = AppDataSource.getRepository(User)
+  @Post('reset-password')
+  public async resetPassword(
+    @Body() body: { token: string; newPassword: string }
+  ): Promise<{ message: string }> {
+    const { token, newPassword } = body;
+    const userRepository = AppDataSource.getRepository(User);
     const user = await userRepository.findOne({
       where: {
         resetPasswordToken: token,
-        resetPasswordExpires: MoreThan(new Date())
-      }
-    })
+        resetPasswordExpires: MoreThan(new Date()),
+      },
+    });
 
     if (!user) {
-      return res.status(400).json({ error: 'Password reset token is invalid or has expired' })
+      this.setStatus(400);
+      throw new Error('Password reset token is invalid or has expired');
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10)
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
     await userRepository.update(user.id, {
       password: hashedPassword,
       resetPasswordToken: null,
-      resetPasswordExpires: null
-    })
+      resetPasswordExpires: null,
+    });
 
-    res.json({ message: 'Password has been reset' })
-  } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+    return { message: 'Password has been reset' };
   }
 }
 
-export {
-  createUser,
-  register,
-  login,
-  logout,
-  getMe,
-  enable2FA,
-  verify2FA,
-  disable2FA,
-  requestPasswordReset,
-  resetPassword
+export const createUser = async (username: string, email: string, password: string) => {
+  const hashedPassword = await bcrypt.hash(password, 10)
+  const apikey = uuidv4()
+  const userRepository = AppDataSource.getRepository(User)
+  const user = userRepository.create({ username, email, password: hashedPassword, apikey })
+  return await userRepository.save(user)
 }

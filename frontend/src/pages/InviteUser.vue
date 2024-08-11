@@ -112,7 +112,7 @@ const inviteUser = async () => {
     useAlertStore().setAlert('User invited successfully', 'success')
     fetchInvitedUsers() // Refresh the list after inviting
   } catch (error: any) {
-    useAlertStore().setAlert(`Failed to invite user: ${error.response?.data?.error}`, 'danger')
+    useAlertStore().setAlert(error.response?.data?.message, 'danger')
   }
 }
 
@@ -122,7 +122,7 @@ const deActiveUser = async (id: number) => {
     useAlertStore().setAlert('User removed successfully', 'success')
     fetchInvitedUsers() // Refresh the list after removing
   } catch (error: any) {
-    useAlertStore().setAlert(`Failed to remove user: ${error.response?.data?.error}`, 'danger')
+    useAlertStore().setAlert(error.response?.data?.message, 'danger')
   }
 }
 

@@ -1,37 +1,3 @@
-/**
- * @swagger
- * components:
- *   schemas:
- *     ProjectUser:
- *       type: object
- *       properties:
- *         id:
- *           type: integer
- *           description: The unique identifier for the project user association.
- *           example: 1
- *         project:
- *           $ref: '#/components/schemas/Project'
- *           description: The project associated with the user.
- *         user:
- *           $ref: '#/components/schemas/User'
- *           description: The user associated with the project.
- *         tasks:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/Task'
- *           description: The list of tasks assigned to the user in the project.
- *         createdAt:
- *           type: string
- *           format: date-time
- *           description: The date and time when the record was created.
- *           example: "2023-08-01T12:34:56Z"
- *         updatedAt:
- *           type: string
- *           format: date-time
- *           description: The date and time when the record was last updated.
- *           example: "2023-08-02T12:34:56Z"
- */
-
 import {
   Entity,
   PrimaryGeneratedColumn,

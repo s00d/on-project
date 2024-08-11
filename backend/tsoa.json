@@ -1,0 +1,36 @@
+{
+  "entryFile": "src/index.ts",
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "controllerPathGlobs": ["src/controllers/*.ts"],
+  "spec": {
+    "outputDirectory": "dist",
+    "specVersion": 3,
+    "securityDefinitions": {
+      "bearer": {
+        "type": "basic"
+      },
+      "api_key": {
+        "type": "apiKey",
+        "name": "Authorization",
+        "in": "header"
+      }
+    },
+    "security": [
+      {
+        "bearer": []
+      },
+      {
+        "api_key": []
+      }
+    ],
+    "info": {
+      "title": "on-project api",
+      "description": "task manager",
+      "version": "1.0.0"
+    }
+  },
+  "routes": {
+    "authenticationModule": "./src/authentication.ts",
+    "routesDir": "src/routes"
+  }
+}

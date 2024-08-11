@@ -3,9 +3,7 @@
     <div class="content">
       <div class="container mt-5">
         <h1>Projects</h1>
-        <router-link class="btn btn-primary mb-3" :to="{ name: 'AddProject' }"
-          >Add Project</router-link
-        >
+        <a class="btn btn-primary mb-3" @click="() => showEditProject()">Add Project</a>
         <div v-if="projects.length === 0" class="alert alert-info">No projects available</div>
         <ul class="list-group">
           <li
@@ -23,13 +21,13 @@
                 :to="{ name: 'TaskList', params: { projectId: project.id } }"
                 >Select</router-link
               >
-              <router-link
+              <a
                 v-if="project.ownerId === userId"
                 class="btn btn-secondary ms-2"
-                :to="{ name: 'EditProject', params: { projectId: project.id } }"
+                @click="() => showEditProject(project)"
               >
                 Edit
-              </router-link>
+              </a>
               <button
                 v-if="project.ownerId === userId"
                 class="btn btn-danger ms-2"
@@ -52,15 +50,36 @@
       @confirm="deleteProject"
       @close="closeModal"
     />
+
+    <ModalComponent
+      :isOpen="isProjectModalOpen"
+      :title="selectedProject ? 'Edit Details' : 'Create Details'"
+      @close="closeModal"
+      pos="fixed-left"
+    >
+      <template #body>
+        <ProjectCard
+          v-if="isProjectModalOpen && selectedProject"
+          :initialTaskData="selectedProject"
+          mode="edit"
+        />
+        <ProjectCard
+          v-if="isProjectModalOpen && !selectedProject"
+          mode="create"
+        />
+      </template>
+    </ModalComponent>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed, onMounted } from 'vue'
-import { useProjectStore } from '@/stores/projectStore'
+import {type Project, useProjectStore} from '@/stores/projectStore'
 import { useAuthStore } from '@/stores/authStore'
 import { marked } from 'marked'
 import ConfirmationModal from '@/components/ConfirmationModal.vue'
+import ProjectCard from "@/components/tasks/ProjectCard.vue";
+import ModalComponent from "@/components/ModalComponent.vue";
 
 const projectStore = useProjectStore()
 const authStore = useAuthStore()
@@ -68,6 +87,9 @@ const authStore = useAuthStore()
 const showDeleteModal = ref(false)
 const projectToDelete = ref<number | null>(null)
 const projectNameToDelete = ref<string | null>(null)
+
+const isProjectModalOpen = ref(false)
+const selectedProject = ref<null | Project>(null)
 
 onMounted(() => {
   projectStore.fetchProjects()
@@ -86,10 +108,17 @@ const deleteProject = async () => {
   }
 }
 
+const showEditProject = (project: null|Project = null) => {
+  isProjectModalOpen.value = true
+  selectedProject.value = project
+}
+
 const closeModal = () => {
   showDeleteModal.value = false
   projectToDelete.value = null
   projectNameToDelete.value = null
+  isProjectModalOpen.value = false
+  selectedProject.value = null
 }
 
 const parseMd = (val: string) => {

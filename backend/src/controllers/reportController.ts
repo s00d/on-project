@@ -1,455 +1,357 @@
-import { Request, Response } from 'express'
-import { AppDataSource } from '../ormconfig'
-import { Project } from '../models/Project'
-import { Task } from '../models/Task'
+import {Controller, Get, Post, Query, Path, Body, Middlewares, Route, Tags, Security} from 'tsoa';
+import { AppDataSource } from '../ormconfig';
+import { Project } from '../models/Project';
+import { Task } from '../models/Task';
+import { authenticateAll } from '../middlewares/authMiddleware';
 
-const generateReport = async (req: Request, res: Response) => {
-  const { projectId } = req.params
-  const { startDate, user = 'all' } = req.query
+// Define response types
+interface GenerateReportResponse {
+  project: string;
+  description: string;
+  completedTasks: number;
+  totalTasks: number;
+  taskStatusDistribution: Record<string, number>;
+}
 
-  try {
-    const projectRepository = AppDataSource.getRepository(Project)
+interface PriorityReportResponse {
+  [key: string]: number;
+}
 
-    // Создаем QueryBuilder для получения данных с фильтрацией на уровне БД
+interface OverdueReportResponse {
+  [key: string]: number;
+}
+
+interface TeamPerformanceResponse {
+  [key: string]: {
+    total: number;
+    completed: number;
+  };
+}
+
+interface PriorityDistributionReportResponse {
+  [key: string]: number;
+}
+
+interface ProgressReportResponse {
+  [key: string]: {
+    total: number;
+    completed: number;
+  };
+}
+
+interface TeamWorkloadReportResponse {
+  [key: string]: number;
+}
+
+interface UniversalReportBody {
+  model: string;
+  fields: string[];
+  filters: Record<string, any>;
+  groupBy?: string;
+  sortBy?: string;
+  sortOrder?: 'ASC' | 'DESC';
+  chartType?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+interface UniversalReportResponse {
+  chartType: string;
+  reportData: any[];
+}
+
+@Route('api/reports')
+@Tags('Reports')
+@Security('session')
+@Security('apiKey')
+export class ReportController extends Controller {
+
+  @Get('/project/{projectId}')
+  @Middlewares([
+    authenticateAll
+  ])
+  public async generateReport(
+    @Path() projectId: number,
+    @Query() startDate?: string,
+    @Query() user: number | 'all' = 'all'
+  ): Promise<GenerateReportResponse> {
+    const projectRepository = AppDataSource.getRepository(Project);
     const queryBuilder = projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.tasks', 'task')
       .leftJoinAndSelect('task.assignees', 'assignee')
-      .where('project.id = :projectId', { projectId: parseInt(projectId) })
+      .where('project.id = :projectId', { projectId });
 
-    // Фильтрация по дате обновления задач
     if (startDate) {
-      queryBuilder.andWhere('task.updatedAt >= :startDate', {
-        startDate: new Date(startDate as string)
-      })
+      queryBuilder.andWhere('task.updatedAt >= :startDate', { startDate: new Date(startDate) });
     }
 
-    // Фильтрация по пользователю, если указан
     if (user !== 'all') {
-      queryBuilder.andWhere('assignee.id = :userId', { userId: parseInt(user as string) })
+      queryBuilder.andWhere('assignee.id = :userId', { userId: user });
     }
 
-    const project = await queryBuilder.getOne()
+    const project = await queryBuilder.getOne();
 
     if (!project) {
-      return res.status(404).json({ error: 'Project not found' })
+      throw new Error('Project not found');
     }
 
-    const tasks = project.tasks
-
-    const completedTasks = tasks.filter((task) => task.status === 'Done').length
-    const totalTasks = tasks.length
+    const tasks = project.tasks;
+    const completedTasks = tasks.filter(task => task.status === 'Done').length;
+    const totalTasks = tasks.length;
 
     const taskStatusDistribution = tasks.reduce((acc: Record<string, number>, task) => {
-      acc[task.status] = (acc[task.status] || 0) + 1
-      return acc
-    }, {})
+      acc[task.status] = (acc[task.status] || 0) + 1;
+      return acc;
+    }, {});
 
-    const report = {
+    return {
       project: project.name,
       description: project.description,
       completedTasks,
       totalTasks,
       taskStatusDistribution
+    };
+  }
+
+  @Get('/project/{projectId}/priority_distribution')
+  @Middlewares([
+    authenticateAll
+  ])
+  public async generatePriorityReport(
+    @Path() projectId: number,
+    @Query() user: string | 'all' = 'all',
+    @Query() startDate?: string,
+    @Query() type: 'bar' | 'pie' = 'bar'
+  ): Promise<PriorityReportResponse> {
+    const projectRepository = AppDataSource.getRepository(Project);
+
+    // Проверяем существование проекта перед выполнением запроса
+    const projectExists = await projectRepository.findOne({ where: { id: projectId } });
+    if (!projectExists) {
+      throw new Error('Project not found');
     }
 
-    res.json(report)
-  } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
-  }
-}
-
-const generatePriorityReport = async (req: Request, res: Response) => {
-  const { projectId } = req.params
-  const { user = 'all', startDate } = req.query
-
-  try {
-    const projectRepository = AppDataSource.getRepository(Project)
-
+    // Создаем запрос для задач проекта
     const queryBuilder = projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.tasks', 'task')
       .leftJoinAndSelect('task.assignees', 'assignee')
-      .where('project.id = :projectId', { projectId: parseInt(projectId) })
+      .where('project.id = :projectId', { projectId });
 
-    // Фильтрация по дате создания задачи
     if (startDate) {
-      queryBuilder.andWhere('task.createdAt >= :startDate', {
-        startDate: new Date(startDate.toString())
-      })
+      queryBuilder.andWhere('task.createdAt >= :startDate', { startDate: new Date(startDate) });
     }
 
-    // Фильтрация по назначенному пользователю, если указан
     if (user !== 'all') {
-      queryBuilder.andWhere('assignee.id = :userId', { userId: parseInt(user as string) })
+      queryBuilder.andWhere('assignee.id = :userId', { userId: user });
     }
 
-    const project = await queryBuilder.getOne()
+    const project = await queryBuilder.getOne();
 
-    if (!project) {
-      return res.status(404).json({ error: 'Project not found' })
+    // Если задач нет, возвращаем пустой объект
+    if (!project || !project.tasks.length) {
+      return {};
     }
 
-    const reportData = project.tasks.reduce((acc: Record<string, number>, task: Task) => {
-      acc[task.priority] = (acc[task.priority] || 0) + 1
-      return acc
-    }, {})
-
-    res.json(reportData)
-  } catch (err: any) {
-    res.status(400).json({ error: err.message })
+    // Генерируем отчет
+    return project.tasks.reduce((acc: Record<string, number>, task: Task) => {
+      const key = type === 'bar' ? task.priority : task.status;
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
   }
-}
 
-const generateOverdueReport = async (req: Request, res: Response) => {
-  const { projectId } = req.params
-  const { startDate } = req.query
+  @Get('/project/{projectId}/overdue')
+  @Middlewares([
+    authenticateAll
+  ])
+  public async generateOverdueReport(
+    @Path() projectId: number,
+    @Query() startDate?: string
+  ): Promise<OverdueReportResponse> {
+    const projectRepository = AppDataSource.getRepository(Project);
 
-  try {
-    const projectRepository = AppDataSource.getRepository(Project)
+    // Проверяем существование проекта
+    const projectExists = await projectRepository.findOne({ where: { id: projectId } });
+    if (!projectExists) {
+      throw new Error('Project not found');
+    }
 
-    // Получаем задачи с помощью QueryBuilder
+    // Создаем запрос для задач
     const queryBuilder = projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.tasks', 'task')
-      .where('project.id = :projectId', { projectId: parseInt(projectId) })
+      .where('project.id = :projectId', { projectId })
       .andWhere('task.dueDate IS NOT NULL')
       .andWhere('task.dueDate < :now', { now: new Date() })
-      .andWhere('task.status != :status', { status: 'Done' })
+      .andWhere('task.status != :status', { status: 'Done' });
 
     if (startDate) {
-      queryBuilder.andWhere('task.createdAt >= :startDate', {
-        startDate: new Date(startDate.toString())
-      })
+      queryBuilder.andWhere('task.createdAt >= :startDate', { startDate: new Date(startDate) });
     }
 
-    const project = await queryBuilder.getOne()
+    const project = await queryBuilder.getOne();
 
-    if (!project) {
-      return res.status(404).json({ error: 'Project not found' })
+    // Если у проекта нет задач, возвращаем пустой объект
+    if (!project || !project.tasks.length) {
+      return {};
     }
 
-    const overdueData = project.tasks.reduce(
-      (acc, task) => {
-        const date = new Date(task.dueDate!).toLocaleDateString()
-        if (!acc[date]) {
-          acc[date] = 0
-        }
-        acc[date] += 1
-        return acc
-      },
-      {} as Record<string, number>
-    )
-
-    res.json(overdueData)
-  } catch (err: any) {
-    res.status(400).json({ error: err.message })
+    return project.tasks.reduce((acc: Record<string, number>, task: Task) => {
+      const date = new Date(task.dueDate!).toLocaleDateString();
+      acc[date] = (acc[date] || 0) + 1;
+      return acc;
+    }, {});
   }
-}
 
-const generateTeamPerformanceReport = async (req: Request, res: Response) => {
-  const { projectId } = req.params
-  const { startDate } = req.query
-
-  try {
-    const projectRepository = AppDataSource.getRepository(Project)
-
-    // Используем QueryBuilder для выполнения фильтрации на уровне базы данных
+  @Get('/project/{projectId}/performance')
+  @Middlewares([
+    authenticateAll
+  ])
+  public async generateTeamPerformanceReport(
+    @Path() projectId: number,
+    @Query() startDate?: string
+  ): Promise<TeamPerformanceResponse> {
+    const projectRepository = AppDataSource.getRepository(Project);
     const queryBuilder = projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.tasks', 'task')
       .leftJoinAndSelect('task.assignees', 'assignee')
-      .where('project.id = :projectId', { projectId: parseInt(projectId) })
+      .where('project.id = :projectId', { projectId });
 
     if (startDate) {
-      queryBuilder.andWhere('task.createdAt >= :startDate', {
-        startDate: new Date(startDate.toString())
-      })
+      queryBuilder.andWhere('task.createdAt >= :startDate', { startDate: new Date(startDate) });
     }
 
-    const project = await queryBuilder.getOne()
+    const project = await queryBuilder.getOne();
 
     if (!project) {
-      return res.status(404).json({ error: 'Project not found' })
+      throw new Error('Project not found');
     }
 
-    const performance = project.tasks.reduce(
-      (acc, task) => {
-        task.assignees.forEach((assignee) => {
-          acc[assignee.id] = acc[assignee.id] || { total: 0, completed: 0 }
-          acc[assignee.id].total += 1
-          if (task.status === 'Done') {
-            acc[assignee.id].completed += 1
-          }
-        })
-        return acc
-      },
-      {} as Record<number, { total: number; completed: number }>
-    )
-
-    res.json(performance)
-  } catch (err: any) {
-    res.status(400).json({ error: err.message })
-  }
-}
-
-const generatePriorityDistributionReport = async (req: Request, res: Response) => {
-  const { projectId } = req.params
-  const { period = 'all', user = 'all', type = 'priority', startDate } = req.query
-
-  try {
-    const projectRepository = AppDataSource.getRepository(Project)
-
-    // Используем QueryBuilder для выполнения фильтрации на уровне базы данных
-    const queryBuilder = projectRepository
-      .createQueryBuilder('project')
-      .leftJoinAndSelect('project.tasks', 'task')
-      .leftJoinAndSelect('task.assignees', 'assignee')
-      .where('project.id = :projectId', { projectId: parseInt(projectId) })
-
-    // Фильтрация по дате создания задачи
-    if (startDate) {
-      queryBuilder.andWhere('task.createdAt >= :startDate', {
-        startDate: new Date(startDate.toString())
-      })
-    }
-
-    // Фильтрация по назначенному пользователю, если указан
-    if (user !== 'all') {
-      queryBuilder.andWhere('assignee.id = :userId', { userId: parseInt(user.toString()) })
-    }
-
-    const project = await queryBuilder.getOne()
-
-    if (!project) {
-      return res.status(404).json({ error: 'Project not found' })
-    }
-
-    const reportData = project.tasks.reduce((acc: Record<string, number>, task: Task) => {
-      const key = type === 'priority' ? task.priority : task.status
-      acc[key] = (acc[key] || 0) + 1
-      return acc
-    }, {})
-
-    res.json(reportData)
-  } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
-  }
-}
-
-const generateProgressReport = async (req: Request, res: Response) => {
-  const { projectId } = req.params
-  const { startDate } = req.query
-
-  try {
-    const projectRepository = AppDataSource.getRepository(Project)
-
-    // Используем QueryBuilder для выполнения фильтрации на уровне базы данных
-    const queryBuilder = projectRepository
-      .createQueryBuilder('project')
-      .leftJoinAndSelect('project.tasks', 'task')
-      .where('project.id = :projectId', { projectId: parseInt(projectId) })
-
-    if (startDate) {
-      queryBuilder.andWhere('task.createdAt >= :startDate', {
-        startDate: new Date(startDate.toString())
-      })
-    }
-
-    const project = await queryBuilder.getOne()
-
-    if (!project) {
-      return res.status(404).json({ error: 'Project not found' })
-    }
-
-    const progress = project.tasks.reduce(
-      (acc, task) => {
-        const date = new Date(task.updatedAt).toLocaleDateString()
-        if (!acc[date]) {
-          acc[date] = { total: 0, completed: 0 }
+    const teamPerformance: TeamPerformanceResponse = project.tasks.reduce((acc: TeamPerformanceResponse, task: Task) => {
+      task.assignees.forEach((assignee) => {
+        const assigneeId = String(assignee.id);
+        if (!acc[assigneeId]) {
+          acc[assigneeId] = { total: 0, completed: 0 };
         }
-        acc[date].total += 1
+        acc[assigneeId].total += 1;
         if (task.status === 'Done') {
-          acc[date].completed += 1
+          acc[assigneeId].completed += 1;
         }
-        return acc
-      },
-      {} as Record<string, { total: number; completed: number }>
-    )
+      });
+      return acc;
+    }, {});
 
-    res.json(progress)
-  } catch (err: any) {
-    res.status(400).json({ error: err.message })
+    return teamPerformance;
   }
-}
 
-const generateTeamWorkloadReport = async (req: Request, res: Response) => {
-  const { projectId } = req.params
-  const { startDate } = req.query
+  @Get('/project/{projectId}/progress')
+  @Middlewares([
+    authenticateAll
+  ])
+  public async generateProgressReport(
+    @Path() projectId: number,
+    @Query() startDate?: string
+  ): Promise<ProgressReportResponse> {
+    const projectRepository = AppDataSource.getRepository(Project);
+    const queryBuilder = projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.tasks', 'task')
+      .where('project.id = :projectId', { projectId });
 
-  try {
-    const projectRepository = AppDataSource.getRepository(Project)
+    if (startDate) {
+      queryBuilder.andWhere('task.createdAt >= :startDate', { startDate: new Date(startDate) });
+    }
 
-    // Используем QueryBuilder для выполнения фильтрации на уровне базы данных
+    const project = await queryBuilder.getOne();
+
+    if (!project) {
+      throw new Error('Project not found');
+    }
+
+    return project.tasks.reduce((acc: Record<string, { total: number; completed: number }>, task: Task) => {
+      const date = new Date(task.updatedAt).toLocaleDateString();
+      acc[date] = acc[date] || { total: 0, completed: 0 };
+      acc[date].total += 1;
+      if (task.status === 'Done') {
+        acc[date].completed += 1;
+      }
+      return acc;
+    }, {});
+  }
+
+  @Get('/project/{projectId}/workload')
+  @Middlewares([
+    authenticateAll
+  ])
+  public async generateTeamWorkloadReport(
+    @Path() projectId: number,
+    @Query() startDate?: string
+  ): Promise<TeamWorkloadReportResponse> {
+    const projectRepository = AppDataSource.getRepository(Project);
     const queryBuilder = projectRepository
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.tasks', 'task')
       .leftJoinAndSelect('task.assignees', 'assignee')
-      .where('project.id = :projectId', { projectId: parseInt(projectId) })
+      .where('project.id = :projectId', { projectId });
 
     if (startDate) {
-      queryBuilder.andWhere('task.createdAt >= :startDate', {
-        startDate: new Date(startDate.toString())
-      })
+      queryBuilder.andWhere('task.createdAt >= :startDate', { startDate: new Date(startDate) });
     }
 
-    const project = await queryBuilder.getOne()
+    const project = await queryBuilder.getOne();
 
     if (!project) {
-      return res.status(404).json({ error: 'Project not found' })
+      throw new Error('Project not found');
     }
 
-    const workload = project.tasks.reduce(
-      (acc, task) => {
-        task.assignees.forEach((assignee) => {
-          acc[assignee.id] = (acc[assignee.id] || 0) + 1
-        })
-        return acc
-      },
-      {} as Record<number, number>
-    )
-
-    res.json(workload)
-  } catch (err: any) {
-    res.status(400).json({ error: err.message })
-  }
-}
-
-const generateUniversalReport = async (req: Request, res: Response) => {
-  const modelFields = {
-    Task: [
-      'id',
-      'title',
-      'status',
-      'priority',
-      'dueDate',
-      'createdAt',
-      'updatedAt',
-      'type',
-      'tags'
-    ],
-    User: ['id', 'username', 'email', 'createdAt', 'updatedAt'],
-    Project: ['id', 'name', 'description', 'createdAt', 'updatedAt'],
-    Sprint: ['id', 'title', 'startDate', 'endDate', 'createdAt', 'updatedAt'],
-    Label: ['id', 'name', 'color', 'createdAt', 'updatedAt']
+    return project.tasks.reduce((acc: TeamWorkloadReportResponse, task: Task) => {
+      task.assignees.forEach((assignee) => {
+        const assigneeId = String(assignee.id); // Convert the assignee ID to a string
+        acc[assigneeId] = (acc[assigneeId] || 0) + 1;
+      });
+      return acc;
+    }, {});
   }
 
-  const {
-    model = '', // Одна модель (Task, User, Project и т.д.)
-    fields = [], // Поля, которые должны быть включены в отчет
-    filters = {}, // Объект с фильтрами { поле: значение }
-    groupBy, // Поле для группировки
-    sortBy, // Поле для сортировки
-    sortOrder = 'ASC', // Порядок сортировки
-    chartType = 'bar', // Тип диаграммы
-    startDate, // Начальная дата для временного интервала
-    endDate // Конечная дата для временного интервала
-  } = req.body
+  @Post('/project/{projectId}/universal')
+  @Middlewares([
+    authenticateAll
+  ])
+  public async generateUniversalReport(
+    @Path() projectId: number,
+    @Body() body: UniversalReportBody
+  ): Promise<UniversalReportResponse> {
+    const { model, fields, filters, groupBy, sortBy, sortOrder, chartType, startDate, endDate } = body;
 
-  try {
-    // Проверка модели
-    // @ts-ignore
-    if (!modelFields[model]) {
-      return res.status(400).json({ error: 'Invalid model selected.' })
-    }
+    const repo = AppDataSource.getRepository(model); // Assuming dynamic repository access
 
-    // Проверка полей
-    for (const field of fields) {
-      // @ts-ignore
-      if (!modelFields[model].includes(field)) {
-        return res
-          .status(400)
-          .json({ error: `Invalid field '${field}' selected for model '${model}'.` })
-      }
-    }
+    let queryBuilder = repo.createQueryBuilder(model.toLowerCase());
+    queryBuilder = queryBuilder.select(fields);
 
-    // Проверка поля группировки
-    // @ts-ignore
-    if (groupBy && !modelFields[model].includes(groupBy)) {
-      return res
-        .status(400)
-        .json({ error: `Invalid group by field '${groupBy}' selected for model '${model}'.` })
-    }
+    Object.keys(filters).forEach((key) => {
+      queryBuilder.andWhere(`${model.toLowerCase()}.${key} = :${key}`, { [key]: filters[key] });
+    });
 
-    // Проверка поля сортировки
-    // @ts-ignore
-    if (sortBy && !modelFields[model].includes(sortBy)) {
-      return res
-        .status(400)
-        .json({ error: `Invalid sort by field '${sortBy}' selected for model '${model}'.` })
-    }
-
-    const entity = AppDataSource.getRepository(model)
-
-    let query = entity.createQueryBuilder('entity')
-
-    // Выбор полей
-    if (fields.length > 0) {
-      query = query.select(fields.map((field: any) => `entity.${field}`))
-    }
-
-    // Фильтры
-    for (const [field, value] of Object.entries(filters)) {
-      if (Array.isArray(value)) {
-        query = query.andWhere(`entity.${field} IN (:...values)`, { values: value })
-      } else if (typeof value === 'string' && value.includes('%')) {
-        query = query.andWhere(`entity.${field} LIKE :value`, { value })
-      } else {
-        query = query.andWhere(`entity.${field} = :value`, { value })
-      }
-    }
-
-    // Временной интервал
     if (startDate && endDate) {
-      query = query.andWhere(`entity.createdAt BETWEEN :start AND :end`, {
-        start: startDate,
-        end: endDate
-      })
+      queryBuilder.andWhere(`${model.toLowerCase()}.createdAt BETWEEN :startDate AND :endDate`, { startDate, endDate });
     }
 
-    // Сортировка
-    if (sortBy) {
-      query = query.orderBy(`entity.${sortBy}`, sortOrder)
-    }
-
-    // Группировка
-    let results
     if (groupBy) {
-      query = query
-        .addSelect(`entity.${groupBy}`, 'groupByField')
-        .addSelect('COUNT(*)', 'count')
-        .groupBy(`entity.${groupBy}`)
-
-      results = await query.getRawMany()
-    } else {
-      results = await query.getRawMany()
+      queryBuilder.addGroupBy(`${model.toLowerCase()}.${groupBy}`);
     }
 
-    res.json({ chartType, reportData: results })
-  } catch (err: any) {
-    res.status(400).json({ error: err.message })
-  }
-}
+    if (sortBy) {
+      queryBuilder.addOrderBy(`${model.toLowerCase()}.${sortBy}`, sortOrder);
+    }
 
-export {
-  generateReport,
-  generatePriorityReport,
-  generateOverdueReport,
-  generateTeamPerformanceReport,
-  generatePriorityDistributionReport,
-  generateProgressReport,
-  generateTeamWorkloadReport,
-  generateUniversalReport
+    const result = await queryBuilder.getRawMany();
+
+    return {
+      chartType: chartType || 'bar',
+      reportData: result
+    };
+  }
 }

@@ -1,91 +1,119 @@
-import { Request, Response } from 'express'
-import { Label } from '../models/Label'
-import { AppDataSource } from '../ormconfig'
+import {Controller, Get, Post, Put, Delete, Route, Path, Body, Request, Middlewares, Security, Tags} from 'tsoa';
+import { Label } from '../models/Label';
+import { AppDataSource } from '../ormconfig';
+import { Request as ExpressRequest } from 'express';
+import { authenticateAll } from '../middlewares/authMiddleware';
 
-const getLabels = async (req: Request, res: Response) => {
-  const { projectId } = req.params
-  try {
-    const labelRepository = AppDataSource.getRepository(Label)
+@Route('api/labels')
+@Tags('Labels')
+@Security('session')
+@Security('apiKey')
+export class LabelController extends Controller {
 
-    const labels = await labelRepository
-      .createQueryBuilder('label')
-      .where('label.projectId = :projectId', { projectId: parseInt(projectId) })
-      .getMany()
-
-    res.json(labels)
-  } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
-  }
-}
-
-const createLabel = async (req: Request, res: Response) => {
-  const { name, color } = req.body
-  const userId = req.session.user!.id
-  const { projectId } = req.params
-
-  try {
-    const labelRepository = AppDataSource.getRepository(Label)
-
-    const label = labelRepository.create({
-      name,
-      color,
-      project: { id: parseInt(projectId) },
-      user: { id: userId }
-    })
-    await labelRepository.save(label)
-    res.json(label)
-  } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
-  }
-}
-
-const updateLabel = async (req: Request, res: Response) => {
-  const { id, projectId } = req.params
-  const { name, color } = req.body
-  const userId = req.session.user!.id
-
-  try {
-    const labelRepository = AppDataSource.getRepository(Label)
-
-    const label = await labelRepository.findOne({
-      where: { id: parseInt(id), project: { id: parseInt(projectId) }, user: { id: userId } }
-    })
-    if (label) {
-      label.name = name
-      label.color = color
-      await labelRepository.save(label)
-      res.json(label)
-    } else {
-      res.status(404).json({ error: 'Label not found' })
+  @Get('{projectId}/')
+  @Middlewares([
+    authenticateAll
+  ])
+  public async getLabels(
+    @Path() projectId: number
+  ): Promise<Label[]> {
+    try {
+      const labelRepository = AppDataSource.getRepository(Label);
+      return await labelRepository
+        .createQueryBuilder('label')
+        .where('label.projectId = :projectId', { projectId })
+        .getMany();
+    } catch (err: any) {
+      throw new Error(`Error fetching labels: ${err.message}`);
     }
-  } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
   }
-}
 
-const deleteLabel = async (req: Request, res: Response) => {
-  const { id, projectId } = req.params
-  const userId = req.session.user!.id
+  @Post('{projectId}/')
+  @Middlewares([
+    authenticateAll
+  ])
+  public async createLabel(
+    @Request() req: ExpressRequest,
+    @Path() projectId: number,
+    @Body() requestBody: { name: string, color: string }
+  ): Promise<Label> {
+    try {
+      const { name, color } = requestBody;
+      const userId = req.session.user!.id;
 
-  try {
-    const labelRepository = AppDataSource.getRepository(Label)
+      const labelRepository = AppDataSource.getRepository(Label);
 
-    const label = await labelRepository.findOne({
-      where: { id: parseInt(id), project: { id: parseInt(projectId) }, user: { id: userId } }
-    })
-    if (label) {
-      await labelRepository.remove(label)
-      res.status(204).end()
-    } else {
-      res.status(404).json({ error: 'Label not found' })
+      const label = labelRepository.create({
+        name,
+        color,
+        project: { id: projectId },
+        user: { id: userId }
+      });
+
+      return await labelRepository.save(label);
+    } catch (err: any) {
+      throw new Error(`Error creating label: ${err.message}`);
     }
-  } catch (err: any) {
-    const error = err as Error
-    res.status(400).json({ error: error.message })
+  }
+
+  @Put('{projectId}/{id}')
+  @Middlewares([
+    authenticateAll
+  ])
+  public async updateLabel(
+    @Request() req: ExpressRequest,
+    @Path() id: number,
+    @Path() projectId: number,
+    @Body() requestBody: { name: string, color: string }
+  ): Promise<Label> {
+    try {
+      const { name, color } = requestBody;
+      const userId = req.session.user!.id;
+
+      const labelRepository = AppDataSource.getRepository(Label);
+
+      const label = await labelRepository.findOne({
+        where: { id, project: { id: projectId }, user: { id: userId } }
+      });
+
+      if (!label) {
+        throw new Error('Label not found');
+      }
+
+      label.name = name;
+      label.color = color;
+
+      return await labelRepository.save(label);
+    } catch (err: any) {
+      throw new Error(`Error updating label: ${err.message}`);
+    }
+  }
+
+  @Delete('{projectId}/{id}')
+  @Middlewares([
+    authenticateAll
+  ])
+  public async deleteLabel(
+    @Request() req: ExpressRequest,
+    @Path() id: number,
+    @Path() projectId: number
+  ): Promise<void> {
+    try {
+      const userId = req.session.user!.id;
+
+      const labelRepository = AppDataSource.getRepository(Label);
+
+      const label = await labelRepository.findOne({
+        where: { id, project: { id: projectId }, user: { id: userId } }
+      });
+
+      if (!label) {
+        throw new Error('Label not found');
+      }
+
+      await labelRepository.remove(label);
+    } catch (err: any) {
+      throw new Error(`Error deleting label: ${err.message}`);
+    }
   }
 }
-
-export { getLabels, createLabel, updateLabel, deleteLabel }

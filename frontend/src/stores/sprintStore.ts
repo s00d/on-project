@@ -33,16 +33,16 @@ export const useSprintStore = defineStore('sprint', {
     },
     async createSprint(
       projectId: number,
+      roadmapId: number,
       sprint: {
         title: string
         description?: string
         startDate: Date
         endDate: Date
-        roadmapId: number
       }
     ) {
       try {
-        const response = await axios.post(`/sprints/${projectId}`, sprint)
+        const response = await axios.post(`/sprints/${projectId}/${roadmapId}`, sprint)
         this.sprints.push(response.data)
         useAlertStore().setAlert('Sprint created successfully', 'success')
       } catch (error) {

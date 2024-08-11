@@ -121,9 +121,9 @@ const openEditSprintModal = (sprint: any) => {
 
 const handleSaveSprint = async (sprintData: any) => {
   if (isEditMode.value) {
-    await sprintStore.updateSprint(projectId, sprintData.id, sprintData)
+    await sprintStore.updateSprint(projectId, sprintData.id, { title: sprintData.title, description: sprintData.description, startDate: sprintData.startDate, endDate: sprintData.endDate })
   } else {
-    await sprintStore.createSprint(projectId, { ...sprintData, roadmapId })
+    await sprintStore.createSprint(projectId, roadmapId, { title: sprintData.title, description: sprintData.description, startDate: sprintData.startDate, endDate: sprintData.endDate })
   }
   closeModal()
   fetchSprints()

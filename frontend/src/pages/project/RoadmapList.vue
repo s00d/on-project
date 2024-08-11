@@ -94,9 +94,9 @@ const openEditRoadmapModal = (roadmap: any) => {
 
 const handleSaveRoadmap = async (roadmapData: any) => {
   if (isEditMode.value) {
-    await roadmapStore.updateRoadmap(projectId, roadmapData.id, roadmapData)
+    await roadmapStore.updateRoadmap(projectId, roadmapData.id, {title: roadmapData.title, description: roadmapData.description})
   } else {
-    await roadmapStore.createRoadmap(projectId, { ...roadmapData, projectId })
+    await roadmapStore.createRoadmap(projectId, {title: roadmapData.title, description: roadmapData.description})
   }
   closeModal()
   fetchRoadmaps()

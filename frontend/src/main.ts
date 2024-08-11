@@ -15,18 +15,24 @@ axios.defaults.baseURL = import.meta.env.VITE_API_URL
 axios.interceptors.response.use(
   (response) => response, // If the request is successful, just return the response
   (error) => {
-    // Check if the error response exists and has a 400 status code
-    if (error.response?.status === 400) {
+    // Check if the error response exists and has a 422 status code
+    if (error.response?.status === 422) {
+
       const { errors } = error.response.data
 
+      console.log(1111, error.response.errors)
+
       // Iterate over the errors array and display each message
-      if (Array.isArray(errors)) {
-        errors.forEach((err) => {
-          useAlertStore().setAlert(err.msg, 'danger')
-        })
+      if (errors && typeof errors === 'object') {
+        Object.keys(errors).forEach((key) => {
+          const err = errors[key];
+          if (err.message) {
+            useAlertStore().setAlert(err.message, 'danger');
+          }
+        });
       } else {
         // If there's a general error message, show it
-        useAlertStore().setAlert('An error occurred', 'danger')
+        useAlertStore().setAlert('An error occurred', 'danger');
       }
 
       throw new Error('Validation Error')
