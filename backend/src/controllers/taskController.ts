@@ -70,6 +70,7 @@ export class TaskController extends Controller {
     @Query() assignee?: string,
     @Query() tags?: string,
     @Query() sprintId?: number,
+    @Query() relatedTaskId?: number,
     @Query() pageSize: number = 10,
     @Query() page: number = 1,
     @Query() startDate?: Date,
@@ -94,6 +95,13 @@ export class TaskController extends Controller {
           queryBuilder.andWhere('task.sprintId IS NULL');
         } else {
           queryBuilder.andWhere('task.sprintId = :sprintId', { sprintId });
+        }
+      }
+      if (relatedTaskId !== undefined) {
+        if (sprintId === 0) {
+          queryBuilder.andWhere('task.relatedTaskId IS NULL');
+        } else {
+          queryBuilder.andWhere('task.relatedTaskId = :relatedTaskId', { relatedTaskId });
         }
       }
       if (search) {
@@ -133,6 +141,8 @@ export class TaskController extends Controller {
           })
         );
       }
+
+      queryBuilder.orderBy('task.id', 'DESC');
 
       const [tasks, count] = await queryBuilder
         .skip((page - 1) * pageSize)
@@ -328,6 +338,18 @@ export class TaskController extends Controller {
             throw new Error('Sprint not found');
           }
           updatedTask.sprint = sprint
+        }
+      }
+
+      if (requestBody.relatedTaskId !== undefined) {
+        if (requestBody.relatedTaskId === null) {
+          updatedTask.relatedTaskId = null
+        } else {
+          const relatedTask = await taskRepository.findOne({ where: { id: requestBody.relatedTaskId } });
+          if (!relatedTask) {
+            throw new Error('Related Task not found');
+          }
+          updatedTask.relatedTask = relatedTask
         }
       }
 

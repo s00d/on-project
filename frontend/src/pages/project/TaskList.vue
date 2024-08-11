@@ -46,6 +46,7 @@
             <template #body>
               <TaskCard
                 v-if="isTaskModalOpen && selectedTask && project"
+                :tasks="taskStore.tasks"
                 :projectId="projectId"
                 :project="project"
                 :initialTaskData="selectedTask"
@@ -57,6 +58,7 @@
               />
               <TaskCard
                 v-if="isTaskModalOpen && !selectedTask && project"
+                :tasks="taskStore.tasks"
                 :projectId="projectId"
                 :project="project"
                 :users="users"

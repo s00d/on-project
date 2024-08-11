@@ -4,39 +4,65 @@
     <div class="table-responsive">
       <table class="table table-hover table-sm">
         <thead>
-          <tr>
-            <th v-for="column in visibleColumns" @click="sort(column)" :key="column">
-              {{ column }}
-              <i v-if="sortKey === column" :class="sortIconClass(column)"></i>
-            </th>
-            <th scope="col" class="actions-sticky" style="width: 90px">Actions</th>
-          </tr>
+        <tr>
+          <th v-for="column in visibleColumns" @click="sort(column)" :key="column">
+            {{ column }}
+            <i v-if="sortKey === column" :class="sortIconClass(column)"></i>
+          </th>
+          <th scope="col" class="actions-sticky" style="width: 90px">Actions</th>
+        </tr>
         </thead>
-        <tbody>
-          <tr v-for="task in tasks" :key="task.id" class="task-row">
-            <td
-              v-for="column in visibleColumns"
-              :style="{ backgroundColor: generatePriorityColor(task.priority ?? '') }"
-              :key="column"
-              v-html="getColumnData(task, column)"
-            ></td>
-            <td class="actions-sticky" style="width: 90px">
-              <div style="width: 90%; display: flex">
-                <button
-                  class="btn btn-danger btn-sm ms-1"
-                  @click="$emit('open-task-modal', task)"
-                >
-                  <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn btn-info btn-sm ms-1" @click="$emit('open-preview-modal', task)">
-                  <i class="fas fa-eye"></i>
-                </button>
-                <button class="btn btn-primary btn-sm ms-1" @click="$emit('open-history-modal', task)">
-                  <i class="fas fa-history"></i>
-                </button>
-              </div>
-            </td>
-          </tr>
+        <tbody v-for="task in tasks" :key="task.id">
+        <tr class="task-row">
+          <td
+            v-for="column in visibleColumns"
+            :style="{ backgroundColor: generatePriorityColor(task.priority ?? '') }"
+            :key="column"
+            v-html="getColumnData(task, column)"
+          ></td>
+          <td class="actions-sticky" style="width: 90px">
+            <div style="width: 90%; display: flex">
+              <button
+                class="btn btn-danger btn-sm ms-1"
+                @click="$emit('open-task-modal', task)"
+              >
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-info btn-sm ms-1" @click="$emit('open-preview-modal', task)">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="btn btn-primary btn-sm ms-1" @click="$emit('open-history-modal', task)">
+                <i class="fas fa-history"></i>
+              </button>
+              <button class="btn btn-secondary btn-sm ms-1" @click="toggleRelatedTasks(task)">
+                <i class="fas fa-angle-down" v-if="expandedTask === task.id"></i>
+                <i class="fas fa-angle-right" v-else></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr v-if="expandedTask === task.id && relatedTasks.length === 0" class="related-task-row">
+          <td :colspan="visibleColumns.length" class="text-center">
+            No related tasks found
+          </td>
+        </tr>
+        <tr v-if="expandedTask === task.id" v-for="relatedTask in relatedTasks" :key="relatedTask.id" class="related-task-row">
+          <!-- Render related task row -->
+          <td v-for="column in visibleColumns" :key="column" v-html="getColumnData(relatedTask, column)"></td>
+          <td class="actions-sticky" style="width: 90px">
+            <div style="width: 90%; display: flex">
+              <button class="btn btn-danger btn-sm ms-1" @click="$emit('open-task-modal', relatedTask)">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn btn-info btn-sm ms-1" @click="$emit('open-preview-modal', relatedTask)">
+                <i class="fas fa-eye"></i>
+              </button>
+              <button class="btn btn-primary btn-sm ms-1" @click="$emit('open-history-modal', relatedTask)">
+                <i class="fas fa-history"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
         </tbody>
       </table>
     </div>
@@ -45,10 +71,12 @@
 
 <script lang="ts" setup>
 import { ref, computed, defineProps, defineEmits } from 'vue'
+import axios from 'axios'
 import type { Task } from '@/stores/taskStore'
 import type { User } from '@/stores/authStore'
 import type { Project } from '@/stores/projectStore'
 import type { Sprint } from '@/stores/sprintStore'
+import {useAlertStore} from "@/stores/alertStore";
 
 const props = defineProps<{
   tasks: Task[]
@@ -67,6 +95,8 @@ const emit = defineEmits<{
 
 const sortKey = ref('')
 const sortOrder = ref(1)
+const expandedTask = ref<number|null>(null)
+const relatedTasks = ref<Task[]>([]) // Store related tasks
 
 const groupedTasks = computed(() => {
   const tasks = props.tasks
@@ -107,10 +137,8 @@ const sort = (key: string) => {
         if (task.assignees?.length) {
           for (let i = 0; i < task.assignees.length; i++) {
             const userId = task.assignees[i]
-            // @ts-ignore
-            if (users[userId]) {
-              // @ts-ignore
-              usernames.push(users[userId].username)
+            if (props.users[userId]) {
+              usernames.push(props.users[userId].username)
             }
           }
         }
@@ -208,7 +236,6 @@ const getColumnData = (task: Task, column: string) => {
 }
 
 const generateColor = (value: string, alpha: number = 0.8): string => {
-  // Generate a color based on the value
   let hash = 0
   for (let i = 0; i < value.length; i++) {
     hash = value.charCodeAt(i) + ((hash << 5) - hash)
@@ -232,7 +259,20 @@ const generatePriorityColor = (priority: string): string => {
       return generateColor(priority, 0.05)
   }
 }
+
+const toggleRelatedTasks = async (task: Task) => {
+  if(expandedTask.value === task.id) {
+    expandedTask.value = null
+    relatedTasks.value = []
+    return;
+  }
+  expandedTask.value = task.id
+  const response = await axios.get(`/tasks/${props.project!.id}`, { params: { relatedTaskId: task.id } })
+  relatedTasks.value = response.data.tasks
+}
 </script>
+
+
 
 <style scoped>
 .task-group-title {
@@ -312,5 +352,20 @@ const generatePriorityColor = (priority: string): string => {
   right: 0;
   background-color: #fff;
   z-index: 10;
+}
+
+.related-task-row td:first-child {
+  position: relative;
+  padding-left: 10px; /* Adjust padding to avoid content overlap with the stripe */
+}
+
+.related-task-row td:first-child::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  background-color: #f0ad4e; /* Example color for the stripe */
 }
 </style>

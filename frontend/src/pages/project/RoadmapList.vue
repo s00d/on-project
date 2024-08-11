@@ -32,7 +32,7 @@
                     name: 'SprintList',
                     params: { roadmapId: roadmap.id, projectId: projectId }
                   }"
-                  class="btn btn-dark btn-sm"
+                  class="btn btn-light btn-sm"
                 >View Sprints</router-link
                 >
               </div>

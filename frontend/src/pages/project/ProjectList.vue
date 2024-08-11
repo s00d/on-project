@@ -45,7 +45,7 @@
               <p v-html="parseMd(project.description)"></p>
               <router-link
                 :to="{ name: 'TaskList', params: { projectId: project.id } }"
-                class="btn btn-dark btn-sm"
+                class="btn btn-light btn-sm"
               >
                 Select
               </router-link>

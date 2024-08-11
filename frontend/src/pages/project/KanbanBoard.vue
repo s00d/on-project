@@ -6,7 +6,7 @@
           <div class="board-header">
             <h1 class="board-title">Kanban Board</h1>
             <div class="selectors">
-              <button @click="createTaskModal" class="btn btn-primary">New Task</button>
+              <button v-if="!project?.isArchived" @click="createTaskModal" class="btn btn-primary">New Task</button>
               <div class="selector-item">
                 <label for="roadmap-select" class="pr-3">Roadmap</label>
                 <select id="roadmap-select" v-model="selectedRoadmap" @change="onRoadmapChange">
@@ -67,6 +67,7 @@
         :projectId="projectId"
         :project="project"
         :users="users"
+        :tasks="tasks"
         mode="create"
         showComments
         @task-saved="closeTaskModal"

@@ -37,6 +37,7 @@
         v-if="selectedTask"
         :projectId="projectId"
         :project="project"
+        :tasks="tasks"
         :initialTaskData="selectedTask"
         :users="users"
         mode="edit"
@@ -50,7 +51,6 @@
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue'
-import { useTaskStore } from '@/stores/taskStore'
 import type { Task } from '@/stores/taskStore'
 import type { User } from '@/stores/authStore'
 import TaskCard from '@/components/tasks/TaskCard.vue'

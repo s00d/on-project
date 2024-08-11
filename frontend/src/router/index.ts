@@ -101,6 +101,12 @@ const routes = [
     beforeEnter: authGuard
   },
   {
+    path: '/cabinet/projects/:projectId/import',
+    component: ImportExport,
+    name: 'ImportExport',
+    beforeEnter: authGuard
+  },
+  {
     path: '/cabinet/projects/:projectId/templates',
     component: TaskTemplates,
     name: 'TaskTemplates',

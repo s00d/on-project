@@ -1,6 +1,17 @@
-import {Controller, Post, Get, Route, Body, UploadedFile, SuccessResponse, Middlewares, Security, Tags} from 'tsoa';
-import { readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
+import {
+  Controller,
+  Post,
+  Get,
+  Route,
+  Body,
+  UploadedFile,
+  SuccessResponse,
+  Middlewares,
+  Security,
+  Tags,
+  Path, Res, Request,
+} from 'tsoa';
+import { readFileSync } from 'fs';
 import axios from 'axios';
 import { AppDataSource } from '../ormconfig';
 import { Task } from '../models/Task';
@@ -8,6 +19,7 @@ import { Project } from '../models/Project';
 import { authenticateAll } from '../middlewares/authMiddleware';
 import multer from 'multer';
 import {isProjectCreator} from "../middlewares/roleMiddleware";
+import {Request as ExpressRequest} from "express";
 
 const upload = multer({ dest: 'uploads/' }).single('file');
 
@@ -34,51 +46,66 @@ interface GitHubCard {
 @Security('apiKey')
 export class ImportExportController extends Controller {
 
-  @Post('/import')
-  @Middlewares([
-    authenticateAll,
-    isProjectCreator
-  ])
-  public async importData(
-    @UploadedFile('file') file: Express.Multer.File
-  ): Promise<{ message: string }> {
+  @Get('{projectId}/export')
+  @Middlewares([authenticateAll, isProjectCreator])
+  public async exportData(
+    @Path() projectId: number,
+  ): Promise<{ project: Project }> {
     try {
-      const data = JSON.parse(readFileSync(file.path, 'utf-8'));
-
-      const taskRepository = AppDataSource.getRepository(Task);
       const projectRepository = AppDataSource.getRepository(Project);
 
-      await taskRepository.save(data.tasks);
-      await projectRepository.save(data.projects);
+      const project = await projectRepository.findOne({
+        where: { id: projectId },
+        relations: ['tasks'],
+      });
+
+      if (!project) {
+        throw new Error('Project not found')
+      }
+
+      const data = { project };
+
+      this.setHeader('Content-Disposition', 'attachment; filename=data.json');
+      this.setHeader('Content-Type', 'application/json');
+      return data;
+    } catch (err: any) {
+      throw new Error('An error occurred during export')
+    }
+  }
+
+  @Post('{projectId}/import')
+  @Middlewares([authenticateAll, isProjectCreator])
+  public async importData(
+    @Request() req: ExpressRequest,
+    @UploadedFile('file') file: Express.Multer.File,
+  ): Promise<{ message: string }> {
+    try {
+      const userId = req.session.user!.id;
+
+      const data = JSON.parse(readFileSync(file.path, 'utf-8'));
+
+      const projectRepository = AppDataSource.getRepository(Project);
+      const taskRepository = AppDataSource.getRepository(Task);
+      data.ownerId = userId
+
+      // Сохранение проекта
+      const savedProject = await projectRepository.save(data.project);
+
+
+      // Сохранение задач, которые не привязаны к спринтам
+      for (const task of data.project.tasks) {
+        task.project = savedProject;
+        await taskRepository.save(task);
+      }
+
 
       return { message: 'Data imported successfully' };
     } catch (err: any) {
-      throw new Error(err.message);
+      throw new Error(`Failed to import data: ${err.message}`);
     }
   }
 
-  @Get('/export')
-  @Middlewares([
-    authenticateAll,
-    isProjectCreator
-  ])
-  public async exportData(): Promise<any> {
-    try {
-      const taskRepository = AppDataSource.getRepository(Task);
-      const projectRepository = AppDataSource.getRepository(Project);
-
-      const tasks = await taskRepository.find();
-      const projects = await projectRepository.find();
-      const data = { tasks, projects };
-      const filePath = join(__dirname, '../../exports/data.json');
-      writeFileSync(filePath, JSON.stringify(data, null, 2));
-      return { filePath };
-    } catch (err: any) {
-      throw new Error(err.message);
-    }
-  }
-
-  @Post('/github-import')
+  @Post('{projectId}/github-import')
   @Middlewares([
     authenticateAll,
     isProjectCreator

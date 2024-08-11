@@ -60,6 +60,7 @@ interface TaskFilters {
   priority?: string
   assignee?: string
   pageSize?: number
+  relatedTaskId?: number
   page?: number
   startDate?: string
   endDate?: string

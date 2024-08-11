@@ -9,20 +9,18 @@
   </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { defineComponent, ref } from 'vue'
 import axios from 'axios'
+import {useRoute} from "vue-router";
 
-export default defineComponent({
-  name: 'GitHubImport',
-  setup() {
-    const repoUrl = ref('')
+const route = useRoute()
 
-    const importFromGitHub = async () => {
-      await axios.post('/api/mport-export/github-import', { repoUrl: repoUrl.value })
-    }
+const projectId = Number(route.params.projectId)
 
-    return { repoUrl, importFromGitHub }
-  }
-})
+const repoUrl = ref('')
+
+const importFromGitHub = async () => {
+  await axios.post(`/import-export/${projectId}/export`, { repoUrl: repoUrl.value })
+}
 </script>

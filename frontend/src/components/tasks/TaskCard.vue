@@ -57,7 +57,7 @@
     </div>
 
     <div class="d-flex flex-wrap">
-      <div class="mb-3 me-2 flex-grow-1">
+      <div class="mb-3 flex-grow-1">
         <label for="assignee" class="form-label">Assignee</label>
         <select v-model="taskData.assignees" id="assignee" class="form-select" multiple>
           <option v-for="user in users" :key="user.id" :value="user.id">{{ user.username }}</option>
@@ -84,7 +84,8 @@
       <div class="mb-3 flex-grow-1">
         <label for="relatedTaskId" class="form-label">Related Task</label>
         <select v-model="taskData.relatedTaskId" id="relatedTaskId" class="form-select">
-          <option v-for="task in tasks" :key="task.id" :value="task.id">{{ task.title }}</option>
+          <option :value="null" disabled>-- Select Related Task --</option>
+          <option v-for="task in filteredRelatedTasks" :key="task.id" :value="task.id">{{ task.title }}</option>
         </select>
       </div>
     </div>
@@ -173,6 +174,7 @@ const props = defineProps<{
   mode: 'create' | 'edit'
   showComments?: boolean
   users: { [key: string]: User }
+  tasks: Task[]
 }>()
 
 const emit = defineEmits(['task-saved', 'close'])
@@ -200,7 +202,6 @@ const taskData = ref<Task>({
   tags: [] as string[]
 })
 
-const tasks = ref<Task[]>([])
 const newCommentContent = ref('')
 const attachment = ref<File | null>(null)
 const comments = ref<Comment[]>([])
@@ -215,6 +216,9 @@ const labels = computed(() => taskStore.labels)
 
 const buttonText = computed(() => (props.mode === 'create' ? 'Create Task' : 'Save Changes'))
 
+const filteredRelatedTasks = computed(() => {
+  return props.tasks.filter(task => task.id !== taskData.value.id);
+});
 
 const saveAsTemplate = async () => {
   try {
@@ -287,8 +291,6 @@ onMounted(async () => {
     taskData.value = { ...props.initialTaskData }
   }
   customFieldsStrict.value = props.project?.customFields ?? []
-  const { tasks } = await taskStore.fetchTasks(parseInt(props.projectId), {})
-  tasks.value = tasks
   await taskStore.fetchLabels(parseInt(props.projectId))
 
   if (props.showComments) {

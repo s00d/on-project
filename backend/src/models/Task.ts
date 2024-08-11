@@ -92,11 +92,6 @@ export class Task {
   @Example('Bug')
   type!: string;
 
-  @Column({ default: false })
-  @Example(false)
-  @Index()
-  isArchived!: boolean;
-
   @Column('date', { nullable: true })
   @Example('2024-08-14')
   plannedDate!: Date | null;
