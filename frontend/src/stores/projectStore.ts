@@ -67,7 +67,6 @@ export const useProjectStore = defineStore('project', {
     async createProject(project: {name: string, description: string}) {
       try {
         const response = await axios.post('/projects', project)
-        this.projects.push(response.data)
         useAlertStore().setAlert('Project created successfully', 'success')
       } catch (error) {
         useAlertStore().setAlert('Failed to create project', 'danger')

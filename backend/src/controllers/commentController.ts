@@ -47,20 +47,29 @@ export class CommentController extends Controller {
   ])
   public async addComment(
     @Path() taskId: number,
-    @UploadedFile() attachment: Express.Multer.File,
     @FormField() content: string,
     @FormField() userId: number,
+    @UploadedFile() attachment: Express.Multer.File,
   ): Promise<Comment> {
     let savedFilename: string | null = null;
 
     if (attachment) {
       const uploadDir = path.join(__dirname, '../../uploads');
       const filename = `${Date.now()}_${attachment.originalname}`;
-      const filepath = path.join(uploadDir, filename);
+      const folderPath = path.join(uploadDir, taskId.toString());
+      const filepath = path.join(folderPath, filename);
+
+      if (!fs.existsSync(folderPath)) {
+        try {
+          fs.mkdirSync(folderPath, { recursive: true });
+        } catch (err: any) {
+          throw new Error('Failed to create directory');
+        }
+      }
 
       try {
-        fs.renameSync(attachment.path, filepath);
-        savedFilename = filename;
+        fs.writeFileSync(filepath, attachment.buffer);
+        savedFilename = path.join(taskId.toString(), filename);
       } catch (uploadError) {
         throw new Error('File upload failed');
       }
@@ -89,7 +98,7 @@ export class CommentController extends Controller {
 
       return comment;
     } catch (error: any) {
-      throw new Error(`Error creating comment: ${error.message}`);
+      throw new Error(`Error creating comment}`);
     }
   }
 

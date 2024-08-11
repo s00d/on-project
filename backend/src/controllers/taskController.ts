@@ -46,7 +46,7 @@ interface TaskDTO {
   relatedTaskId?: number|null,
   actualTime?: number,
   tags?: null|string[],
-  customFields?: null|{ [name: string]: string },
+  customFields?: null|{ [name: string]: any },
   sprintId?: any|null
 }
 

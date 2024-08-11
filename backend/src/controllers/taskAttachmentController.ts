@@ -67,29 +67,44 @@ export class TaskAttachmentController extends Controller {
       this.setStatus(400);
       throw new Error('File not provided');
     }
+    let savedFilename: string | null = null;
 
-    const uploadDir = path.join(__dirname, '../../uploads');
-    const filename = `${Date.now()}_${attachment.originalname}`;
-    const filepath = path.join(uploadDir, filename);
+    if (attachment) {
+      const uploadDir = path.join(__dirname, '../../uploads');
+      const filename = `${Date.now()}_${attachment.originalname}`;
+      const folderPath = path.join(uploadDir, taskId.toString());
+      const filepath = path.join(folderPath, filename);
 
-    try {
-      fs.renameSync(attachment.path, filepath);
-    } catch (uploadError) {
-      throw new Error('File upload failed');
+      if (!fs.existsSync(folderPath)) {
+        try {
+          fs.mkdirSync(folderPath, {recursive: true});
+        } catch (err: any) {
+          throw new Error('Failed to create directory');
+        }
+      }
+
+      try {
+        fs.writeFileSync(filepath, attachment.buffer);
+        savedFilename = path.join(taskId.toString(), filename);
+      } catch (uploadError) {
+        throw new Error('File upload failed');
+      }
+
+      try {
+        const attachment = this.attachmentRepository.create({
+          task: { id: taskId },
+          filename: savedFilename!,
+          filePath: savedFilename!
+        });
+        await this.attachmentRepository.save(attachment);
+        return attachment;
+      } catch (err: any) {
+        this.setStatus(400);
+        throw new Error(`Error adding task attachment}`);
+      }
     }
+    throw new Error(`Error adding task attachment.`);
 
-    try {
-      const attachment = this.attachmentRepository.create({
-        task: { id: taskId },
-        filename: filename,
-        filePath: filepath
-      });
-      await this.attachmentRepository.save(attachment);
-      return attachment;
-    } catch (err: any) {
-      this.setStatus(400);
-      throw new Error(`Error adding task attachment: ${err.message}`);
-    }
   }
 
   /**

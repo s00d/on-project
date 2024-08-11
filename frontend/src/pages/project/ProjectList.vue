@@ -61,13 +61,13 @@
         <ProjectCard
           v-if="isProjectModalOpen && selectedProject"
           :initialTaskData="selectedProject"
-          @save="closeModal"
+          @save="closeAndLoadModal"
           @close="closeModal"
           mode="edit"
         />
         <ProjectCard
           v-if="isProjectModalOpen && !selectedProject"
-          @save="closeModal"
+          @save="closeAndLoadModal"
           @close="closeModal"
           mode="create"
         />
@@ -115,6 +115,12 @@ const deleteProject = async () => {
 const showEditProject = (project: null|Project = null) => {
   isProjectModalOpen.value = true
   selectedProject.value = project
+}
+
+
+const closeAndLoadModal = () => {
+  projectStore.fetchProjects()
+  closeModal();
 }
 
 const closeModal = () => {
