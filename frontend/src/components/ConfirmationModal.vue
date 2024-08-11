@@ -6,7 +6,7 @@
       </div>
     </template>
     <template #footer>
-      <button type="button" class="btn btn-danger me-2" @click="close">Cancel</button>
+      <button type="button" class="btn me-2" @click="close">Cancel</button>
       <button type="button" :class="buttonClass" @click="confirm">{{ buttonText }}</button>
     </template>
   </ModalComponent>

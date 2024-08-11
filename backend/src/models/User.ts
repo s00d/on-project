@@ -7,62 +7,72 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
   Index
-} from 'typeorm'
-import { Project } from './Project'
-import { Notification } from './Notification'
-import { Comment } from './Comment'
-import { Task } from './Task'
-import { ProjectUser } from './ProjectUser'
-import { TaskHistory } from './TaskHistory'
-import { TaskTemplate } from './TaskTemplate'
-import { Label } from './Label'
-import { Exclude } from 'class-transformer'
-import {Hidden} from "tsoa";
+} from 'typeorm';
+import { Project } from './Project';
+import { Notification } from './Notification';
+import { Comment } from './Comment';
+import { Task } from './Task';
+import { ProjectUser } from './ProjectUser';
+import { TaskHistory } from './TaskHistory';
+import { TaskTemplate } from './TaskTemplate';
+import { Label } from './Label';
+import { Exclude } from 'class-transformer';
+import { Hidden } from 'tsoa';
+import { Example } from 'tsoa';
 
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
-  id!: number
+  @Example(1)
+  id!: number;
 
   @Column({ unique: true, nullable: true })
   @Index()
-  apikey!: string
+  @Example('api-key-12345')
+  apikey!: string;
 
   @Column({ unique: true })
   @Index()
-  username!: string
+  @Example('johndoe')
+  username!: string;
 
   @Column({ unique: true })
   @Index()
-  email!: string
+  @Example('johndoe@example.com')
+  email!: string;
 
   @Column()
   @Exclude()
   @Hidden()
-  password!: string
+  password!: string;
 
   @Column({ default: false })
   @Index()
-  twoFactorEnabled!: boolean
+  @Example(false)
+  twoFactorEnabled!: boolean;
 
   @Column({ type: 'text', nullable: true })
   @Exclude()
   @Hidden()
-  twoFactorSecret!: string | null
+  @Example(null)
+  twoFactorSecret!: string | null;
 
   @Column({ type: 'text', nullable: true })
   @Exclude()
   @Hidden()
-  resetPasswordToken!: string | null
+  @Example(null)
+  resetPasswordToken!: string | null;
 
   @Column({ type: 'datetime', nullable: true })
   @Exclude()
   @Hidden()
-  resetPasswordExpires!: Date | null
+  @Example(null)
+  resetPasswordExpires!: Date | null;
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   @Index()
-  createdAt!: Date
+  @Example('2024-08-11T00:00:00Z')
+  createdAt!: Date;
 
   @UpdateDateColumn({
     type: 'datetime',
@@ -70,29 +80,38 @@ export class User {
     onUpdate: 'CURRENT_TIMESTAMP'
   })
   @Index()
-  updatedAt!: Date
+  @Example('2024-08-11T00:00:00Z')
+  updatedAt!: Date;
 
   @OneToMany(() => Project, (project) => project.owner)
-  projects!: Project[]
+  @Example([{ id: 1, name: 'Project 1' }])
+  projects!: Project[];
 
   @OneToMany(() => Notification, (notification) => notification.user)
-  notifications!: Notification[]
+  @Example([{ id: 1, message: 'Notification 1', read: false }])
+  notifications!: Notification[];
 
   @OneToMany(() => Comment, (comment) => comment.user)
-  comments!: Comment[]
+  @Example([{ id: 1, content: 'This is a comment.' }])
+  comments!: Comment[];
 
   @ManyToMany(() => Task, (task) => task.assignees)
-  tasks!: Task[]
+  @Example([{ id: 1, title: 'Task 1' }])
+  tasks!: Task[];
 
   @OneToMany(() => ProjectUser, (projectUser) => projectUser.user)
-  projectUsers!: ProjectUser[]
+  @Example([{ id: 1, projectId: 1 }])
+  projectUsers!: ProjectUser[];
 
   @OneToMany(() => TaskHistory, (history) => history.user)
-  history!: TaskHistory[]
+  @Example([{ id: 1, action: 'Task Created' }])
+  history!: TaskHistory[];
 
   @OneToMany(() => TaskTemplate, (taskTemplate) => taskTemplate.user)
-  taskTemplates!: TaskTemplate[]
+  @Example([{ id: 1, title: 'Template 1' }])
+  taskTemplates!: TaskTemplate[];
 
   @OneToMany(() => Label, (label) => label.user)
-  labels!: Label[]
+  @Example([{ id: 1, name: 'Bug' }])
+  labels!: Label[];
 }

@@ -6,36 +6,44 @@ import {
   JoinColumn,
   CreateDateColumn,
   UpdateDateColumn
-} from 'typeorm'
-import { User } from './User'
-import { Task } from './Task'
+} from 'typeorm';
+import { User } from './User';
+import { Task } from './Task';
+import { Example } from 'tsoa';
 
 @Entity('comments')
 export class Comment {
   @PrimaryGeneratedColumn()
-  id!: number
+  @Example(1)
+  id!: number;
 
   @Column('text')
-  content!: string
+  @Example('This is a comment on the task.')
+  content!: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  attachment!: string | null
+  @Example('http://example.com/attachment.png')
+  attachment!: string | null;
 
   @ManyToOne(() => Task, (task) => task.comments, { nullable: false })
   @JoinColumn({ name: 'taskId' })
-  task!: Task
+  @Example(1)
+  task!: Task;
 
   @ManyToOne(() => User, (user) => user.comments, { nullable: false })
   @JoinColumn({ name: 'userId' })
-  user!: User
+  @Example(1)
+  user!: User;
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt!: Date
+  @Example('2024-08-11T00:00:00Z')
+  createdAt!: Date;
 
   @UpdateDateColumn({
     type: 'datetime',
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP'
   })
-  updatedAt!: Date
+  @Example('2024-08-11T00:00:00Z')
+  updatedAt!: Date;
 }

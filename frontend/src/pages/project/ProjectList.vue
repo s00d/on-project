@@ -3,7 +3,13 @@
     <div class="content">
       <div class="container mt-5">
         <h1>Projects</h1>
-        <a class="btn btn-primary mb-3" @click="() => showEditProject()">Add Project</a>
+        <button
+          class="btn btn-secondary mb-3"
+          @click="toggleArchivedProjects"
+        >
+          {{ showArchivedProjects ? 'Show Active Projects' : 'Show Archived Projects' }}
+        </button>
+        <a class="btn btn-primary mb-3 ms-2" @click="() => showEditProject()">Add Project</a>
         <div v-if="projects.length === 0" class="alert alert-info">No projects available</div>
         <ul class="list-group">
           <li
@@ -19,17 +25,24 @@
               <router-link
                 class="btn btn-info"
                 :to="{ name: 'TaskList', params: { projectId: project.id } }"
-                >Select</router-link
+              >Select</router-link
               >
               <a
-                v-if="project.ownerId === userId"
+                v-if="project.ownerId === userId && !showArchivedProjects"
                 class="btn btn-success ms-2"
                 @click="() => showEditProject(project)"
               >
                 Edit
               </a>
               <button
-                v-if="project.ownerId === userId"
+                v-if="!showArchivedProjects"
+                class="btn btn-warning ms-2"
+                @click="confirmArchive(project.id!, project.name)"
+              >
+                Archive
+              </button>
+              <button
+                v-if="project.ownerId === userId && !showArchivedProjects"
                 class="btn btn-danger ms-2"
                 @click="confirmDelete(project.id!, project.name)"
               >
@@ -48,6 +61,16 @@
       buttonText="Delete Project"
       buttonClass="btn btn-danger"
       @confirm="deleteProject"
+      @close="closeModal"
+    />
+
+    <ConfirmationModal
+      :isOpen="showDeleteArchive"
+      actionType="Archive"
+      :itemName="projectNameToArchive ?? ''"
+      buttonText="Delete Project"
+      buttonClass="btn btn-warning"
+      @confirm="archiveProject"
       @close="closeModal"
     />
 
@@ -87,10 +110,15 @@ import ModalComponent from "@/components/ModalComponent.vue";
 
 const projectStore = useProjectStore()
 const authStore = useAuthStore()
+const showArchivedProjects = ref(false)
 
 const showDeleteModal = ref(false)
 const projectToDelete = ref<number | null>(null)
 const projectNameToDelete = ref<string | null>(null)
+
+const showDeleteArchive = ref(false)
+const projectToArchive = ref<number | null>(null)
+const projectNameToArchive = ref<string | null>(null)
 
 const isProjectModalOpen = ref(false)
 const selectedProject = ref<null | Project>(null)
@@ -98,6 +126,12 @@ const selectedProject = ref<null | Project>(null)
 onMounted(() => {
   projectStore.fetchProjects()
 })
+
+const confirmArchive = (projectId: number, projectName: string) => {
+  projectToArchive.value = projectId
+  projectNameToArchive.value = projectName
+  showDeleteArchive.value = true
+}
 
 const confirmDelete = (projectId: number, projectName: string) => {
   projectToDelete.value = projectId
@@ -124,16 +158,30 @@ const closeAndLoadModal = () => {
 }
 
 const closeModal = () => {
+  isProjectModalOpen.value = false
+  showDeleteArchive.value = false
   showDeleteModal.value = false
   projectToDelete.value = null
   projectNameToDelete.value = null
-  isProjectModalOpen.value = false
   selectedProject.value = null
+  projectNameToArchive.value = null
+  projectToArchive.value = null
 }
 
 const parseMd = (val: string) => {
   return marked.parse(val)
 }
+
+const toggleArchivedProjects = () => {
+  showArchivedProjects.value = !showArchivedProjects.value
+  projectStore.fetchProjects(showArchivedProjects.value)
+}
+
+const archiveProject = async () => {
+  await projectStore.archiveProject(projectToArchive.value!)
+  projectStore.fetchProjects(showArchivedProjects.value)
+}
+
 
 const projects = computed(() => projectStore.projects)
 const userId = computed(() => authStore.getUserId)

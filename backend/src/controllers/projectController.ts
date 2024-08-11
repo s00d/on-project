@@ -11,7 +11,7 @@ import {
   Request,
   Tags,
   Middlewares,
-  Response, Security,
+  Response, Security, Query,
 } from 'tsoa';
 import { Project } from '../models/Project';
 import { ProjectUser } from '../models/ProjectUser';
@@ -20,6 +20,7 @@ import { User } from '../models/User';
 import { authenticateAll } from '../middlewares/authMiddleware';
 import { isProjectCreator } from '../middlewares/roleMiddleware';
 import { Request as ExpressRequest } from 'express';
+import {io} from "../index";
 
 export interface Filter {
   name: string;
@@ -43,38 +44,47 @@ export class ProjectController extends Controller {
 
   @Get('/')
   @Middlewares(authenticateAll)
-  public async getProjects(@Request() req: ExpressRequest): Promise<Project[]> {
+  public async getProjects(
+    @Request() req: ExpressRequest,
+    @Query() showArchived: boolean = false
+  ): Promise<Project[]> {
     try {
       const userId = req.session.user!.id;
       const projectRepository = AppDataSource.getRepository(Project);
 
-      return await projectRepository
+      const queryBuilder = projectRepository
         .createQueryBuilder('project')
-        .innerJoin('project.projectUsers', 'projectUser', 'projectUser.userId = :userId', { userId })
-        .getMany();
+        .innerJoin('project.projectUsers', 'projectUser', 'projectUser.userId = :userId', { userId });
+
+      if (showArchived) {
+        queryBuilder.andWhere('project.isArchived = true');
+      } else {
+        queryBuilder.andWhere('project.isArchived = false');
+      }
+
+      return await queryBuilder.getMany();
     } catch (err: any) {
       throw new Error(`Error fetching projects: ${err.message}`);
     }
   }
 
   @Get('{projectId}')
-  @Middlewares([
-    authenticateAll
-  ])
+  @Middlewares([authenticateAll])
   public async getProject(
     @Request() req: ExpressRequest,
-    @Path() projectId: number
+    @Path() projectId: number,
   ): Promise<Project> {
     try {
       const userId = req.session.user!.id;
       const projectRepository = AppDataSource.getRepository(Project);
 
-      const project = await projectRepository
+      const queryBuilder = projectRepository
         .createQueryBuilder('project')
         .innerJoin('project.projectUsers', 'projectUser', 'projectUser.userId = :userId', { userId })
         .leftJoinAndSelect('project.sprints', 'sprint')
-        .where('project.id = :projectId', { projectId })
-        .getOne();
+        .where('project.id = :projectId', { projectId });
+
+      const project = await queryBuilder.getOne();
 
       if (!project) {
         this.setStatus(404);
@@ -327,6 +337,34 @@ export class ProjectController extends Controller {
       await projectUserRepository.remove(existingProjectUser);
     } catch (err: any) {
       throw new Error(`Error deactivating user: ${err.message}`);
+    }
+  }
+
+  @Put('{projectId}/archive')
+  @Response(400, 'Bad request')
+  @Response(404, 'Project not found')
+  @SuccessResponse(200, 'Project archived successfully')
+  @Middlewares([authenticateAll, isProjectCreator])
+  public async archiveProject(
+    @Path() projectId: number,
+  ): Promise<Project> {
+    try {
+      const projectRepository = AppDataSource.getRepository(Project);
+      const project = await projectRepository.findOne({ where: { id: projectId } });
+
+      if (!project) {
+        this.setStatus(404);
+        throw new Error('Project not found');
+      }
+
+      project.isArchived = true;
+      await projectRepository.save(project);
+
+      io.emit('project:archive', project);
+      return project;
+    } catch (err: any) {
+      this.setStatus(400);
+      throw new Error(err.message);
     }
   }
 }

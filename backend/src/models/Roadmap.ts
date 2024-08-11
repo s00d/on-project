@@ -6,34 +6,42 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany
-} from 'typeorm'
-import { Project } from './Project'
-import { Sprint } from './Sprint'
+} from 'typeorm';
+import { Project } from './Project';
+import { Sprint } from './Sprint';
+import { Example } from 'tsoa';
 
 @Entity('roadmaps')
 export class Roadmap {
   @PrimaryGeneratedColumn()
-  id!: number
+  @Example(1)
+  id!: number;
 
   @Column({ length: 128 })
-  title!: string
+  @Example('Release 1.0 Roadmap')
+  title!: string;
 
   @Column('text', { nullable: true })
-  description!: string
+  @Example('This roadmap outlines the goals and milestones for Release 1.0.')
+  description!: string;
 
   @ManyToOne(() => Project, (project) => project.roadmaps, { nullable: false })
-  project!: Project
+  @Example(1)
+  project!: Project;
 
   @OneToMany(() => Sprint, (sprint) => sprint.roadmap, { cascade: true, onDelete: 'CASCADE' })
-  sprints!: Sprint[]
+  @Example([{ id: 1, title: 'Sprint 1' }, { id: 2, title: 'Sprint 2' }])
+  sprints!: Sprint[];
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt!: Date
+  @Example('2024-08-11T00:00:00Z')
+  createdAt!: Date;
 
   @UpdateDateColumn({
     type: 'datetime',
     default: () => 'CURRENT_TIMESTAMP',
     onUpdate: 'CURRENT_TIMESTAMP'
   })
-  updatedAt!: Date
+  @Example('2024-08-11T00:00:00Z')
+  updatedAt!: Date;
 }

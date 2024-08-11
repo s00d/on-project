@@ -12,6 +12,7 @@
           />
           <Filters
             :projectId="projectId"
+            :project="project"
             :search="search"
             @apply-filters="applyFilters"
             @open-settings-modal="openSettingsModal"

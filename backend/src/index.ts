@@ -121,4 +121,9 @@ AppDataSource.initialize()
     console.error('Error during Data Source initialization:', err);
   });
 
+process.on('SIGINT', () => {
+  console.log('Caught interrupt signal');
+  process.exit();
+});
+
 export { io };

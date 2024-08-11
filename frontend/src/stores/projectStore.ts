@@ -15,6 +15,7 @@ export interface Project {
   tags?: string[]
   types?: string[]
   sprints?: Sprint[]
+  isArchived: boolean
   createdAt: string
   updatedAt: string
 }
@@ -47,12 +48,19 @@ export const useProjectStore = defineStore('project', {
     project: null
   }),
   actions: {
-    async fetchProjects() {
+    async fetchProjects(showArchived = false) {
       try {
-        const response = await axios.get('/projects')
+        const response = await axios.get('/projects', { params: { showArchived } })
         this.projects = response.data
       } catch (error) {
         useAlertStore().setAlert('Failed to fetch projects', 'danger')
+      }
+    },
+    async archiveProject (projectId: number) {
+      try {
+        await axios.put(`/projects/${projectId}/archive`)
+      } catch (error) {
+        console.error('Failed to archive project:', error)
       }
     },
     async fetchProject(id: number) {
