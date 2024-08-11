@@ -1,109 +1,94 @@
 <template>
   <div class="modal-body">
-    <div class="mb-3" v-if="mode === 'create'">
-      <div class="input-group mb-3">
-        <select id="templateSelect" class="form-select" v-model="selectedTemplate" @change="applyTemplate">
-          <option :value="null" disabled>-- Select Template --</option>
-          <option v-for="template in templates" :key="template.id" :value="template">
-            {{ template.title }}
-          </option>
-        </select>
-        <div class="input-group-append">
-          <button type="button" class="btn btn-danger" @click="deleteTemplate" :disabled="!selectedTemplate">
-            x
-          </button>
-        </div>
-      </div>
+    <div class="mb-3 d-flex align-items-center" v-if="mode === 'create'">
+      <select id="templateSelect" class="form-select me-2" v-model="selectedTemplate" @change="applyTemplate">
+        <option :value="null" disabled>-- Select Template --</option>
+        <option v-for="template in templates" :key="template.id" :value="template">
+          {{ template.title }}
+        </option>
+      </select>
+      <button type="button" class="btn btn-danger" @click="deleteTemplate" :disabled="!selectedTemplate">
+        x
+      </button>
     </div>
+
     <div class="mb-3">
       <label for="title" class="form-label">Task Title</label>
       <input v-model="taskData.title" type="text" id="title" class="form-control" required />
     </div>
+
+    <div class="d-flex flex-wrap" v-if="project">
+      <div class="mb-3 me-2 flex-grow-1">
+        <label for="status" class="form-label">Status</label>
+        <select v-model="taskData.status" id="status" class="form-select" required>
+          <option v-for="status in project.statuses" :value="status" :key="status" v-text="status"></option>
+        </select>
+      </div>
+      <div class="mb-3 me-2 flex-grow-1">
+        <label for="priority" class="form-label">Priority</label>
+        <select v-model="taskData.priority" id="priority" class="form-select" required>
+          <option v-for="priority in project.priorities" :value="priority" :key="priority" v-text="priority"></option>
+        </select>
+      </div>
+      <div class="mb-3 flex-grow-1">
+        <label for="type" class="form-label">Task Type</label>
+        <select v-model="taskData.type" id="type" class="form-select">
+          <option v-for="type in project.types" :value="type" :key="type" v-text="type"></option>
+        </select>
+      </div>
+    </div>
+
     <div class="mb-3">
       <label for="description" class="form-label">Description</label>
-      <MdEditor
-        v-model="taskData.description"
-        language="en-US"
-        previewTheme="github"
-        noMermaid
-        :preview="false"
-      />
+      <MdEditor v-model="taskData.description" language="en-US" previewTheme="github" noMermaid :preview="false" :style="{
+        height: '250px',
+        textAlign: 'left',
+      }" />
     </div>
-    <div class="mb-3" v-if="project?.statuses">
-      <label for="status" class="form-label">Status</label>
-      <select v-model="taskData.status" id="status" class="form-select" required>
-        <option
-          v-for="status in project.statuses"
-          :value="status"
-          :key="status"
-          v-text="status"
-        ></option>
-      </select>
+
+    <div class="d-flex flex-wrap">
+      <div class="mb-3 flex-grow-1">
+        <label for="sprint" class="form-label">Sprint</label>
+        <select v-model="taskData.sprintId" id="sprint" class="form-select">
+          <option :value="null">Empty</option>
+          <option v-for="sprint in project?.sprints" :value="sprint.id" :key="sprint.id">{{ sprint.title }}</option>
+        </select>
+      </div>
     </div>
-    <div class="mb-3" v-if="project?.priorities">
-      <label for="priority" class="form-label">Priority</label>
-      <select v-model="taskData.priority" id="priority" class="form-select" required>
-        <option
-          v-for="priority in project.priorities"
-          :value="priority"
-          :key="priority"
-          v-text="priority"
-        ></option>
-      </select>
+
+    <div class="d-flex flex-wrap">
+      <div class="mb-3 me-2 flex-grow-1">
+        <label for="assignee" class="form-label">Assignee</label>
+        <select v-model="taskData.assignees" id="assignee" class="form-select" multiple>
+          <option v-for="user in users" :key="user.id" :value="user.id">{{ user.username }}</option>
+        </select>
+      </div>
     </div>
-    <div class="mb-3">
-      <label for="assignee" class="form-label">Assignee</label>
-      <select v-model="taskData.assignees" id="assignee" class="form-select" multiple>
-        <option v-for="user in users" :key="user.id" :value="user.id">
-          {{ user.username }}
-        </option>
-      </select>
+
+    <div class="d-flex flex-wrap">
+      <div class="mb-3 me-2 flex-grow-1">
+        <label for="dueDate" class="form-label">Due Date</label>
+        <input v-model="taskData.dueDate" type="datetime-local" id="dueDate" class="form-control" />
+      </div>
+      <div class="mb-3 flex-grow-1">
+        <label for="estimatedTime" class="form-label">Estimated Time (hours)</label>
+        <input v-model="taskData.estimatedTime" type="number" id="estimatedTime" class="form-control" />
+      </div>
     </div>
-    <div class="mb-3">
-      <label for="sprint" class="form-label">Sprint</label>
-      <select v-model="taskData.sprintId" id="sprint" class="form-select">
-        <option :value="null">Empty</option>
-        <option v-for="sprint in project?.sprints" :value="sprint.id" :key="sprint.id">
-          {{ sprint.title }}
-        </option>
-      </select>
+
+    <div class="d-flex flex-wrap">
+      <div class="mb-3 me-2 flex-grow-1">
+        <label for="plannedDate" class="form-label">Planned Date</label>
+        <input v-model="taskData.plannedDate" type="datetime-local" id="plannedDate" class="form-control" />
+      </div>
+      <div class="mb-3 flex-grow-1">
+        <label for="relatedTaskId" class="form-label">Related Task</label>
+        <select v-model="taskData.relatedTaskId" id="relatedTaskId" class="form-select">
+          <option v-for="task in tasks" :key="task.id" :value="task.id">{{ task.title }}</option>
+        </select>
+      </div>
     </div>
-    <div class="mb-3">
-      <label for="dueDate" class="form-label">Due Date</label>
-      <input v-model="taskData.dueDate" type="datetime-local" id="dueDate" class="form-control" />
-    </div>
-    <div class="mb-3">
-      <label for="estimatedTime" class="form-label">Estimated Time (hours)</label>
-      <input
-        v-model="taskData.estimatedTime"
-        type="number"
-        id="estimatedTime"
-        class="form-control"
-      />
-    </div>
-    <div class="mb-3" v-if="project?.types">
-      <label for="type" class="form-label">Task Type</label>
-      <select v-model="taskData.type" id="type" class="form-select">
-        <option v-for="type in project.types" :value="type" :key="type" v-text="type"></option>
-      </select>
-    </div>
-    <div class="mb-3">
-      <label for="plannedDate" class="form-label">Planned Date</label>
-      <input
-        v-model="taskData.plannedDate"
-        type="datetime-local"
-        id="plannedDate"
-        class="form-control"
-      />
-    </div>
-    <div class="mb-3">
-      <label for="relatedTaskId" class="form-label">Related Task</label>
-      <select v-model="taskData.relatedTaskId" id="relatedTaskId" class="form-select">
-        <option v-for="task in tasks" :key="task.id" :value="task.id">
-          {{ task.title }}
-        </option>
-      </select>
-    </div>
+
     <div class="mb-3" v-if="taskData.tags">
       <label for="tags" class="form-label">Tags</label>
       <TagsInput v-model="taskData.tags" placeholder="Add a tag" />
@@ -112,47 +97,22 @@
     <div class="mb-3">
       <label for="label" class="form-label">Label</label>
       <select v-model="taskData.labelId" id="label" class="form-select">
-        <option v-for="label in labels" :key="label.id" :value="label.id">
-          {{ label.name }}
-        </option>
+        <option v-for="label in labels" :key="label.id" :value="label.id">{{ label.name }}</option>
       </select>
     </div>
 
-    <div class="mb-3" v-if="taskData.customFields">
+    <div v-if="taskData.customFields && customFieldsStrict.length > 0" class="mb-3">
       <label for="customFields" class="form-label">Custom Fields</label>
-      <div
-        v-for="(field, index) in customFieldsStrict"
-        :key="index"
-        class="mb-3"
-        style="padding: 8px 4px 0"
-      >
-        <div class="d-flex align-items-center">
-          <label
-            :for="field.description"
-            class="form-label"
-            v-text="field.description"
-            style="padding: 10px 6px 0"
-          ></label>
-          <input
-            v-model="taskData.customFields[field.description]"
-            :id="field.description"
-            :type="field.type"
-            class="form-control mr-2"
-            placeholder="Field Value"
-          />
-        </div>
+      <div v-for="(field, index) in customFieldsStrict" :key="index" class="d-flex align-items-center">
+        <label :for="field.description" class="form-label">{{ field.description }}</label>
+        <input v-model="taskData.customFields[field.description]" :id="field.description" :type="field.type" class="form-control" />
       </div>
     </div>
 
     <!-- Conditional rendering for comments -->
     <div v-if="mode === 'edit' && showComments && comments" class="mt-3">
       <h5>Comments</h5>
-      <CommentCard
-        v-for="comment in comments"
-        :key="comment.id"
-        :comment="comment"
-        :project-id="projectId.toString()"
-      />
+      <CommentCard v-for="comment in comments" :key="comment.id" :comment="comment" :project-id="projectId.toString()" />
       <form @submit.prevent="addComment" class="mt-3">
         <div class="mb-3">
           <label for="content" class="form-label">New Comment</label>
@@ -387,7 +347,7 @@ const handleFileUpload = (event: Event) => {
 </script>
 
 <style scoped>
-.task-form {
+.modal-body {
   max-width: 800px;
   margin: 0 auto;
 }
@@ -403,4 +363,44 @@ const handleFileUpload = (event: Event) => {
   width: 100%;
   background-color: white;
 }
+
+.d-flex {
+  display: flex;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-grow-1 {
+  flex-grow: 1;
+}
+
+.me-2 {
+  margin-right: 0.5rem;
+}
+
+.form-label {
+  display: inline-block;
+  margin: 0;
+  padding: 2px 5px;
+  width: 100%;
+  background-color: #f5f5f5;
+  color: #333;
+  font-weight: 600;
+  text-align: left;
+  border: 1px solid #ccc;
+  transition: background-color 0.3s ease;
+}
+
+.form-label:hover {
+  background-color: #e9e9e9;
+}
+
+.form-select,
+.form-control {
+  border-radius: 0;
+  padding: 2px 5px;
+}
+
 </style>
