@@ -56,10 +56,15 @@
       </div>
     </div>
 
-    <div class="d-flex flex-wrap">
-      <div class="mb-3 flex-grow-1">
-        <label for="assignee" class="form-label">Assignee</label>
-        <select v-model="taskData.assignees" id="assignee" class="form-select" multiple>
+    <div class="d-flex flex-wrap position-relative">
+      <div class="mb-3 flex-grow-1 position-relative">
+        <label for="assignee" class="form-label d-flex align-items-center justify-content-between">
+          Assignee
+          <button v-if="assigneesArray.length" type="button" class="clear-button" @click="clearSelection">
+            <i class="fas fa-times"></i>
+          </button>
+        </label>
+        <select v-model="assigneesArray" id="assignee" class="form-select" multiple>
           <option v-for="user in users" :key="user.id" :value="user.id">{{ user.username }}</option>
         </select>
       </div>
@@ -190,7 +195,8 @@ const taskData = ref<Task>({
   status: 'To Do',
   priority: 'Low',
   sprintId: null,
-  assignees: [] as number[],
+  order: 0,
+  assignees: [] as { id: number }[],
   dueDate: null as Date | null,
   estimatedTime: 0,
   type: 'Frontend',
@@ -205,6 +211,7 @@ const taskData = ref<Task>({
 const newCommentContent = ref('')
 const attachment = ref<File | null>(null)
 const comments = ref<Comment[]>([])
+const assigneesArray = ref<number[]>(props.initialTaskData?.assignees?.map((assignee: {id: number}) => assignee.id) ?? [])
 
 
 const selectedTemplate = ref<ITaskTemplate | null>(null)
@@ -219,6 +226,10 @@ const buttonText = computed(() => (props.mode === 'create' ? 'Create Task' : 'Sa
 const filteredRelatedTasks = computed(() => {
   return props.tasks.filter(task => task.id !== taskData.value.id);
 });
+
+const clearSelection = async () => {
+  assigneesArray.value = []; // Очищаем выбранные значения, если выбран пункт "---- empty ----"
+}
 
 const saveAsTemplate = async () => {
   try {
@@ -238,9 +249,10 @@ const saveAsTemplate = async () => {
     delete (dataToTemplate as { plannedDate?: number }).plannedDate
     delete (dataToTemplate as { id?: number }).id
     delete (dataToTemplate as { assignees?: number }).assignees
+    delete (dataToTemplate as { order?: number }).order
 
 
-    await axios.post(`/task-templates/${props.project!.id}`, dataToTemplate);
+    await axios.post(`/task-templates/${props.project!.id}`, {...dataToTemplate, assignees: assigneesArray.value});
     await fetchTemplates();
   } catch (error) {
     console.error('Error saving template:', error);
@@ -314,12 +326,13 @@ const submitTask = async () => {
   delete (dataToSave as { dueDate?: number }).dueDate
   delete (dataToSave as { plannedDate?: number }).plannedDate
   delete (dataToSave as { id?: number }).id
+  delete (dataToSave as { assignees?: number }).assignees
 
   if (props.mode === 'create') {
-    await taskStore.createTask(parseInt(props.projectId), dataToSave)
+    await taskStore.createTask(parseInt(props.projectId), {...dataToSave, assigneesIds: assigneesArray.value})
   } else {
 
-    await taskStore.updateTask(parseInt(props.projectId), taskData.value.id, dataToSave)
+    await taskStore.updateTask(parseInt(props.projectId), taskData.value.id, {...dataToSave, assigneesIds: assigneesArray.value})
   }
   emit('task-saved', 'close')
 }
@@ -406,4 +419,35 @@ const handleFileUpload = (event: Event) => {
   padding: 2px 5px;
 }
 
+.position-relative {
+  position: relative;
+}
+
+.clear-button {
+  background: transparent;
+  border: none;
+
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 8px; /* Отступ слева от текста в label */
+}
+
+
+.form-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%; /* Чтобы label занимал всю ширину над select */
+}
+
+.clear-button i {
+  color: red;
+  font-size: 1.0rem;
+  padding-top: 4px;
+}
+
+.clear-button i:hover {
+  color: darkred;
+}
 </style>

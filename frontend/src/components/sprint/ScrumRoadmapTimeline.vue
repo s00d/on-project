@@ -51,7 +51,7 @@
           <br />
           <small v-if="task.plannedDate">Planned: {{ formatDate(task.plannedDate) }}</small>
           <br />
-          <small v-if="task.assignees?.length">Assignees: {{ task.assignees.join(', ') }}</small>
+          <small v-if="task.assignees?.length">Assignees: {{ task.assignees.map(assignee => assignee.id).join(', ') }}</small>
         </li>
       </ul>
     </div>

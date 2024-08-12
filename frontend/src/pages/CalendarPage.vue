@@ -43,7 +43,7 @@ const fetchTasks = async (startDate: string, endDate: string) => {
       extendedProps: {
         status: task.status,
         priority: task.priority,
-        assignee: task.assignees?.values()
+        assignee: task.assignees?.map(assignee => assignee.id)
       }
     }))
 

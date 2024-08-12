@@ -34,8 +34,9 @@ interface TaskDTO {
   title: string,
   description: string,
   status?: string,
-  assignees?: ProjectUser[],
+  assigneesIds?: number[],
   labelId?: number|null,
+  order?: number,
   dueDate?: Date|null,
   stopDate?: null|any,
   startDate?: null|any,
@@ -211,9 +212,9 @@ export class TaskController extends Controller {
 
       const label = requestBody.labelId ? await labelRepository.findOne({ where: { id: requestBody.labelId } }) : null;
       const relatedTask = requestBody.relatedTaskId ? await taskRepository.findOne({ where: { id: requestBody.relatedTaskId } }) : null;
-      const assignees = requestBody.assignees ? await projectUserRepository.find({
+      const assignees = requestBody.assigneesIds ? await projectUserRepository.find({
         where: {
-          user: { id: In(requestBody.assignees) },
+          user: { id: In(requestBody.assigneesIds) },
           project: { id: projectId }
         },
         relations: ['user']
@@ -291,6 +292,7 @@ export class TaskController extends Controller {
     }
 
     try {
+      const projectUserRepository = AppDataSource.getRepository(ProjectUser);
       const taskRepository = AppDataSource.getRepository(Task);
       const task = await taskRepository.findOne({ where: { id, project: { id: projectId } } });
       if (!task) {
@@ -299,8 +301,6 @@ export class TaskController extends Controller {
       }
 
       const changes: Record<string, { oldValue: any, newValue: any }> = {};
-
-      // Проверяем изменения в каждом из полей
 
       for (const key of Object.keys(requestBody)) {
         if(key === 'assignees') continue;
@@ -315,7 +315,7 @@ export class TaskController extends Controller {
         }
       }
 
-      const updatedTask = Object.assign(task, requestBody);
+      const updatedTask: Task = Object.assign(task, requestBody);
 
       if (requestBody.status) {
         if (requestBody.status === 'Done') {
@@ -352,6 +352,16 @@ export class TaskController extends Controller {
           updatedTask.relatedTask = relatedTask
         }
       }
+
+      if (requestBody.assigneesIds !== undefined) {
+        updatedTask.assignees = await projectUserRepository.find({
+          where: {
+            user: { id: In(requestBody.assigneesIds) },
+            project: { id: projectId }
+          }
+        })
+      }
+
 
       await taskRepository.save(updatedTask);
       await logTaskHistory(updatedTask.id, userId, 'updated', changes);

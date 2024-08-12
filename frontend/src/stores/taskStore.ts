@@ -9,7 +9,8 @@ export interface TaskBase {
   description: string // Описание теперь обязательно, с значением по умолчанию ''
   status: string // Статус теперь обязателен, с значением по умолчанию ''
   projectId: number // Проект обязателен
-  assignees?: number[] // Массив идентификаторов пользователей (опционально)
+  assignees?: {id: number}[] // Массив идентификаторов пользователей (опционально)
+  assigneesIds?: number[]
   order: number
   sprintId?: number | null // Идентификатор метки (опционально)
   labelId?: number | null // Идентификатор метки (опционально)

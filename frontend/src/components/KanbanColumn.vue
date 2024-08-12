@@ -19,8 +19,8 @@
       <h5 class="card-title">{{ task.title }}</h5>
       <p v-if="task.assignees && task.assignees.length">
         Assigned to:
-        <span v-for="assignee in task.assignees" :key="assignee">
-          <span v-if="users[assignee]" v-text="users[assignee].username"></span>
+        <span v-for="assignee in task.assignees" :key="assignee.id">
+          <span v-if="users[assignee.id]" v-text="users[assignee.id].username"></span>
         </span>
       </p>
     </div>

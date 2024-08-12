@@ -107,7 +107,7 @@ const labelName = computed(() => {
 
 const assignedUsers = computed(() => {
   return (
-    Object.values(props.users).filter((user) => props.taskData.assignees?.includes(user.id)) ?? []
+    Object.values(props.users).filter((user) => props.taskData.assignees?.map(assignee => assignee.id)?.includes(user.id)) ?? []
   )
 })
 

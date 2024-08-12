@@ -93,7 +93,7 @@ const groupedTasks = computed(() => {
     } else if (props.groupBy === 'status') {
       groupKey = task.status || 'No Status'
     } else if (props.groupBy === 'assignee') {
-      groupKey = task.assignees ? task.assignees.join(', ') : 'Unassigned'
+      groupKey = task.assignees ? task.assignees.map(assignee => assignee.id).join(', ') : 'Unassigned'
     } else if (task.customFields) {
       groupKey = task.customFields[props.groupBy] || 'No ' + props.groupBy
     }
@@ -119,7 +119,7 @@ const sort = (key: string) => {
         const usernames: string[] = []
         if (task.assignees?.length) {
           for (let i = 0; i < task.assignees.length; i++) {
-            const userId = task.assignees[i]
+            const userId = task.assignees[i].id
             if (props.users[userId]) {
               usernames.push(props.users[userId].username)
             }
@@ -180,7 +180,7 @@ const getColumnData = (task: Task, column: string) => {
       vals = []
       if (task.assignees?.length) {
         for (let i in task.assignees) {
-          const userId = task.assignees[i]
+          const userId = task.assignees[i].id
           if (props.users[userId]) {
             vals.push(props.users[userId].username)
           }
