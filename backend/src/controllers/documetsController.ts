@@ -21,7 +21,7 @@ import { Document } from '../models/Document';
 import { Project } from '../models/Project';
 import { User } from '../models/User';
 import { authenticateAll } from '../middlewares/authMiddleware';
-import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+import { Request as ExpressRequest } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
 

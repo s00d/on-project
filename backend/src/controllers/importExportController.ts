@@ -5,7 +5,6 @@ import {
   Route,
   Body,
   UploadedFile,
-  SuccessResponse,
   Middlewares,
   Security,
   Tags,
@@ -13,32 +12,22 @@ import {
   Request,
 } from 'tsoa';
 import { readFileSync } from 'fs';
-import axios from 'axios';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import { AppDataSource } from '../ormconfig';
 import { Task } from '../models/Task';
 import { Project } from '../models/Project';
 import { authenticateAll } from '../middlewares/authMiddleware';
-import multer from 'multer';
-import {isProjectCreator} from "../middlewares/roleMiddleware";
-import {Request as ExpressRequest} from "express";
+import { isProjectCreator } from "../middlewares/roleMiddleware";
+import { Request as ExpressRequest } from "express";
 
-const upload = multer({ dest: 'uploads/' }).single('file');
+const execAsync = promisify(exec);
 
-interface GitHubProject {
-  id: number;
-  name: string;
-  columns_url: string;
-}
-
-interface GitHubColumn {
-  id: number;
-  name: string;
-  cards_url: string;
-}
-
-interface GitHubCard {
-  id: number;
-  note: string | null;
+interface GitHubImportBody {
+  token: string;
+  organization: string; // URL проекта GitHub
+  projectNumber: number; // URL проекта GitHub
+  userMapping: { [key: string]: number }; // Сопоставление GitHub username -> User ID
 }
 
 @Route('api/import-export')
@@ -61,7 +50,7 @@ export class ImportExportController extends Controller {
       });
 
       if (!project) {
-        throw new Error('Project not found')
+        throw new Error('Project not found');
       }
 
       const data = { project };
@@ -70,7 +59,7 @@ export class ImportExportController extends Controller {
       this.setHeader('Content-Type', 'application/json');
       return data;
     } catch (err: any) {
-      throw new Error('An error occurred during export')
+      throw new Error('An error occurred during export');
     }
   }
 
@@ -87,18 +76,16 @@ export class ImportExportController extends Controller {
 
       const projectRepository = AppDataSource.getRepository(Project);
       const taskRepository = AppDataSource.getRepository(Task);
-      data.ownerId = userId
+      data.ownerId = userId;
 
       // Сохранение проекта
       const savedProject = await projectRepository.save(data.project);
-
 
       // Сохранение задач, которые не привязаны к спринтам
       for (const task of data.project.tasks) {
         task.project = savedProject;
         await taskRepository.save(task);
       }
-
 
       return { message: 'Data imported successfully' };
     } catch (err: any) {
@@ -107,69 +94,103 @@ export class ImportExportController extends Controller {
   }
 
   @Post('{projectId}/github-import')
-  @Middlewares([
-    authenticateAll,
-    isProjectCreator
-  ])
-  @SuccessResponse('200', 'Data imported from GitHub successfully')
+  @Security('apiKey')
   public async importFromGitHub(
-    @Body() body: {
-      token: string;
-      repoUrl: string;
-      projectId: number;
-    }
+    @Path() projectId: number,
+    @Body() body: GitHubImportBody
   ): Promise<{ message: string }> {
-    const { token, repoUrl, projectId } = body;
+    const { token, organization, projectNumber, userMapping } = body;
     try {
-      const [owner, repo] = repoUrl.replace('https://github.com/', '').split('/');
 
-      const { data: projects } = await axios.get<GitHubProject[]>(
-        `https://api.github.com/repos/${owner}/${repo}/projects`,
-        {
-          headers: { Authorization: `token ${token}` }
-        }
-      );
-
-      const taskRepository = AppDataSource.getRepository(Task);
       const projectRepository = AppDataSource.getRepository(Project);
+      const taskRepository = AppDataSource.getRepository(Task);
 
       const project = await projectRepository.findOne({ where: { id: projectId } });
-
       if (!project) {
-        throw new Error('Project not found');
+        throw new Error('Проект не найден');
       }
 
-      for (const githubProject of projects) {
-        const { data: columns } = await axios.get<GitHubColumn[]>(githubProject.columns_url, {
-          headers: { Authorization: `token ${token}` }
-        });
-
-        for (const column of columns) {
-          const { data: cards } = await axios.get<GitHubCard[]>(column.cards_url, {
-            headers: { Authorization: `token ${token}` }
-          });
-
-          for (const card of cards) {
-            if (!card.note) {
-              continue; // Skip cards without a note
+      // Формирование команды gh для выполнения GraphQL-запроса
+      const query = `
+        query($org: String!, $num: Int!) {
+          organization(login: $org) {
+            projectV2(number: $num) {
+              items(first: 100) {
+                nodes {
+                  content {
+                    ... on Issue {
+                      title
+                      body
+                      state
+                      assignees(first: 10) {
+                        nodes {
+                          login
+                        }
+                      }
+                    }
+                    ... on PullRequest {
+                      title
+                      body
+                      state
+                      assignees(first: 10) {
+                        nodes {
+                          login
+                        }
+                      }
+                    }
+                    ... on DraftIssue {
+                      title
+                      body
+                    }
+                  }
+                }
+              }
             }
-
-            const task = taskRepository.create({
-              title: card.note as string,
-              description: card.note,
-              status: column.name,
-              project: project,
-              assignees: [],
-              priority: 'Medium'
-            });
-
-            await taskRepository.save(task);
           }
         }
+      `;
+
+      // Выполнение команды gh
+      const command = `gh api graphql -f query='${query}' -F org='${organization}' -F num=${projectNumber}`;
+      const { stdout, stderr } = await execAsync(command);
+
+      if (stderr) {
+        throw new Error(`Ошибка выполнения команды: ${stderr}`);
       }
 
-      return { message: 'Data imported from GitHub successfully' };
+      const response = JSON.parse(stdout);
+      const items = response.data.organization.projectV2.items.nodes;
+
+      for (const item of items) {
+        const content = item.content;
+        const assignees = content.assignees?.nodes || [];
+        let status = content.state;
+
+        // Проверка, существует ли статус в массиве статусов проекта
+        let statuses: string[]|string = project.statuses;
+        if (typeof statuses === 'string') {
+          statuses = JSON.parse(project.statuses || '[]');
+        }
+        if (!project.statuses.includes(status)) {
+          status = 'To Do'
+          // Если статус отсутствует, добавляем его
+        }
+
+        const task = taskRepository.create({
+          title: content.title,
+          description: content.body,
+          status: status, // Используем статус из GitHub
+          project,
+          assignees: assignees.map((a: any) => userMapping[a.login]).filter(Boolean),
+          priority: 'Medium',
+        });
+
+        await taskRepository.save(task);
+      }
+
+      return { message: 'Данные успешно импортированы из GitHub' };
     } catch (err: any) {
+      console.error(err)
       throw new Error(err.message);
     }
   }

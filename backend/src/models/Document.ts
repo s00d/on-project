@@ -35,6 +35,10 @@ export class Document {
   @Example('Description of the document or its contents')
   description!: string;
 
+  // @Column({ length: 200, nullable: true })
+  // @Example('Team A')
+  // group?: string|null;
+
   @Column({ length: 255 })
   @Example('/uploads/documents/tech_spec.pdf')
   filePath!: string;

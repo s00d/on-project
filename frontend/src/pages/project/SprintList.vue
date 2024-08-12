@@ -219,4 +219,38 @@ onMounted(() => {
   color: #718096;
 }
 
+
+.task-list {
+  margin-top: 16px;
+  max-height: 100px;
+  overflow-y: scroll;
+}
+
+.task-item {
+  background-color: #f1f3f4;
+  padding: 8px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+
+.task-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.task-title {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.task-priority {
+  padding: 2px 6px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  color: #fff;
+}
+
 </style>

@@ -71,7 +71,7 @@ export class TaskController extends Controller {
     @Query() tags?: string,
     @Query() sprintId?: number,
     @Query() relatedTaskId?: number,
-    @Query() pageSize: number = 10,
+    @Query() pageSize: number = 100,
     @Query() page: number = 1,
     @Query() startDate?: Date,
     @Query() endDate?: Date

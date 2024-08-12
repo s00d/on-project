@@ -75,7 +75,7 @@ export class Task {
   priority!: string;
 
   @Column('int', { default: 0 })
-    @Example(8)
+  @Example(8)
   estimatedTime!: number;
 
   @Column('int', { default: 0 })
