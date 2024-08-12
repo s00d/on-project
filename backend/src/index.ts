@@ -108,17 +108,40 @@ io.on('connection', (socket) => {
     if (project) {
       socket.join(`project:${projectId}`);
       socket.join(`user:${user.id}`);
+      socket.emit('ok', 'You have permission to join this project.');
 
       console.log(`User ${user.id} joined project ${projectId}`);
-      socket.emit('ok', 'You have permission to join this project.');
     } else {
       socket.emit('error', 'You do not have permission to join this project.');
     }
   });
 
-  socket.on('unsubscribeFromProject', ({ projectId, userId }) => {
-    socket.leave(`project:${projectId}`);
-    console.log(`User ${userId} left project ${projectId}`);
+  socket.on('unsubscribeFromProject', async ({ projectId, apikey }) => {
+    const userRepository = AppDataSource.getRepository(User);
+    const projectRepository = AppDataSource.getRepository(Project);
+    const user = await userRepository.findOne({ where: { apikey } });
+
+    if (!user) {
+      socket.emit('error', 'You do not have permission to join this user.');
+      return;
+    }
+
+    const project = await projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.projectUsers', 'projectUser')
+      .where('project.id = :projectId', { projectId })
+      .andWhere('(project.ownerId = :userId OR projectUser.userId = :userId)', { userId: user.id })
+      .getOne();
+
+    if (project) {
+      socket.leave(`project:${projectId}`);
+      socket.join(`user:${user.id}`);
+      socket.emit('ok', 'You have permission to left this project.');
+
+      console.log(`User ${user.id} left project ${projectId}`);
+    } else {
+      socket.emit('error', 'You do not have permission to left this project.');
+    }
   });
 
   socket.on('disconnect', () => {

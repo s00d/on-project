@@ -298,6 +298,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   socket.off(`task:reorder`, applyFilters)
+  socket.emit('unsubscribeFromProject', { projectId, userId: useAuthStore().userId });
 })
 
 const createTaskModal = () => {
