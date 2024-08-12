@@ -14,6 +14,9 @@
           </div>
 
           <div class="board-columns">
+            <div class="board-column add-column" @click="openCreateSprintModal">
+              <button class="btn btn-link">+ Add Sprint</button>
+            </div>
             <div class="board-column" v-for="sprint in sprints" :key="sprint.id">
               <div class="board-column-header">
                 <h2 class="board-column-title" :title="sprint.title">{{ sprint.title }}</h2>
@@ -46,10 +49,6 @@
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div class="board-column add-column" @click="openCreateSprintModal">
-              <button class="btn btn-link">+ Add Sprint</button>
             </div>
           </div>
         </div>
@@ -202,98 +201,6 @@ onMounted(() => {
 
 
 <style scoped>
-.project-board {
-  max-width: 1200px;
-  margin: auto;
-  padding: 20px;
-  background-color: #f4f5f7;
-}
-
-.board-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.board-title {
-  font-size: 2rem;
-  font-weight: bold;
-}
-
-.board-columns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  justify-content: space-between;
-}
-
-.board-column {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-  width: calc(25% - 16px);
-  padding: 16px;
-}
-
-.board-column:hover {
-  transform: translateY(-5px);
-}
-
-.board-column-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.board-column-title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 150px; /* Ограничиваем ширину, чтобы текст обрезался */
-}
-
-.board-column-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.task-list {
-  margin-top: 16px;
-  max-height: 100px;
-  overflow-y: scroll;
-}
-
-.task-item {
-  background-color: #f1f3f4;
-  padding: 8px;
-  border-radius: 4px;
-  margin-bottom: 8px;
-}
-
-.task-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 4px;
-}
-
-.task-title {
-  font-size: 1rem;
-  font-weight: bold;
-}
-
-.task-priority {
-  padding: 2px 6px;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  color: #fff;
-}
 
 .priority-high {
   background-color: #e53e3e;
@@ -312,15 +219,4 @@ onMounted(() => {
   color: #718096;
 }
 
-.add-column {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #edf2f7;
-  border-radius: 8px;
-  border: 2px dashed #cbd5e0;
-  cursor: pointer;
-  margin-right: auto;
-  min-height: 239px;
-}
 </style>

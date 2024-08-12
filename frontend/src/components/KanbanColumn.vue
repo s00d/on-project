@@ -115,7 +115,7 @@ const project = computed(() => {
 
 <style>
 .kanban-column {
-  width: 30%;
+  width: calc(24% - 16px);
   background-color: #f0f0f0;
   padding: 20px;
   border-radius: 8px;

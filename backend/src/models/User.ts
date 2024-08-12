@@ -19,6 +19,7 @@ import { Label } from './Label';
 import { Exclude } from 'class-transformer';
 import { Hidden } from 'tsoa';
 import { Example } from 'tsoa';
+import {Document} from "./Document";
 
 @Entity()
 export class User {
@@ -114,4 +115,8 @@ export class User {
   @OneToMany(() => Label, (label) => label.user)
   @Example([{ id: 1, name: 'Bug' }])
   labels!: Label[];
+
+  @OneToMany(() => Document, (document) => document.user)
+  @Example([{ id: 1, title: 'Document 1' }])
+  documents!: Document[];
 }

@@ -32,6 +32,8 @@ import { guestGuard } from '@/middleware/guestGuard'
 import UniversalReport from '@/pages/report/UniversalReport.vue'
 import NotificationList from '@/pages/NotificationList.vue'
 
+import DocumentList from '../pages/documents/List.vue'
+
 const routes = [
   { path: '/', component: Home, name: 'Home' },
   {
@@ -80,6 +82,12 @@ const routes = [
     path: '/cabinet/notifications',
     component: NotificationList,
     name: 'NotificationList',
+    beforeEnter: authGuard
+  },
+  {
+    path: '/cabinet/projects/:projectId/documents',
+    component: DocumentList,
+    name: 'DocumentList',
     beforeEnter: authGuard
   },
   {

@@ -174,4 +174,80 @@ export default defineComponent({
 .overflow-hidden {
   overflow: hidden;
 }
+
+.project-board {
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+  background-color: #f4f5f7;
+}
+
+.board-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.board-title {
+  font-size: 2rem;
+  font-weight: bold;
+}
+
+.board-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: flex-start;
+}
+
+.board-column {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  width: calc(25% - 16px);
+  padding: 16px;
+  cursor: pointer;
+}
+
+.board-column:hover {
+  transform: translateY(-5px);
+  background-color: #e2e8f0;
+}
+
+
+.board-column-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.board-column-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px; /* Ограничиваем ширину, чтобы текст обрезался */
+}
+
+.board-column-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+
+.add-column {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #edf2f7;
+  border-radius: 8px;
+  border: 2px dashed #cbd5e0;
+  cursor: pointer;
+  min-height: 158px;
+}
 </style>

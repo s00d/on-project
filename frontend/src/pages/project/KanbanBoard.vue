@@ -220,7 +220,7 @@ const createTaskModal = () => {
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
-  width: 300px;
+  width: 25%;
   padding: 16px;
   transition: background-color 0.3s ease;
 }

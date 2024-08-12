@@ -64,6 +64,15 @@
           Calendar
         </router-link>
       </li>
+      <li class="nav-item">
+        <router-link
+          class="nav-link"
+          :class="{ active: isActive('DocumentList') }"
+          :to="{ name: 'DocumentList', params: { projectId: projectId } }"
+        >
+          Documents
+        </router-link>
+      </li>
     </ul>
     <div class="tab-content mt-3">
       <slot></slot>

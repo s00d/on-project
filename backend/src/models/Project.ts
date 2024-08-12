@@ -22,6 +22,7 @@ import { Exclude } from 'class-transformer';
 import { Sprint } from './Sprint';
 import { TaskTemplate } from "./TaskTemplate";
 import { Example } from 'tsoa';
+import {Document} from "./Document";
 
 @Entity('projects')
 export class Project {
@@ -102,6 +103,9 @@ export class Project {
 
   @OneToMany(() => Sprint, (sprint) => sprint.project, { cascade: true, onDelete: 'CASCADE' })
   sprints!: Sprint[];
+
+  @OneToMany(() => Document, (document) => document.project, { cascade: true, onDelete: 'CASCADE' })
+  documents!: Document[];
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   @Index()

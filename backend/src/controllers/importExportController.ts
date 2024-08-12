@@ -9,7 +9,8 @@ import {
   Middlewares,
   Security,
   Tags,
-  Path, Res, Request,
+  Path,
+  Request,
 } from 'tsoa';
 import { readFileSync } from 'fs';
 import axios from 'axios';
