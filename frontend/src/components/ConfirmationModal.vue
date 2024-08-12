@@ -1,5 +1,5 @@
 <template>
-  <ModalComponent :isOpen="isOpen" :title="modalTitle" @close="close">
+  <ModalComponent :isOpen="isOpen" :title="modalTitle" @close="close" :is-block="true">
     <template #body>
       <div class="modal-body">
         <p>{{ modalMessage }}</p>

@@ -57,6 +57,7 @@
 
   <ModalComponent
     :isOpen="isTaskModalOpen"
+    :is-block="true"
     title="create Task"
     @close="isTaskModalOpen = false"
     pos="fixed-left"

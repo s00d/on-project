@@ -71,6 +71,7 @@
       <ModalComponent
         :isOpen="isModalOpen"
         :title="isEditMode ? 'Edit Sprint' : 'Create Sprint'"
+        :is-block="true"
         @close="closeModal"
       >
         <template #body>

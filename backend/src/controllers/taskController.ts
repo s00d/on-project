@@ -142,7 +142,7 @@ export class TaskController extends Controller {
         );
       }
 
-      queryBuilder.orderBy('task.id', 'DESC');
+      queryBuilder.orderBy('task.order', 'DESC');
 
       const [tasks, count] = await queryBuilder
         .skip((page - 1) * pageSize)
@@ -362,6 +362,48 @@ export class TaskController extends Controller {
       this.setStatus(400);
       throw new Error(err.message);
     }
+  }
+
+  @Put('{projectId}/reorder/update')
+  @Response(400, 'Bad request')
+  @SuccessResponse(200, 'Tasks reordered successfully')
+  @Middlewares([authenticateAll])
+  public async reorderTasks(
+    @Path() projectId: number,
+    @Body() body: {
+      draggedTaskId: number,
+      targetTaskId: number,
+    },
+  ): Promise<void> {
+
+    const taskRepository = AppDataSource.getRepository(Task);
+
+    const draggedTask = await taskRepository.findOne({
+      where: { id: body.draggedTaskId, project: { id: projectId } },
+    });
+
+    const targetTask = await taskRepository.findOne({
+      where: { id: body.targetTaskId, project: { id: projectId } },
+    });
+
+    if (!draggedTask) {
+      this.setStatus(404);
+      throw new Error(`Dragged Task ${body.draggedTaskId} not found`);
+    }
+
+    if (!targetTask) {
+      this.setStatus(404);
+      throw new Error(`Target Task ${targetTask} not found`);
+    }
+
+    // Update the order of draggedTask
+    const draggedOrder = draggedTask.order;
+    draggedTask.order = targetTask.order;
+    targetTask.order = draggedOrder;
+
+    await taskRepository.save([draggedTask, targetTask]);
+
+    io.emit('task:reorder');
   }
 
   @Delete('{projectId}/{id}')

@@ -29,6 +29,7 @@
             @open-task-modal="openTaskModal"
             @open-preview-modal="openPreviewModal"
             @open-history-modal="openHistoryModal"
+            @refresh="applyFilters"
           />
           <PaginationComponent
             :total-pages="totalPages"
@@ -74,6 +75,8 @@
           <ModalComponent
             :isOpen="isPreviewModalOpen"
             :title="selectedTask?.title ?? ''"
+            :is-block="true"
+            pos="center"
             @close="closeTaskModal"
           >
             <template #body>
@@ -91,6 +94,7 @@
           <!-- Settings Modal -->
           <ModalComponent
             :isOpen="isSettingsModalOpen"
+            :is-block="true"
             title="Settings"
             @close="closeTaskModal"
             pos="center"
@@ -117,6 +121,7 @@
           <!-- Save Filter Modal -->
           <ModalComponent
             :isOpen="isSaveFilterModalOpen"
+            :is-block="true"
             title="Save Filter"
             @close="closeTaskModal"
             pos="center"
@@ -142,6 +147,7 @@
           <ModalComponent
             :isOpen="isHistoryModalOpen"
             :title="'Task History for ' + (selectedTask?.title ?? '')"
+            :is-block="true"
             @close="closeTaskModal"
             pos="center"
           >
@@ -163,7 +169,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, computed } from 'vue'
+import {ref, onMounted, computed, onUnmounted} from 'vue'
 import { type Task, useTaskStore } from '@/stores/taskStore'
 import { useRoute } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
@@ -180,6 +186,7 @@ import type { User } from '@/stores/authStore'
 import TaskPreviewCard from '@/components/tasks/TaskPreviewCard.vue'
 import TaskHistoryModalContent from "@/components/tasks/TaskHistoryModalContent.vue";
 import axios from "axios";
+import { socket } from "@/plugins/socketPlugin";
 
 const taskStore = useTaskStore()
 const projectStore = useProjectStore()
@@ -283,6 +290,12 @@ onMounted(async () => {
   await projectStore.fetchProject(Number(projectId))
   loadSavedFilters()
   users.value = await projectStore.fetchUsers(Number(projectId))
+
+  socket.on('task:reorder', applyFilters)
+})
+
+onUnmounted(() => {
+  socket.off('task:reorder', applyFilters)
 })
 
 const createTaskModal = () => {

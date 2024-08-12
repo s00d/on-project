@@ -130,11 +130,11 @@
     <div class="pef"></div>
 
     <div class="modal-footer">
-      <button type="button" class="btn btn-success" @click.prevent="saveAsTemplate">
-        Save as Template
-      </button>
       <button type="button" class="btn btn-primary" @click.prevent="submitTask">
         {{ buttonText }}
+      </button>
+      <button type="button" class="btn btn-success" @click.prevent="saveAsTemplate">
+        Save as Template
       </button>
       <button type="button" class="btn btn-danger" @click="$emit('close')">Close</button>
     </div>

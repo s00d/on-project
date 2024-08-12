@@ -10,7 +10,7 @@ import {
   OneToMany,
   Index,
   JoinColumn,
-  RelationId
+  RelationId, Generated, BeforeInsert
 } from 'typeorm';
 import { Project } from './Project';
 import { Label } from './Label';
@@ -20,12 +20,17 @@ import { TaskHistory } from './TaskHistory';
 import { ProjectUser } from './ProjectUser';
 import { Sprint } from './Sprint';
 import { Example } from 'tsoa';
+import {AppDataSource} from "../ormconfig";
 
 @Entity('tasks')
 export class Task {
   @PrimaryGeneratedColumn()
-    @Example(1)
+  @Example(1)
   id!: number;
+
+  @Column('int', { default: 0 })
+  @Index()
+  order!: number;
 
   @Column({ length: 128 })
   @Index()
@@ -148,4 +153,18 @@ export class Task {
   @Index()
   @Example('2024-08-11T00:00:00Z')
   updatedAt!: Date;
+
+  @BeforeInsert()
+  async setOrder() {
+    const taskRepository = AppDataSource.getRepository(Task);
+
+    // Получаем максимальное значение order среди всех задач
+    const maxOrderTask = await taskRepository
+      .createQueryBuilder('task')
+      .select('MAX(task.order)', 'max')
+      .getRawOne();
+
+    // Устанавливаем значение order для новой задачи
+    this.order = (maxOrderTask?.max ?? 0) + 1;
+  }
 }

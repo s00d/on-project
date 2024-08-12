@@ -81,6 +81,7 @@
     <ModalComponent
       :isOpen="isProjectModalOpen"
       :title="selectedProject ? 'Edit Details' : 'Create Details'"
+      :is-block="true"
       @close="closeModal"
       pos="fixed-left"
     >

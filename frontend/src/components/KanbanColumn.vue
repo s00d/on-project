@@ -28,6 +28,7 @@
 
   <ModalComponent
     :isOpen="!!selectedTask"
+    :is-block="true"
     title="Edit Details"
     @close="closeTaskModal"
     pos="fixed-left"

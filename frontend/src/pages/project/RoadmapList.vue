@@ -57,6 +57,7 @@
       <ModalComponent
         :isOpen="isModalOpen"
         :title="isEditMode ? 'Edit Roadmap' : 'Create Roadmap'"
+        :is-block="true"
         @close="closeModal"
       >
         <template #body>

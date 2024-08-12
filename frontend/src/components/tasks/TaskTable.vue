@@ -12,8 +12,13 @@
           <th scope="col" class="actions-sticky" style="width: 90px">Actions</th>
         </tr>
         </thead>
-        <tbody v-for="task in tasks" :key="task.id">
-        <tr class="task-row">
+        <tbody v-for="(task, index) in tasks" :key="task.id">
+        <tr class="task-row"
+            :class="{ dragging: dragStart?.id === task.id, 'drop-target': dropIndex === task.id }"
+            draggable="true"
+            @dragstart="onDragStart(task)"
+            @dragover="(event) => onDragOver(event, task)"
+            @drop="onDrop(task)">
           <td
             v-for="column in visibleColumns"
             :style="{ backgroundColor: generatePriorityColor(task.priority ?? '') }"
@@ -22,10 +27,7 @@
           ></td>
           <td class="actions-sticky" style="width: 90px">
             <div style="width: 90%; display: flex">
-              <button
-                class="btn btn-danger btn-sm ms-1"
-                @click="$emit('open-task-modal', task)"
-              >
+              <button class="btn btn-danger btn-sm ms-1" @click="$emit('open-task-modal', task)">
                 <i class="fas fa-edit"></i>
               </button>
               <button class="btn btn-info btn-sm ms-1" @click="$emit('open-preview-modal', task)">
@@ -41,28 +43,7 @@
             </div>
           </td>
         </tr>
-        <tr v-if="expandedTask === task.id && relatedTasks.length === 0" class="related-task-row">
-          <td :colspan="visibleColumns.length" class="text-center">
-            No related tasks found
-          </td>
-        </tr>
-        <tr v-if="expandedTask === task.id" v-for="relatedTask in relatedTasks" :key="relatedTask.id" class="related-task-row">
-          <!-- Render related task row -->
-          <td v-for="column in visibleColumns" :key="column" v-html="getColumnData(relatedTask, column)"></td>
-          <td class="actions-sticky" style="width: 90px">
-            <div style="width: 90%; display: flex">
-              <button class="btn btn-danger btn-sm ms-1" @click="$emit('open-task-modal', relatedTask)">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button class="btn btn-info btn-sm ms-1" @click="$emit('open-preview-modal', relatedTask)">
-                <i class="fas fa-eye"></i>
-              </button>
-              <button class="btn btn-primary btn-sm ms-1" @click="$emit('open-history-modal', relatedTask)">
-                <i class="fas fa-history"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
+
         </tbody>
       </table>
     </div>
@@ -76,7 +57,6 @@ import type { Task } from '@/stores/taskStore'
 import type { User } from '@/stores/authStore'
 import type { Project } from '@/stores/projectStore'
 import type { Sprint } from '@/stores/sprintStore'
-import {useAlertStore} from "@/stores/alertStore";
 
 const props = defineProps<{
   tasks: Task[]
@@ -91,12 +71,15 @@ const emit = defineEmits<{
   (e: 'open-preview-modal', task: Task): void
   (e: 'open-history-modal', task: Task): void
   (e: 'archive-task', task: Task): void
+  (e: 'refresh'): void
 }>()
 
 const sortKey = ref('')
 const sortOrder = ref(1)
 const expandedTask = ref<number|null>(null)
 const relatedTasks = ref<Task[]>([]) // Store related tasks
+const dragStart = ref<Task | null>(null);
+const dropIndex = ref<number | null>(null);
 
 const groupedTasks = computed(() => {
   const tasks = props.tasks
@@ -260,6 +243,31 @@ const generatePriorityColor = (priority: string): string => {
   }
 }
 
+const onDragStart = (task: Task) => {
+  dragStart.value = task;
+};
+
+const onDragOver = (event: DragEvent, task: Task) => {
+  // Prevent default to allow drop
+  event.preventDefault();
+  dropIndex.value = task.id;
+};
+
+const onDrop = async (task: Task) => {
+  if (dragStart.value !== null && dragStart.value.id !== task.id) {
+
+    await axios.put(`/tasks/${props.project!.id}/reorder/update`, {
+      draggedTaskId: dragStart.value.id,
+      targetTaskId: task.id,
+    });
+    emit('refresh');
+  }
+
+  dragStart.value = null
+  dropIndex.value = null
+
+};
+
 const toggleRelatedTasks = async (task: Task) => {
   if(expandedTask.value === task.id) {
     expandedTask.value = null
@@ -271,8 +279,6 @@ const toggleRelatedTasks = async (task: Task) => {
   relatedTasks.value = response.data.tasks
 }
 </script>
-
-
 
 <style scoped>
 .task-group-title {
@@ -354,18 +360,16 @@ const toggleRelatedTasks = async (task: Task) => {
   z-index: 10;
 }
 
-.related-task-row td:first-child {
-  position: relative;
-  padding-left: 10px; /* Adjust padding to avoid content overlap with the stripe */
+.dragging {
+  opacity: 0.5; /* Visually indicate the dragging item */
 }
 
-.related-task-row td:first-child::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 10px;
-  background-color: #f0ad4e; /* Example color for the stripe */
+.drop-target {
+  border: 2px dashed #007bff; /* Highlight the drop target */
+}
+
+.drop-marker-cell {
+  height: 40px;
+  background-color: #007bff;
 }
 </style>
