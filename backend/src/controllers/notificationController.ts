@@ -46,12 +46,13 @@ export class NotificationController extends Controller {
   @SuccessResponse('200', 'Notification marked as read')
   @Response('404', 'Notification not found')
   public async markAsRead(
-    @Path() id: number
+    @Path() id: number,
+    @Request() req: ExpressRequest,
   ): Promise<Notification> {
+    const userId = req.session.user!.id;
     try {
       const notificationRepository = AppDataSource.getRepository(Notification);
-      const notification = await notificationRepository.findOne({ where: { id } });
-
+      const notification = await notificationRepository.findOne({ where: { id, user: { id: userId } } });
       if (!notification) {
         this.setStatus(404);
         throw new Error('Notification not found');
@@ -59,7 +60,7 @@ export class NotificationController extends Controller {
 
       notification.read = true;
       await notificationRepository.save(notification);
-      io.emit('notification:read', notification);
+      io.to(`user:${userId}`).emit('notification:read', notification);
       return notification;
     } catch (err: any) {
       throw new Error(`Error marking notification as read: ${err.message}`);
@@ -84,7 +85,7 @@ export const createNotification = async (userId: number, message: string) => {
     })
 
     await notificationRepository.save(notification)
-    io.emit('notification:create', notification)
+    io.to(`user:${user.id}`).emit('notification:create', notification)
 
     if (user.email) {
       await sendEmail(user.email, 'New Notification', message)

@@ -87,10 +87,56 @@ if (isDev) {
 }
 
 io.on('connection', (socket) => {
+  socket.on('subscribeToProject', async ({ projectId, userId }) => {
+    const projectRepository = AppDataSource.getRepository(Project);
+    const project = await projectRepository.findOne({ where: { id: parseInt(projectId) } });
+
+    if (project && project.ownerId === userId) {
+      socket.join(`project:${projectId}`);
+      socket.join(`user:${userId}`);
+      console.log(`User ${userId} joined project ${projectId}`);
+    } else {
+      socket.emit('error', 'You do not have permission to join this project.');
+    }
+  });
+
+  socket.on('unsubscribeFromProject', ({ projectId, userId }) => {
+    socket.leave(`project:${projectId}`);
+    console.log(`User ${userId} left project ${projectId}`);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('user disconnected from socket');
+  });
+});
+
+io.on('connection', (socket) => {
   console.log('a user connected to socket');
   socket.on('disconnect', () => {
     console.log('user disconnected from socket');
   });
+});
+
+io.use(async (socket, next) => {
+  const projectId = socket.handshake.query.projectId?.toString();
+  const userId = socket.handshake.query.userId?.toString();
+
+  if (!projectId || !userId) {
+    return next(new Error('Invalid project ID or user ID'));
+  }
+
+  try {
+    const projectRepository = AppDataSource.getRepository(Project);
+    const project = await projectRepository.findOne({ where: { id: parseInt(projectId) } });
+
+    if (project && project.ownerId === parseInt(userId)) {
+      return next();
+    } else {
+      return next(new Error('Unauthorized'));
+    }
+  } catch (err) {
+    return next(new Error('Server error'));
+  }
 });
 
 app.set('io', io);

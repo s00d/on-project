@@ -29,7 +29,7 @@ import {isProjectCreator} from "../middlewares/roleMiddleware";
 @Security('apiKey')
 export class CommentController extends Controller {
 
-  @Get('{taskId}')
+  @Get('{projectId}/{taskId}')
   @Middlewares([
     authenticateAll
   ])
@@ -41,11 +41,12 @@ export class CommentController extends Controller {
     });
   }
 
-  @Post('{taskId}')
+  @Post('{projectId}/{taskId}')
   @Middlewares([
     authenticateAll
   ])
   public async addComment(
+    @Path() projectId: number,
     @Path() taskId: number,
     @FormField() content: string,
     @FormField() userId: number,
@@ -94,7 +95,7 @@ export class CommentController extends Controller {
       });
 
       await commentRepository.save(comment);
-      io.emit('comment:create', comment);
+      io.to(`project:${projectId}`).emit('comment:create', comment);
 
       return comment;
     } catch (error: any) {
@@ -102,13 +103,17 @@ export class CommentController extends Controller {
     }
   }
 
-  @Put('{id}')
+  @Put('{projectId}/{id}')
   @SuccessResponse('200', 'Comment updated successfully')
   @Middlewares([
     authenticateAll,
     isProjectCreator
   ])
-  public async updateComment(@Path() id: number, @Body() body: { content: string }): Promise<Comment> {
+  public async updateComment(
+    @Path() projectId: number,
+    @Path() id: number,
+    @Body() body: { content: string }
+  ): Promise<Comment> {
     const { content } = body;
     const commentRepository = AppDataSource.getRepository(Comment);
     const comment = await commentRepository.findOne({ where: { id } });
@@ -117,18 +122,21 @@ export class CommentController extends Controller {
 
     comment.content = content;
     await commentRepository.save(comment);
-    io.emit('comment:update', comment);
+    io.to(`project:${projectId}`).emit('comment:update', comment);
 
     return comment;
   }
 
-  @Delete('{id}')
+  @Delete('{projectId}/{id}')
   @SuccessResponse('204', 'Comment deleted successfully')
   @Middlewares([
     authenticateAll,
     isProjectCreator
   ])
-  public async deleteComment(@Path() id: number): Promise<void> {
+  public async deleteComment(
+    @Path() projectId: number,
+    @Path() id: number
+  ): Promise<void> {
     const commentRepository = AppDataSource.getRepository(Comment);
     const comment = await commentRepository.findOne({ where: { id } });
 
@@ -139,6 +147,6 @@ export class CommentController extends Controller {
     }
 
     await commentRepository.remove(comment);
-    io.emit('comment:delete', { id });
+    io.to(`project:${projectId}`).emit('comment:delete', { id });
   }
 }

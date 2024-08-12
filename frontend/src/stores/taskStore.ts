@@ -156,15 +156,16 @@ export const useTaskStore = defineStore('task', {
         useAlertStore().setAlert('Failed to delete label', 'danger')
       }
     },
-    async fetchComments(taskId: number) {
+    async fetchComments(projectId: number, taskId: number) {
       try {
-        const response = await axios.get(`/comments/${taskId}`)
+        const response = await axios.get(`/comments/${projectId}/${taskId}`)
         this.comments = response.data
       } catch (error) {
         useAlertStore().setAlert('Failed to fetch comments', 'danger')
       }
     },
     async addComment(
+      projectId: number,
       taskId: number,
       comment: { content: string; userId: number },
       attachment: File | null
@@ -176,7 +177,7 @@ export const useTaskStore = defineStore('task', {
         if (attachment) {
           formData.append('attachment', attachment)
         }
-        const response = await axios.post(`/comments/${taskId}`, formData, {
+        const response = await axios.post(`/comments/${projectId}/${taskId}`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data'
           }

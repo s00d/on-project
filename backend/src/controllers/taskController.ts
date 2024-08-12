@@ -263,7 +263,7 @@ export class TaskController extends Controller {
         }
       }
 
-      io.emit('task:create', task);
+      io.to(`project:${project.id}`).emit('task:create', task);
       return task;
     } catch (err: any) {
       this.setStatus(400);
@@ -356,7 +356,7 @@ export class TaskController extends Controller {
       await taskRepository.save(updatedTask);
       await logTaskHistory(updatedTask.id, userId, 'updated', changes);
 
-      io.emit('task:update', updatedTask);
+      io.to(`project:${projectId}`).emit('task:update', updatedTask);
       return updatedTask;
     } catch (err: any) {
       this.setStatus(400);
@@ -403,7 +403,7 @@ export class TaskController extends Controller {
 
     await taskRepository.save([draggedTask, targetTask]);
 
-    io.emit('task:reorder');
+    io.to(`project:${projectId}`).emit(`task:reorder`);
   }
 
   @Delete('{projectId}/{id}')
@@ -425,7 +425,7 @@ export class TaskController extends Controller {
         return;
       }
       await taskRepository.remove(task);
-      io.emit('task:delete', id);
+      io.to(`project:${projectId}`).emit('task:delete', id);
     } catch (err: any) {
       this.setStatus(400);
     }

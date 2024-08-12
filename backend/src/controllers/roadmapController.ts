@@ -90,7 +90,7 @@ export class RoadmapController extends Controller {
 
       const roadmap = this.roadmapRepository.create({ title, description, project });
       await this.roadmapRepository.save(roadmap);
-      io.emit('roadmap:create', roadmap);
+      io.to(`project:${project.id}`).emit('roadmap:create', roadmap);
       return roadmap;
     } catch (err: any) {
       this.setStatus(400);
@@ -120,7 +120,7 @@ export class RoadmapController extends Controller {
       roadmap.title = title ?? roadmap.title;
       roadmap.description = description ?? roadmap.description;
       await this.roadmapRepository.save(roadmap);
-      io.emit('roadmap:update', roadmap);
+      io.to(`project:${projectId}`).emit('roadmap:update', roadmap);
       return roadmap;
     } catch (err: any) {
       this.setStatus(400);
@@ -147,7 +147,7 @@ export class RoadmapController extends Controller {
       }
 
       await this.roadmapRepository.remove(roadmap);
-      io.emit('roadmap:delete', { id });
+      io.to(`project:${projectId}`).emit('roadmap:delete', { id });
     } catch (err: any) {
       this.setStatus(400);
       throw new Error(`Error deleting roadmap: ${err.message}`);

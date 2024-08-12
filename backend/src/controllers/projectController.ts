@@ -360,7 +360,7 @@ export class ProjectController extends Controller {
       project.isArchived = true;
       await projectRepository.save(project);
 
-      io.emit('project:archive', project);
+      io.to(`project:${project.id}`).emit('project:archive', project);
       return project;
     } catch (err: any) {
       this.setStatus(400);

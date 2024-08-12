@@ -124,7 +124,7 @@ export class SprintController extends Controller {
         project
       });
       await this.sprintRepository.save(sprint);
-      io.emit('sprint:create', sprint);
+      io.to(`project:${project.id}`).emit('sprint:create', sprint);
       return sprint;
     } catch (err: any) {
       this.setStatus(400);
@@ -162,7 +162,7 @@ export class SprintController extends Controller {
       if (startDate) sprint.startDate = new Date(startDate);
       if (endDate) sprint.endDate = new Date(endDate);
       await this.sprintRepository.save(sprint);
-      io.emit('sprint:update', sprint);
+      io.to(`project:${projectId}`).emit('sprint:update', sprint);
       return sprint;
     } catch (err: any) {
       this.setStatus(400);
@@ -194,7 +194,7 @@ export class SprintController extends Controller {
       }
 
       await this.sprintRepository.remove(sprint);
-      io.emit('sprint:delete', { id });
+      io.to(`project:${projectId}`).emit('sprint:delete', { id });
     } catch (err: any) {
       this.setStatus(400);
       throw new Error(`Error deleting sprint: ${err.message}`);

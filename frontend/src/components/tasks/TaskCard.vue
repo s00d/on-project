@@ -325,12 +325,13 @@ const submitTask = async () => {
 }
 
 const fetchComments = async () => {
-  await taskStore.fetchComments(taskData.value.id)
+  await taskStore.fetchComments(parseInt(props.projectId), taskData.value.id)
   comments.value = taskStore.getComments
 }
 
 const addComment = async () => {
   await taskStore.addComment(
+    parseInt(props.projectId),
     taskData.value.id,
     { content: newCommentContent.value, userId: authStore.userId! },
     attachment.value

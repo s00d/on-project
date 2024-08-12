@@ -182,7 +182,7 @@ import TaskTable from '@/components/tasks/TaskTable.vue'
 import ModalComponent from '@/components/ModalComponent.vue'
 import SettingsModalContent from '@/components/tasks/SettingsModalContent.vue'
 import { useAlertStore } from '@/stores/alertStore'
-import type { User } from '@/stores/authStore'
+import {useAuthStore, type User} from '@/stores/authStore'
 import TaskPreviewCard from '@/components/tasks/TaskPreviewCard.vue'
 import TaskHistoryModalContent from "@/components/tasks/TaskHistoryModalContent.vue";
 import axios from "axios";
@@ -291,11 +291,13 @@ onMounted(async () => {
   loadSavedFilters()
   users.value = await projectStore.fetchUsers(Number(projectId))
 
-  socket.on('task:reorder', applyFilters)
+  socket.emit('subscribeToProject', { projectId, userId: useAuthStore().userId });
+
+  socket!.on(`task:reorder`, applyFilters)
 })
 
 onUnmounted(() => {
-  socket.off('task:reorder', applyFilters)
+  socket.off(`task:reorder`, applyFilters)
 })
 
 const createTaskModal = () => {
