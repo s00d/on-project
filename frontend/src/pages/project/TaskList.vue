@@ -40,6 +40,7 @@
           <ModalComponent
             :isOpen="isTaskModalOpen"
             :title="selectedTask ? 'Edit Details' : 'Create Details'"
+            :is-block="false"
             @close="closeTaskModal"
             pos="fixed-left"
           >

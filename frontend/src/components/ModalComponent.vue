@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isOpen" class="modal-backdrop fade show" @click="closeModal"></div>
+  <div v-if="isOpen && isBlock" class="modal-backdrop fade show" @click="closeModal"></div>
   <transition name="modal-fade">
     <div
       v-if="isOpen"
@@ -35,20 +35,30 @@
 <script lang="ts" setup>
 import { defineProps, defineEmits, watch } from 'vue'
 
-const props = defineProps({
-  isOpen: Boolean,
-  title: String,
-  pos: String
+
+const props = withDefaults(defineProps<{
+  isOpen: boolean
+  title: string
+  pos: 'fixed-left'|'fixed-right'|'center'
+  isBlock: boolean
+}>(), {
+  isOpen: false,
+  title: 'Title',
+  pos: 'center',
+  isBlock: true
 })
 
 watch(
   () => props.isOpen,
   (newVal) => {
-    if (newVal) {
-      document.body.classList.add('overflow-hidden')
-    } else {
-      document.body.classList.remove('overflow-hidden')
+    if(props.isBlock) {
+      if (newVal) {
+        document.body.classList.add('overflow-hidden')
+      } else {
+        document.body.classList.remove('overflow-hidden')
+      }
     }
+
   }
 )
 
@@ -125,5 +135,10 @@ const closeModal = () => {
 .modal.fade.show .modal-dialog {
   transition: transform 0.3s ease-out;
   transform: translate(0, 0);
+}
+
+.modal-dialog {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(128, 128, 128, 0.32);
 }
 </style>
