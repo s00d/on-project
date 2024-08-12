@@ -87,14 +87,30 @@ if (isDev) {
 }
 
 io.on('connection', (socket) => {
-  socket.on('subscribeToProject', async ({ projectId, userId }) => {
+  socket.on('subscribeToProject', async ({ projectId, apikey }) => {
     const projectRepository = AppDataSource.getRepository(Project);
-    const project = await projectRepository.findOne({ where: { id: parseInt(projectId) } });
+    const userRepository = AppDataSource.getRepository(User);
 
-    if (project && project.ownerId === userId) {
+    const user = await userRepository.findOne({ where: { apikey } });
+
+    if (!user) {
+      socket.emit('error', 'You do not have permission to join this user.');
+      return;
+    }
+
+    const project = await projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.projectUsers', 'projectUser')
+      .where('project.id = :projectId', { projectId })
+      .andWhere('(project.ownerId = :userId OR projectUser.userId = :userId)', { userId: user.id })
+      .getOne();
+
+    if (project) {
       socket.join(`project:${projectId}`);
-      socket.join(`user:${userId}`);
-      console.log(`User ${userId} joined project ${projectId}`);
+      socket.join(`user:${user.id}`);
+
+      console.log(`User ${user.id} joined project ${projectId}`);
+      socket.emit('ok', 'You have permission to join this project.');
     } else {
       socket.emit('error', 'You do not have permission to join this project.');
     }
@@ -115,28 +131,6 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('user disconnected from socket');
   });
-});
-
-io.use(async (socket, next) => {
-  const projectId = socket.handshake.query.projectId?.toString();
-  const userId = socket.handshake.query.userId?.toString();
-
-  if (!projectId || !userId) {
-    return next(new Error('Invalid project ID or user ID'));
-  }
-
-  try {
-    const projectRepository = AppDataSource.getRepository(Project);
-    const project = await projectRepository.findOne({ where: { id: parseInt(projectId) } });
-
-    if (project && project.ownerId === parseInt(userId)) {
-      return next();
-    } else {
-      return next(new Error('Unauthorized'));
-    }
-  } catch (err) {
-    return next(new Error('Server error'));
-  }
 });
 
 app.set('io', io);

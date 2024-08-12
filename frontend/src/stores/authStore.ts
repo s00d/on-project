@@ -4,6 +4,7 @@ import { useAlertStore } from './alertStore'
 
 export interface User {
   id: number
+  apikey: string
   username: string
   email: string
   twoFactorEnabled: boolean
