@@ -107,6 +107,23 @@ After building, start the application:
 npm start
 ```
 
+### bun run
+
+#### dev
+
+```bash
+bun run bun:dev
+```
+
+#### prod 
+
+```bash
+bun run bun:build
+bun run bun:start
+```
+
+
+
 ## Scripts
 
 ### General Scripts

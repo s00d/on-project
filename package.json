@@ -12,7 +12,10 @@
     "start": "npm run start --prefix backend",
     "type-check": "npm run type-check --prefix frontend && npm run type-check --prefix backend",
     "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
-    "format": "npm run format --prefix frontend && npm run format --prefix backend"
+    "format": "npm run format --prefix frontend && npm run format --prefix backend",
+    "bun:build": "bun run --cwd frontend build-only && bun run --cwd backend build-only",
+    "bun:start": "bun run --cwd backend start",
+    "bun:dev": "concurrently \"bun run --cwd backend dev\" \"bun run --cwd frontend dev\""
   },
   "keywords": ["project management", "task management", "kanban", "sprint", "vue", "node"],
   "author": "Your Name <youremail@example.com>",
