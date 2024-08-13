@@ -99,13 +99,7 @@
             </div>
             <div class="form-group mr-3">
               <label for="color" class="sr-only">Label Color</label>
-              <input
-                v-model="labelColor"
-                type="color"
-                id="color"
-                class="form-control"
-                required
-              />
+              <input v-model="labelColor" type="color" id="color" class="form-control" required />
             </div>
             <button type="submit" class="btn btn-primary">Create Label</button>
           </form>
@@ -114,23 +108,23 @@
         <h2>Existing Labels</h2>
         <table class="table">
           <thead>
-          <tr>
-            <th>Badge</th>
-            <th>Actions</th>
-          </tr>
+            <tr>
+              <th>Badge</th>
+              <th>Actions</th>
+            </tr>
           </thead>
           <tbody>
-          <tr v-for="label in labels" :key="label.id">
-            <td>
-              <span class="badge" :style="{ backgroundColor: label.color }">{{ label.name }}</span>
-            </td>
-            <td>
-              <button @click="editLabel(label)" class="btn btn-sm btn-secondary">Edit</button>
-              <button @click="deleteLabel(label.id)" class="btn btn-sm btn-danger">
-                Delete
-              </button>
-            </td>
-          </tr>
+            <tr v-for="label in labels" :key="label.id">
+              <td>
+                <span class="badge" :style="{ backgroundColor: label.color }">{{
+                  label.name
+                }}</span>
+              </td>
+              <td>
+                <button @click="editLabel(label)" class="btn btn-sm btn-secondary">Edit</button>
+                <button @click="deleteLabel(label.id)" class="btn btn-sm btn-danger">Delete</button>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -148,13 +142,13 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, computed, defineProps} from 'vue'
-import {type Project, useProjectStore} from '@/stores/projectStore'
+import { ref, onMounted, computed, defineProps } from 'vue'
+import { type Project, useProjectStore } from '@/stores/projectStore'
 import { useRouter } from 'vue-router'
 import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import TagsInput from '@/components/TagsInput.vue'
-import {type Label, useTaskStore} from "@/stores/taskStore";
+import { type Label, useTaskStore } from '@/stores/taskStore'
 
 const projectStore = useProjectStore()
 const taskStore = useTaskStore()
@@ -177,16 +171,16 @@ const props = defineProps<{
 const projectData = ref<Project>({
   ownerId: 0,
   customFields: [],
-  description: "",
-  name: "",
-  priorities: ["Low", "Medium", "High"],
+  description: '',
+  name: '',
+  priorities: ['Low', 'Medium', 'High'],
   savedFilters: [],
   sprints: [],
-  statuses: ["To Do", "In Progress", "Done"],
+  statuses: ['To Do', 'In Progress', 'Done'],
   tags: [],
-  types: ["Frontend", "Backend", "Test", "Deploy", "Mixed"],
-  createdAt: "",
-  updatedAt: "",
+  types: ['Frontend', 'Backend', 'Test', 'Deploy', 'Mixed'],
+  createdAt: '',
+  updatedAt: ''
 })
 
 const toggleAdvancedFields = () => {
@@ -203,7 +197,10 @@ const removeCustomField = (index: number) => {
 
 const submitProject = async () => {
   if (props.mode === 'create') {
-    await projectStore.createProject({name: projectData.value.name, description: projectData.value.description})
+    await projectStore.createProject({
+      name: projectData.value.name,
+      description: projectData.value.description
+    })
   } else {
     const dataToSave = { ...projectData.value }
     delete (dataToSave as { createdAt?: string }).createdAt
@@ -227,7 +224,6 @@ const createLabel = async () => {
     labelColor.value = '#000000'
     await fetchLabels()
   }
-
 }
 
 const fetchLabels = async () => {
@@ -246,7 +242,6 @@ const editLabel = async (label: Label) => {
     })
     await fetchLabels()
   }
-
 }
 
 const deleteLabel = async (labelId: number) => {
@@ -328,5 +323,4 @@ onMounted(async () => {
   border-radius: 0;
   padding: 2px 5px;
 }
-
 </style>

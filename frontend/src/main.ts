@@ -17,7 +17,6 @@ axios.interceptors.response.use(
   (error) => {
     // Check if the error response exists and has a 422 status code
     if (error.response?.status === 422) {
-
       const { errors } = error.response.data
 
       console.log(1111, error.response.errors)
@@ -25,14 +24,14 @@ axios.interceptors.response.use(
       // Iterate over the errors array and display each message
       if (errors && typeof errors === 'object') {
         Object.keys(errors).forEach((key) => {
-          const err = errors[key];
+          const err = errors[key]
           if (err.message) {
-            useAlertStore().setAlert(err.message, 'danger');
+            useAlertStore().setAlert(err.message, 'danger')
           }
-        });
+        })
       } else {
         // If there's a general error message, show it
-        useAlertStore().setAlert('An error occurred', 'danger');
+        useAlertStore().setAlert('An error occurred', 'danger')
       }
 
       throw new Error('Validation Error')

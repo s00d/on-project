@@ -215,7 +215,6 @@ export default defineComponent({
   background-color: #e2e8f0;
 }
 
-
 .board-column-header {
   display: flex;
   justify-content: space-between;
@@ -238,7 +237,6 @@ export default defineComponent({
   flex-direction: column;
   gap: 8px;
 }
-
 
 .add-column {
   display: flex;

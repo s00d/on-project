@@ -26,8 +26,8 @@ interface ProjectState {
 }
 
 interface CustomField {
-  name: string;
-  description: string;
+  name: string
+  description: string
   type: string
 }
 
@@ -56,7 +56,7 @@ export const useProjectStore = defineStore('project', {
         useAlertStore().setAlert('Failed to fetch projects', 'danger')
       }
     },
-    async archiveProject (projectId: number) {
+    async archiveProject(projectId: number) {
       try {
         await axios.put(`/projects/${projectId}/archive`)
       } catch (error) {
@@ -72,7 +72,7 @@ export const useProjectStore = defineStore('project', {
         useAlertStore().setAlert('Failedto fetch project', 'danger')
       }
     },
-    async createProject(project: {name: string, description: string}) {
+    async createProject(project: { name: string; description: string }) {
       try {
         const response = await axios.post('/projects', project)
         useAlertStore().setAlert('Project created successfully', 'success')

@@ -15,7 +15,11 @@
       <button @click="$emit('open-save-filter-modal')" class="btn btn-success mb-3 ms-3">
         Save Filter
       </button>
-      <button v-if="project && !project.isArchived" @click="$emit('create-task-modal')" class="btn btn-primary mb-3 ms-3">
+      <button
+        v-if="project && !project.isArchived"
+        @click="$emit('create-task-modal')"
+        class="btn btn-primary mb-3 ms-3"
+      >
         Create Task
       </button>
     </div>
@@ -24,11 +28,11 @@
 
 <script lang="ts" setup>
 import { defineProps, defineEmits } from 'vue'
-import type {Project} from "@/stores/projectStore";
+import type { Project } from '@/stores/projectStore'
 
 const props = defineProps<{
   projectId: string
-  project: Project|null
+  project: Project | null
   search: string
 }>()
 

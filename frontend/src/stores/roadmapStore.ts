@@ -27,10 +27,7 @@ export const useRoadmapStore = defineStore('roadmap', {
         useAlertStore().setAlert('Failed to fetch roadmaps', 'danger')
       }
     },
-    async createRoadmap(
-      projectId: number,
-      roadmap: { title: string; description?: string; }
-    ) {
+    async createRoadmap(projectId: number, roadmap: { title: string; description?: string }) {
       try {
         const response = await axios.post(`/roadmaps/${projectId}`, roadmap)
         this.roadmaps.push(response.data)

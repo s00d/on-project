@@ -12,25 +12,30 @@
             <div class="board-column add-column" @click="createDocument">
               <button class="btn btn-link">+ Add Document</button>
             </div>
-            <div
-              class="board-column"
-              v-for="document in documents"
-              :key="document.id"
-            >
+            <div class="board-column" v-for="document in documents" :key="document.id">
               <div class="board-column-header">
                 <h2 class="board-column-title" :title="document.title">{{ document.title }}</h2>
                 <div class="actions">
-                  <button @click.stop.prevent="editDocument(document)" class="btn btn-primary btn-sm m-0">
+                  <button
+                    @click.stop.prevent="editDocument(document)"
+                    class="btn btn-primary btn-sm m-0"
+                  >
                     <i class="fas fa-pencil-alt"></i>
                   </button>
-                  <button v-if="document.id" @click.stop.prevent="deleteDocument(document.id)" class="btn btn-danger btn-sm m-0 ms-1">
+                  <button
+                    v-if="document.id"
+                    @click.stop.prevent="deleteDocument(document.id)"
+                    class="btn btn-danger btn-sm m-0 ms-1"
+                  >
                     <i class="fas fa-trash-alt"></i>
                   </button>
                 </div>
               </div>
               <div class="board-column-content">
                 <p>{{ document.description || 'No description available' }}</p>
-                <p><strong>File Path:</strong> <a :href="document?.filePath" target="_blank">open</a></p>
+                <p>
+                  <strong>File Path:</strong> <a :href="document?.filePath" target="_blank">open</a>
+                </p>
                 <p><strong>Created At:</strong> {{ formatDate(document?.createdAt) }}</p>
                 <p><strong>Updated At:</strong> {{ formatDate(document?.updatedAt) }}</p>
               </div>
@@ -40,17 +45,21 @@
       </Tabs>
     </div>
 
-    <DocumentModal v-if="isModalOpen" :document="selectedDocument" @close="closeModal" :project-id="projectId" />
+    <DocumentModal
+      v-if="isModalOpen"
+      :document="selectedDocument"
+      @close="closeModal"
+      :project-id="projectId"
+    />
   </div>
 </template>
-
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import axios from 'axios'
 import DocumentModal from '@/components/DocumentModal.vue'
-import Tabs from "@/components/Tabs.vue";
+import Tabs from '@/components/Tabs.vue'
 
 export interface Document {
   id?: number
@@ -101,7 +110,7 @@ const editDocument = (document: Document) => {
 const deleteDocument = async (id: number) => {
   try {
     await axios.delete(`/documents/${projectId}/${id}`)
-    documents.value = documents.value.filter(d => d.id !== id)
+    documents.value = documents.value.filter((d) => d.id !== id)
     // Можно добавить уведомление об успешном удалении
   } catch (error) {
     console.error('Failed to delete document', error)
@@ -115,6 +124,4 @@ const closeModal = () => {
 }
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

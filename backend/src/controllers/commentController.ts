@@ -11,142 +11,129 @@ import {
   SuccessResponse,
   UploadedFile,
   FormField,
-  Middlewares, Security
-} from 'tsoa';
-import { Comment } from '../models/Comment';
-import { User } from '../models/User';
-import { Task } from '../models/Task';
-import { AppDataSource } from '../ormconfig';
-import { io } from '../index';
-import fs from 'fs';
-import path from 'path';
-import { authenticateAll } from "../middlewares/authMiddleware";
-import {isProjectCreator} from "../middlewares/roleMiddleware";
+  Middlewares,
+  Security
+} from 'tsoa'
+import { Comment } from '../models/Comment'
+import { User } from '../models/User'
+import { Task } from '../models/Task'
+import { AppDataSource } from '../ormconfig'
+import { io } from '../index'
+import fs from 'fs'
+import path from 'path'
+import { authenticateAll } from '../middlewares/authMiddleware'
+import { isProjectCreator } from '../middlewares/roleMiddleware'
 
 @Route('api/comments')
 @Tags('Comments')
 @Security('session')
 @Security('apiKey')
 export class CommentController extends Controller {
-
   @Get('{projectId}/{taskId}')
-  @Middlewares([
-    authenticateAll
-  ])
+  @Middlewares([authenticateAll])
   public async getComments(@Path() taskId: number): Promise<Comment[]> {
-    const commentRepository = AppDataSource.getRepository(Comment);
+    const commentRepository = AppDataSource.getRepository(Comment)
     return await commentRepository.find({
       where: { task: { id: taskId } },
       relations: ['user']
-    });
+    })
   }
 
   @Post('{projectId}/{taskId}')
-  @Middlewares([
-    authenticateAll
-  ])
+  @Middlewares([authenticateAll])
   public async addComment(
     @Path() projectId: number,
     @Path() taskId: number,
     @FormField() content: string,
     @FormField() userId: number,
-    @UploadedFile() attachment: Express.Multer.File,
+    @UploadedFile() attachment: Express.Multer.File
   ): Promise<Comment> {
-    let savedFilename: string | null = null;
+    let savedFilename: string | null = null
 
     if (attachment) {
-      const uploadDir = path.join(__dirname, '../../uploads');
-      const filename = `${Date.now()}_${attachment.originalname}`;
-      const folderPath = path.join(uploadDir, taskId.toString());
-      const filepath = path.join(folderPath, filename);
+      const uploadDir = path.join(__dirname, '../../uploads')
+      const filename = `${Date.now()}_${attachment.originalname}`
+      const folderPath = path.join(uploadDir, taskId.toString())
+      const filepath = path.join(folderPath, filename)
 
       if (!fs.existsSync(folderPath)) {
         try {
-          fs.mkdirSync(folderPath, { recursive: true });
+          fs.mkdirSync(folderPath, { recursive: true })
         } catch (err: any) {
-          throw new Error('Failed to create directory');
+          throw new Error('Failed to create directory')
         }
       }
 
       try {
-        fs.writeFileSync(filepath, attachment.buffer);
-        savedFilename = path.join(taskId.toString(), filename);
+        fs.writeFileSync(filepath, attachment.buffer)
+        savedFilename = path.join(taskId.toString(), filename)
       } catch (uploadError) {
-        throw new Error('File upload failed');
+        throw new Error('File upload failed')
       }
     }
 
     try {
-      const commentRepository = AppDataSource.getRepository(Comment);
-      const userRepository = AppDataSource.getRepository(User);
-      const taskRepository = AppDataSource.getRepository(Task);
+      const commentRepository = AppDataSource.getRepository(Comment)
+      const userRepository = AppDataSource.getRepository(User)
+      const taskRepository = AppDataSource.getRepository(Task)
 
-      const user = await userRepository.findOneBy({ id: userId });
-      const task = await taskRepository.findOneBy({ id: taskId });
+      const user = await userRepository.findOneBy({ id: userId })
+      const task = await taskRepository.findOneBy({ id: taskId })
 
-      if (!user) throw new Error('User not found');
-      if (!task) throw new Error('Task not found');
+      if (!user) throw new Error('User not found')
+      if (!task) throw new Error('Task not found')
 
       const comment = commentRepository.create({
         content,
         task,
         user,
         attachment: savedFilename
-      });
+      })
 
-      await commentRepository.save(comment);
-      io.to(`project:${projectId}`).emit('comment:create', comment);
+      await commentRepository.save(comment)
+      io.to(`project:${projectId}`).emit('comment:create', comment)
 
-      return comment;
+      return comment
     } catch (error: any) {
-      throw new Error(`Error creating comment}`);
+      throw new Error(`Error creating comment}`)
     }
   }
 
   @Put('{projectId}/{id}')
   @SuccessResponse('200', 'Comment updated successfully')
-  @Middlewares([
-    authenticateAll,
-    isProjectCreator
-  ])
+  @Middlewares([authenticateAll, isProjectCreator])
   public async updateComment(
     @Path() projectId: number,
     @Path() id: number,
     @Body() body: { content: string }
   ): Promise<Comment> {
-    const { content } = body;
-    const commentRepository = AppDataSource.getRepository(Comment);
-    const comment = await commentRepository.findOne({ where: { id } });
+    const { content } = body
+    const commentRepository = AppDataSource.getRepository(Comment)
+    const comment = await commentRepository.findOne({ where: { id } })
 
-    if (!comment) throw { status: 404, message: 'Comment not found' };
+    if (!comment) throw { status: 404, message: 'Comment not found' }
 
-    comment.content = content;
-    await commentRepository.save(comment);
-    io.to(`project:${projectId}`).emit('comment:update', comment);
+    comment.content = content
+    await commentRepository.save(comment)
+    io.to(`project:${projectId}`).emit('comment:update', comment)
 
-    return comment;
+    return comment
   }
 
   @Delete('{projectId}/{id}')
   @SuccessResponse('204', 'Comment deleted successfully')
-  @Middlewares([
-    authenticateAll,
-    isProjectCreator
-  ])
-  public async deleteComment(
-    @Path() projectId: number,
-    @Path() id: number
-  ): Promise<void> {
-    const commentRepository = AppDataSource.getRepository(Comment);
-    const comment = await commentRepository.findOne({ where: { id } });
+  @Middlewares([authenticateAll, isProjectCreator])
+  public async deleteComment(@Path() projectId: number, @Path() id: number): Promise<void> {
+    const commentRepository = AppDataSource.getRepository(Comment)
+    const comment = await commentRepository.findOne({ where: { id } })
 
-    if (!comment) throw { status: 404, message: 'Comment not found' };
+    if (!comment) throw { status: 404, message: 'Comment not found' }
 
     if (comment.attachment) {
-      fs.unlinkSync(path.join(__dirname, '../../uploads', comment.attachment));
+      fs.unlinkSync(path.join(__dirname, '../../uploads', comment.attachment))
     }
 
-    await commentRepository.remove(comment);
-    io.to(`project:${projectId}`).emit('comment:delete', { id });
+    await commentRepository.remove(comment)
+    io.to(`project:${projectId}`).emit('comment:delete', { id })
   }
 }

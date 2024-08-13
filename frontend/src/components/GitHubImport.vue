@@ -20,7 +20,12 @@
     <div class="mb-3">
       <label class="form-label">Сопоставление пользователей (GitHub Username -> User ID)</label>
       <div v-for="(mapping, index) in userMappings" :key="index" class="input-group mb-2">
-        <input v-model="mapping.githubUsername" type="text" class="form-control" placeholder="GitHub Username" />
+        <input
+          v-model="mapping.githubUsername"
+          type="text"
+          class="form-control"
+          placeholder="GitHub Username"
+        />
         <input v-model="mapping.userId" type="number" class="form-control" placeholder="User ID" />
         <button class="btn btn-danger" @click="removeMapping(index)">Удалить</button>
       </div>
@@ -54,12 +59,15 @@ const removeMapping = (index: number) => {
 
 const importFromGitHub = async () => {
   try {
-    const userMappingObject = userMappings.reduce((acc, mapping) => {
-      if (mapping.githubUsername && mapping.userId) {
-        acc[mapping.githubUsername] = mapping.userId
-      }
-      return acc
-    }, {} as { [key: string]: number })
+    const userMappingObject = userMappings.reduce(
+      (acc, mapping) => {
+        if (mapping.githubUsername && mapping.userId) {
+          acc[mapping.githubUsername] = mapping.userId
+        }
+        return acc
+      },
+      {} as { [key: string]: number }
+    )
 
     await axios.post(`/import-export/${projectId}/github-import`, {
       token: token.value,

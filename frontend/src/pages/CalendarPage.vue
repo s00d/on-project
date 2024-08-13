@@ -43,11 +43,9 @@ const fetchTasks = async (startDate: string, endDate: string) => {
       extendedProps: {
         status: task.status,
         priority: task.priority,
-        assignee: task.assignees?.map(assignee => assignee.id)
+        assignee: task.assignees?.map((assignee) => assignee.id)
       }
     }))
-
-    console.log(2222, events)
   } catch (error: any) {
     console.error('Failed to fetch tasks', error)
     useAlertStore().setAlert(`Failed to fetch tasks: ${error.response?.data?.error}`, 'danger')
@@ -55,7 +53,6 @@ const fetchTasks = async (startDate: string, endDate: string) => {
 }
 
 const handleDatesSet = (info: any) => {
-  console.log(1111, info)
   const startDate = info.startStr
   const endDate = info.endStr
 

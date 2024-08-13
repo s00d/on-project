@@ -1,13 +1,23 @@
 <template>
   <div class="modal-body">
     <div class="mb-3 d-flex align-items-center" v-if="mode === 'create'">
-      <select id="templateSelect" class="form-select me-2" v-model="selectedTemplate" @change="applyTemplate">
+      <select
+        id="templateSelect"
+        class="form-select me-2"
+        v-model="selectedTemplate"
+        @change="applyTemplate"
+      >
         <option :value="null" disabled>-- Select Template --</option>
         <option v-for="template in templates" :key="template.id" :value="template">
           {{ template.title }}
         </option>
       </select>
-      <button type="button" class="btn btn-danger" @click="deleteTemplate" :disabled="!selectedTemplate">
+      <button
+        type="button"
+        class="btn btn-danger"
+        @click="deleteTemplate"
+        :disabled="!selectedTemplate"
+      >
         x
       </button>
     </div>
@@ -21,13 +31,23 @@
       <div class="mb-3 me-2 flex-grow-1">
         <label for="status" class="form-label">Status</label>
         <select v-model="taskData.status" id="status" class="form-select" required>
-          <option v-for="status in project.statuses" :value="status" :key="status" v-text="status"></option>
+          <option
+            v-for="status in project.statuses"
+            :value="status"
+            :key="status"
+            v-text="status"
+          ></option>
         </select>
       </div>
       <div class="mb-3 me-2 flex-grow-1">
         <label for="priority" class="form-label">Priority</label>
         <select v-model="taskData.priority" id="priority" class="form-select" required>
-          <option v-for="priority in project.priorities" :value="priority" :key="priority" v-text="priority"></option>
+          <option
+            v-for="priority in project.priorities"
+            :value="priority"
+            :key="priority"
+            v-text="priority"
+          ></option>
         </select>
       </div>
       <div class="mb-3 flex-grow-1">
@@ -40,10 +60,17 @@
 
     <div class="mb-3">
       <label for="description" class="form-label">Description</label>
-      <MdEditor v-model="taskData.description" language="en-US" previewTheme="github" noMermaid :preview="false" :style="{
-        height: '250px',
-        textAlign: 'left',
-      }" />
+      <MdEditor
+        v-model="taskData.description"
+        language="en-US"
+        previewTheme="github"
+        noMermaid
+        :preview="false"
+        :style="{
+          height: '250px',
+          textAlign: 'left'
+        }"
+      />
     </div>
 
     <div class="d-flex flex-wrap">
@@ -51,7 +78,9 @@
         <label for="sprint" class="form-label">Sprint</label>
         <select v-model="taskData.sprintId" id="sprint" class="form-select">
           <option :value="null">Empty</option>
-          <option v-for="sprint in project?.sprints" :value="sprint.id" :key="sprint.id">{{ sprint.title }}</option>
+          <option v-for="sprint in project?.sprints" :value="sprint.id" :key="sprint.id">
+            {{ sprint.title }}
+          </option>
         </select>
       </div>
     </div>
@@ -60,7 +89,12 @@
       <div class="mb-3 flex-grow-1 position-relative">
         <label for="assignee" class="form-label d-flex align-items-center justify-content-between">
           Assignee
-          <button v-if="assigneesArray.length" type="button" class="clear-button" @click="clearSelection">
+          <button
+            v-if="assigneesArray.length"
+            type="button"
+            class="clear-button"
+            @click="clearSelection"
+          >
             <i class="fas fa-times"></i>
           </button>
         </label>
@@ -77,20 +111,32 @@
       </div>
       <div class="mb-3 flex-grow-1">
         <label for="estimatedTime" class="form-label">Estimated Time (hours)</label>
-        <input v-model="taskData.estimatedTime" type="number" id="estimatedTime" class="form-control" />
+        <input
+          v-model="taskData.estimatedTime"
+          type="number"
+          id="estimatedTime"
+          class="form-control"
+        />
       </div>
     </div>
 
     <div class="d-flex flex-wrap">
       <div class="mb-3 me-2 flex-grow-1">
         <label for="plannedDate" class="form-label">Planned Date</label>
-        <input v-model="taskData.plannedDate" type="datetime-local" id="plannedDate" class="form-control" />
+        <input
+          v-model="taskData.plannedDate"
+          type="datetime-local"
+          id="plannedDate"
+          class="form-control"
+        />
       </div>
       <div class="mb-3 flex-grow-1">
         <label for="relatedTaskId" class="form-label">Related Task</label>
         <select v-model="taskData.relatedTaskId" id="relatedTaskId" class="form-select">
           <option :value="null" disabled>-- Select Related Task --</option>
-          <option v-for="task in filteredRelatedTasks" :key="task.id" :value="task.id">{{ task.title }}</option>
+          <option v-for="task in filteredRelatedTasks" :key="task.id" :value="task.id">
+            {{ task.title }}
+          </option>
         </select>
       </div>
     </div>
@@ -109,16 +155,30 @@
 
     <div v-if="taskData.customFields && customFieldsStrict.length > 0" class="mb-3">
       <label for="customFields" class="form-label">Custom Fields</label>
-      <div v-for="(field, index) in customFieldsStrict" :key="index" class="d-flex align-items-center">
+      <div
+        v-for="(field, index) in customFieldsStrict"
+        :key="index"
+        class="d-flex align-items-center"
+      >
         <label :for="field.description" class="form-label">{{ field.description }}</label>
-        <input v-model="taskData.customFields[field.description]" :id="field.description" :type="field.type" class="form-control" />
+        <input
+          v-model="taskData.customFields[field.description]"
+          :id="field.description"
+          :type="field.type"
+          class="form-control"
+        />
       </div>
     </div>
 
     <!-- Conditional rendering for comments -->
     <div v-if="mode === 'edit' && showComments && comments" class="mt-3">
       <h5>Comments</h5>
-      <CommentCard v-for="comment in comments" :key="comment.id" :comment="comment" :project-id="projectId.toString()" />
+      <CommentCard
+        v-for="comment in comments"
+        :key="comment.id"
+        :comment="comment"
+        :project-id="projectId.toString()"
+      />
       <form @submit.prevent="addComment" class="mt-3">
         <div class="mb-3">
           <label for="content" class="form-label">New Comment</label>
@@ -155,22 +215,21 @@ import { MdEditor } from 'md-editor-v3'
 import 'md-editor-v3/lib/style.css'
 import CommentCard from '@/components/CommentCard.vue'
 import { useAuthStore, type User } from '@/stores/authStore'
-import axios from "axios";
+import axios from 'axios'
 
 interface ITaskTemplate {
-  id: number;
-  title: string;
-  description: string;
-  priority: string;
-  status: string;
-  tag: string;
-  type: string;
-  estimatedTime: number,
-  actualTime: number,
-  customFields: Record<string, string>,
+  id: number
+  title: string
+  description: string
+  priority: string
+  status: string
+  tag: string
+  type: string
+  estimatedTime: number
+  actualTime: number
+  customFields: Record<string, string>
   tags: string[]
 }
-
 
 const props = defineProps<{
   projectId: string
@@ -211,8 +270,9 @@ const taskData = ref<Task>({
 const newCommentContent = ref('')
 const attachment = ref<File | null>(null)
 const comments = ref<Comment[]>([])
-const assigneesArray = ref<number[]>(props.initialTaskData?.assignees?.map((assignee: {id: number}) => assignee.id) ?? [])
-
+const assigneesArray = ref<number[]>(
+  props.initialTaskData?.assignees?.map((assignee: { id: number }) => assignee.id) ?? []
+)
 
 const selectedTemplate = ref<ITaskTemplate | null>(null)
 const templates = ref<ITaskTemplate[]>([])
@@ -224,11 +284,11 @@ const labels = computed(() => taskStore.labels)
 const buttonText = computed(() => (props.mode === 'create' ? 'Create Task' : 'Save Changes'))
 
 const filteredRelatedTasks = computed(() => {
-  return props.tasks.filter(task => task.id !== taskData.value.id);
-});
+  return props.tasks.filter((task) => task.id !== taskData.value.id)
+})
 
 const clearSelection = async () => {
-  assigneesArray.value = []; // Очищаем выбранные значения, если выбран пункт "---- empty ----"
+  assigneesArray.value = [] // Очищаем выбранные значения, если выбран пункт "---- empty ----"
 }
 
 const saveAsTemplate = async () => {
@@ -240,8 +300,8 @@ const saveAsTemplate = async () => {
       sprintId: taskData.value.sprintId || undefined,
       label: taskData.value.label || undefined,
       customFields: taskData.value.customFields || {},
-      tags: taskData.value.tags || [],
-    };
+      tags: taskData.value.tags || []
+    }
     delete (dataToTemplate as { createdAt?: string }).createdAt
     delete (dataToTemplate as { updatedAt?: string }).updatedAt
     delete (dataToTemplate as { projectId?: number }).projectId
@@ -251,22 +311,24 @@ const saveAsTemplate = async () => {
     delete (dataToTemplate as { assignees?: number }).assignees
     delete (dataToTemplate as { order?: number }).order
 
-
-    await axios.post(`/task-templates/${props.project!.id}`, {...dataToTemplate, assignees: assigneesArray.value});
-    await fetchTemplates();
+    await axios.post(`/task-templates/${props.project!.id}`, {
+      ...dataToTemplate,
+      assignees: assigneesArray.value
+    })
+    await fetchTemplates()
   } catch (error) {
-    console.error('Error saving template:', error);
-    throw error;
+    console.error('Error saving template:', error)
+    throw error
   }
-};
+}
 
 const fetchTemplates = async () => {
   if (props.project?.id) {
     try {
-      const response = await axios.get(`/task-templates/${props.project.id}`);
-      templates.value = response.data;
+      const response = await axios.get(`/task-templates/${props.project.id}`)
+      templates.value = response.data
     } catch (error) {
-      console.error('Failed to load templates', error);
+      console.error('Failed to load templates', error)
     }
   }
 }
@@ -284,16 +346,15 @@ const applyTemplate = () => {
   }
 }
 
-
 const deleteTemplate = async () => {
   if (selectedTemplate.value) {
     try {
-      await axios.delete(`/task-templates/${props.project!.id}/${selectedTemplate.value.id}`);
-      await fetchTemplates();
-      selectedTemplate.value = null;
+      await axios.delete(`/task-templates/${props.project!.id}/${selectedTemplate.value.id}`)
+      await fetchTemplates()
+      selectedTemplate.value = null
     } catch (error) {
-      console.error('Error deleting template:', error);
-      throw error;
+      console.error('Error deleting template:', error)
+      throw error
     }
   }
 }
@@ -318,8 +379,8 @@ const submitTask = async () => {
     labelId: taskData.value.labelId || undefined,
     relatedTaskId: taskData.value.relatedTaskId || undefined,
     sprintId: taskData.value.sprintId || undefined,
-    label: taskData.value.label || undefined,
-  };
+    label: taskData.value.label || undefined
+  }
   delete (dataToSave as { createdAt?: string }).createdAt
   delete (dataToSave as { updatedAt?: string }).updatedAt
   delete (dataToSave as { projectId?: number }).projectId
@@ -329,10 +390,15 @@ const submitTask = async () => {
   delete (dataToSave as { assignees?: number }).assignees
 
   if (props.mode === 'create') {
-    await taskStore.createTask(parseInt(props.projectId), {...dataToSave, assigneesIds: assigneesArray.value})
+    await taskStore.createTask(parseInt(props.projectId), {
+      ...dataToSave,
+      assigneesIds: assigneesArray.value
+    })
   } else {
-
-    await taskStore.updateTask(parseInt(props.projectId), taskData.value.id, {...dataToSave, assigneesIds: assigneesArray.value})
+    await taskStore.updateTask(parseInt(props.projectId), taskData.value.id, {
+      ...dataToSave,
+      assigneesIds: assigneesArray.value
+    })
   }
   emit('task-saved', 'close')
 }
@@ -433,7 +499,6 @@ const handleFileUpload = (event: Event) => {
   margin-left: 8px; /* Отступ слева от текста в label */
 }
 
-
 .form-label {
   display: flex;
   align-items: center;
@@ -443,7 +508,7 @@ const handleFileUpload = (event: Event) => {
 
 .clear-button i {
   color: red;
-  font-size: 1.0rem;
+  font-size: 1rem;
   padding-top: 4px;
 }
 

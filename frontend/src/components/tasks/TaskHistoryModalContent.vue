@@ -7,9 +7,14 @@
     >
       <div class="me-3 flex-grow-1">
         <div class="d-flex justify-content-between align-items-center mb-1">
-          <strong class="username">{{ entry.user.username }}: <span v-if="entry.action" class="action-label">{{ entry.action }}</span></strong>
+          <strong class="username"
+            >{{ entry.user.username }}:
+            <span v-if="entry.action" class="action-label">{{ entry.action }}</span></strong
+          >
 
-          <span class="badge bg-secondary align-self-start">{{ new Date(entry.timestamp).toLocaleString() }}</span>
+          <span class="badge bg-secondary align-self-start">{{
+            new Date(entry.timestamp).toLocaleString()
+          }}</span>
         </div>
 
         <div v-for="(change, field) in entry.changes" :key="field" class="change-entry">
@@ -30,22 +35,22 @@ import { ref, onMounted, defineProps } from 'vue'
 import axios from 'axios'
 
 export interface TaskHistory {
-  id: number;
-  taskId: number;        // ID задачи
-  userId: number;        // ID пользователя, который совершил действие
-  action: string;        // Описание действия
-  changes: Record<string, { oldValue: any; newValue: any }>; // Объект изменений
-  timestamp: Date;       // Временная метка действия
-  createdAt: Date;       // Временная метка создания записи в истории
-  updatedAt: Date;       // Временная метка последнего обновления записи
+  id: number
+  taskId: number // ID задачи
+  userId: number // ID пользователя, который совершил действие
+  action: string // Описание действия
+  changes: Record<string, { oldValue: any; newValue: any }> // Объект изменений
+  timestamp: Date // Временная метка действия
+  createdAt: Date // Временная метка создания записи в истории
+  updatedAt: Date // Временная метка последнего обновления записи
   user: {
-    id: number;
-    username: string;    // Имя пользователя
-  };
+    id: number
+    username: string // Имя пользователя
+  }
   task: {
-    id: number;
-    title: string;       // Название задачи
-  };
+    id: number
+    title: string // Название задачи
+  }
 }
 
 const props = defineProps<{

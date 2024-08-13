@@ -16,37 +16,37 @@
   </div>
 </template>
 <script lang="ts" setup>
-import axios from 'axios';
-import GitHubImport from '../components/GitHubImport.vue';
-import Tabs from '@/components/Tabs.vue';
-import { useRoute } from "vue-router";
+import axios from 'axios'
+import GitHubImport from '../components/GitHubImport.vue'
+import Tabs from '@/components/Tabs.vue'
+import { useRoute } from 'vue-router'
 
-const route = useRoute();
-const projectId = Number(route.params.projectId);
+const route = useRoute()
+const projectId = Number(route.params.projectId)
 
 const handleFileImport = async (event: Event) => {
-  const file = (event.target as HTMLInputElement).files?.[0];
+  const file = (event.target as HTMLInputElement).files?.[0]
   if (file) {
-    const formData = new FormData();
-    formData.append('file', file);
-    await axios.post(`/import-export/${projectId}/import`, formData);
+    const formData = new FormData()
+    formData.append('file', file)
+    await axios.post(`/import-export/${projectId}/import`, formData)
   }
-};
+}
 
 const exportData = async () => {
   try {
     const response = await axios.get(`/import-export/${projectId}/export`, {
-      responseType: 'blob', // указываем, что ответ будет в виде blob
-    });
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'data.json'); // задаем имя файла
-    document.body.appendChild(link);
-    link.click();
-    link.remove(); // удаляем ссылку из DOM после клика
+      responseType: 'blob' // указываем, что ответ будет в виде blob
+    })
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'data.json') // задаем имя файла
+    document.body.appendChild(link)
+    link.click()
+    link.remove() // удаляем ссылку из DOM после клика
   } catch (error) {
-    console.error('Error exporting data:', error);
+    console.error('Error exporting data:', error)
   }
-};
+}
 </script>

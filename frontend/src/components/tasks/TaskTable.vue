@@ -4,46 +4,50 @@
     <div class="table-responsive">
       <table class="table table-hover table-sm">
         <thead>
-        <tr>
-          <th v-for="column in visibleColumns" @click="sort(column)" :key="column">
-            {{ column }}
-            <i v-if="sortKey === column" :class="sortIconClass(column)"></i>
-          </th>
-          <th scope="col" class="actions-sticky" style="width: 90px">Actions</th>
-        </tr>
+          <tr>
+            <th v-for="column in visibleColumns" @click="sort(column)" :key="column">
+              {{ column }}
+              <i v-if="sortKey === column" :class="sortIconClass(column)"></i>
+            </th>
+            <th scope="col" class="actions-sticky" style="width: 90px">Actions</th>
+          </tr>
         </thead>
         <tbody v-for="(task, index) in tasks" :key="task.id">
-        <tr class="task-row"
+          <tr
+            class="task-row"
             :class="{ dragging: dragStart?.id === task.id, 'drop-target': dropIndex === task.id }"
             draggable="true"
             @dragstart="onDragStart(task)"
             @dragover="(event) => onDragOver(event, task)"
-            @drop="onDrop(task)">
-          <td
-            v-for="column in visibleColumns"
-            :style="{ backgroundColor: generatePriorityColor(task.priority ?? '') }"
-            :key="column"
-            v-html="getColumnData(task, column)"
-          ></td>
-          <td class="actions-sticky" style="width: 90px">
-            <div style="width: 90%; display: flex">
-              <button class="btn btn-danger btn-sm ms-1" @click="$emit('open-task-modal', task)">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button class="btn btn-info btn-sm ms-1" @click="$emit('open-preview-modal', task)">
-                <i class="fas fa-eye"></i>
-              </button>
-              <button class="btn btn-primary btn-sm ms-1" @click="$emit('open-history-modal', task)">
-                <i class="fas fa-history"></i>
-              </button>
-              <button class="btn btn-secondary btn-sm ms-1" @click="toggleRelatedTasks(task)">
-                <i class="fas fa-angle-down" v-if="expandedTask === task.id"></i>
-                <i class="fas fa-angle-right" v-else></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-
+            @drop="onDrop(task)"
+          >
+            <td
+              v-for="column in visibleColumns"
+              :style="{ backgroundColor: generatePriorityColor(task.priority ?? '') }"
+              :key="column"
+              v-html="getColumnData(task, column)"
+            ></td>
+            <td class="actions-sticky" style="width: 90px">
+              <div style="width: 90%; display: flex">
+                <button class="btn btn-danger btn-sm ms-1" @click="$emit('open-task-modal', task)">
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-info btn-sm ms-1" @click="$emit('open-preview-modal', task)">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button
+                  class="btn btn-primary btn-sm ms-1"
+                  @click="$emit('open-history-modal', task)"
+                >
+                  <i class="fas fa-history"></i>
+                </button>
+                <button class="btn btn-secondary btn-sm ms-1" @click="toggleRelatedTasks(task)">
+                  <i class="fas fa-angle-down" v-if="expandedTask === task.id"></i>
+                  <i class="fas fa-angle-right" v-else></i>
+                </button>
+              </div>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
@@ -76,10 +80,10 @@ const emit = defineEmits<{
 
 const sortKey = ref('')
 const sortOrder = ref(1)
-const expandedTask = ref<number|null>(null)
+const expandedTask = ref<number | null>(null)
 const relatedTasks = ref<Task[]>([]) // Store related tasks
-const dragStart = ref<Task | null>(null);
-const dropIndex = ref<number | null>(null);
+const dragStart = ref<Task | null>(null)
+const dropIndex = ref<number | null>(null)
 
 const groupedTasks = computed(() => {
   const tasks = props.tasks
@@ -93,7 +97,9 @@ const groupedTasks = computed(() => {
     } else if (props.groupBy === 'status') {
       groupKey = task.status || 'No Status'
     } else if (props.groupBy === 'assignee') {
-      groupKey = task.assignees ? task.assignees.map(assignee => assignee.id).join(', ') : 'Unassigned'
+      groupKey = task.assignees
+        ? task.assignees.map((assignee) => assignee.id).join(', ')
+        : 'Unassigned'
     } else if (task.customFields) {
       groupKey = task.customFields[props.groupBy] || 'No ' + props.groupBy
     }
@@ -244,38 +250,38 @@ const generatePriorityColor = (priority: string): string => {
 }
 
 const onDragStart = (task: Task) => {
-  dragStart.value = task;
-};
+  dragStart.value = task
+}
 
 const onDragOver = (event: DragEvent, task: Task) => {
   // Prevent default to allow drop
-  event.preventDefault();
-  dropIndex.value = task.id;
-};
+  event.preventDefault()
+  dropIndex.value = task.id
+}
 
 const onDrop = async (task: Task) => {
   if (dragStart.value !== null && dragStart.value.id !== task.id) {
-
     await axios.put(`/tasks/${props.project!.id}/reorder/update`, {
       draggedTaskId: dragStart.value.id,
-      targetTaskId: task.id,
-    });
-    emit('refresh');
+      targetTaskId: task.id
+    })
+    emit('refresh')
   }
 
   dragStart.value = null
   dropIndex.value = null
-
-};
+}
 
 const toggleRelatedTasks = async (task: Task) => {
-  if(expandedTask.value === task.id) {
+  if (expandedTask.value === task.id) {
     expandedTask.value = null
     relatedTasks.value = []
-    return;
+    return
   }
   expandedTask.value = task.id
-  const response = await axios.get(`/tasks/${props.project!.id}`, { params: { relatedTaskId: task.id } })
+  const response = await axios.get(`/tasks/${props.project!.id}`, {
+    params: { relatedTaskId: task.id }
+  })
   relatedTasks.value = response.data.tasks
 }
 </script>

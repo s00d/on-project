@@ -21,10 +21,13 @@
               <div class="board-column-header">
                 <h2 class="board-column-title" :title="sprint.title">{{ sprint.title }}</h2>
                 <div class="actions">
-                  <button @click="openEditSprintModal(sprint)" class="btn btn-primary  m-0 btn-sm">
+                  <button @click="openEditSprintModal(sprint)" class="btn btn-primary m-0 btn-sm">
                     <i class="fas fa-pencil-alt"></i>
                   </button>
-                  <button @click="confirmDelete(sprint.id, sprint.title)" class="btn btn-danger btn-sm m-0 ms-1">
+                  <button
+                    @click="confirmDelete(sprint.id, sprint.title)"
+                    class="btn btn-danger btn-sm m-0 ms-1"
+                  >
                     <i class="fas fa-trash-alt"></i>
                   </button>
                 </div>
@@ -43,7 +46,9 @@
                       </span>
                     </div>
                     <div class="task-dates">
-                      <span v-if="task.plannedDate">Planned: {{ formatDate(task.plannedDate) }}</span>
+                      <span v-if="task.plannedDate"
+                        >Planned: {{ formatDate(task.plannedDate) }}</span
+                      >
                       <span v-if="task.dueDate">Due: {{ formatDate(task.dueDate) }}</span>
                     </div>
                   </div>
@@ -87,7 +92,6 @@
     </div>
   </div>
 </template>
-
 
 <script lang="ts" setup>
 import { ref, computed, onMounted } from 'vue'
@@ -200,9 +204,7 @@ onMounted(() => {
 })
 </script>
 
-
 <style scoped>
-
 .priority-high {
   background-color: #e53e3e;
 }
@@ -220,7 +222,6 @@ onMounted(() => {
   color: #718096;
 }
 
-
 .task-list {
   margin-top: 16px;
   max-height: 100px;
@@ -233,7 +234,6 @@ onMounted(() => {
   border-radius: 4px;
   margin-bottom: 8px;
 }
-
 
 .task-header {
   display: flex;
@@ -253,5 +253,4 @@ onMounted(() => {
   font-size: 0.75rem;
   color: #fff;
 }
-
 </style>

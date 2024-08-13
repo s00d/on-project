@@ -5,33 +5,33 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   ManyToMany
-} from 'typeorm';
-import { User } from './User';
-import { Project } from './Project';
-import { Task } from './Task';
-import { Example } from 'tsoa';
+} from 'typeorm'
+import { User } from './User'
+import { Project } from './Project'
+import { Task } from './Task'
+import { Example } from 'tsoa'
 
 @Entity('project_users')
 export class ProjectUser {
   @PrimaryGeneratedColumn()
   @Example(1)
-  id!: number;
+  id!: number
 
   @ManyToOne(() => Project, (project) => project.projectUsers)
   @Example(1)
-  project!: Project;
+  project!: Project
 
   @ManyToOne(() => User, (user) => user.projectUsers, { nullable: false })
   @Example(1)
-  user!: User;
+  user!: User
 
   @ManyToMany(() => Task, (task) => task.assignees)
   @Example([1, 2])
-  tasks!: Task[];
+  tasks!: Task[]
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   @Example('2024-08-11T00:00:00Z')
-  createdAt?: Date;
+  createdAt?: Date
 
   @UpdateDateColumn({
     type: 'datetime',
@@ -39,5 +39,5 @@ export class ProjectUser {
     onUpdate: 'CURRENT_TIMESTAMP'
   })
   @Example('2024-08-11T00:00:00Z')
-  updatedAt?: Date;
+  updatedAt?: Date
 }

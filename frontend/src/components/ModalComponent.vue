@@ -35,30 +35,31 @@
 <script lang="ts" setup>
 import { defineProps, defineEmits, watch } from 'vue'
 
-
-const props = withDefaults(defineProps<{
-  isOpen: boolean
-  title: string
-  pos: 'fixed-left'|'fixed-right'|'center'
-  isBlock: boolean
-}>(), {
-  isOpen: false,
-  title: 'Title',
-  pos: 'center',
-  isBlock: true
-})
+const props = withDefaults(
+  defineProps<{
+    isOpen: boolean
+    title: string
+    pos: 'fixed-left' | 'fixed-right' | 'center'
+    isBlock: boolean
+  }>(),
+  {
+    isOpen: false,
+    title: 'Title',
+    pos: 'center',
+    isBlock: true
+  }
+)
 
 watch(
   () => props.isOpen,
   (newVal) => {
-    if(props.isBlock) {
+    if (props.isBlock) {
       if (newVal) {
         document.body.classList.add('overflow-hidden')
       } else {
         document.body.classList.remove('overflow-hidden')
       }
     }
-
   }
 )
 

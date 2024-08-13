@@ -14,41 +14,41 @@ import {
   Response,
   SuccessResponse,
   Middlewares
-} from 'tsoa';
-import { AppDataSource } from '../ormconfig';
-import { Task } from '../models/Task';
-import { Label } from '../models/Label';
-import { Project } from '../models/Project';
-import { ProjectUser } from '../models/ProjectUser';
-import { Sprint } from '../models/Sprint';
-import { Brackets, In } from 'typeorm';
-import { io } from '../index';
-import { logTaskHistory } from './taskHistoryController';
-import { createNotification } from './notificationController';
-import { Request as ExpressRequest } from 'express';
-import { isEqual } from 'lodash';
-import {authenticateAll} from "../middlewares/authMiddleware";
-import {isProjectCreator} from "../middlewares/roleMiddleware";
+} from 'tsoa'
+import { AppDataSource } from '../ormconfig'
+import { Task } from '../models/Task'
+import { Label } from '../models/Label'
+import { Project } from '../models/Project'
+import { ProjectUser } from '../models/ProjectUser'
+import { Sprint } from '../models/Sprint'
+import { Brackets, In } from 'typeorm'
+import { io } from '../index'
+import { logTaskHistory } from './taskHistoryController'
+import { createNotification } from './notificationController'
+import { Request as ExpressRequest } from 'express'
+import { isEqual } from 'lodash'
+import { authenticateAll } from '../middlewares/authMiddleware'
+import { isProjectCreator } from '../middlewares/roleMiddleware'
 
 interface TaskDTO {
-  title: string,
-  description: string,
-  status?: string,
-  assigneesIds?: number[],
-  labelId?: number|null,
-  order?: number,
-  dueDate?: Date|null,
-  stopDate?: null|any,
-  startDate?: null|any,
-  priority?: string,
-  estimatedTime?: number,
-  type?: string,
-  plannedDate?: Date|null,
-  relatedTaskId?: number|null,
-  actualTime?: number,
-  tags?: null|string[],
-  customFields?: null|{ [name: string]: any },
-  sprintId?: any|null
+  title: string
+  description: string
+  status?: string
+  assigneesIds?: number[]
+  labelId?: number | null
+  order?: number
+  dueDate?: Date | null
+  stopDate?: null | any
+  startDate?: null | any
+  priority?: string
+  estimatedTime?: number
+  type?: string
+  plannedDate?: Date | null
+  relatedTaskId?: number | null
+  actualTime?: number
+  tags?: null | string[]
+  customFields?: null | { [name: string]: any }
+  sprintId?: any | null
 }
 
 @Route('api/tasks')
@@ -56,13 +56,10 @@ interface TaskDTO {
 @Security('session')
 @Security('apiKey')
 export class TaskController extends Controller {
-
   @Get('{projectId}')
   @Response(400, 'Bad request')
   @SuccessResponse(200, 'List of tasks')
-  @Middlewares([
-    authenticateAll,
-  ])
+  @Middlewares([authenticateAll])
   public async getTasks(
     @Path() projectId: number,
     @Query() status?: string,
@@ -76,33 +73,33 @@ export class TaskController extends Controller {
     @Query() page: number = 1,
     @Query() startDate?: Date,
     @Query() endDate?: Date
-  ): Promise<{ tasks: Task[], total: number }> {
+  ): Promise<{ tasks: Task[]; total: number }> {
     try {
-      const taskRepository = AppDataSource.getRepository(Task);
+      const taskRepository = AppDataSource.getRepository(Task)
       const queryBuilder = taskRepository
         .createQueryBuilder('task')
         .leftJoinAndSelect('task.label', 'label')
         .leftJoinAndSelect('task.assignees', 'assignees')
-        .where('task.projectId = :projectId', { projectId });
+        .where('task.projectId = :projectId', { projectId })
 
       if (status) {
-        queryBuilder.andWhere('task.status = :status', { status });
+        queryBuilder.andWhere('task.status = :status', { status })
       }
       if (priority) {
-        queryBuilder.andWhere('task.priority = :priority', { priority });
+        queryBuilder.andWhere('task.priority = :priority', { priority })
       }
       if (sprintId !== undefined) {
         if (sprintId === 0) {
-          queryBuilder.andWhere('task.sprintId IS NULL');
+          queryBuilder.andWhere('task.sprintId IS NULL')
         } else {
-          queryBuilder.andWhere('task.sprintId = :sprintId', { sprintId });
+          queryBuilder.andWhere('task.sprintId = :sprintId', { sprintId })
         }
       }
       if (relatedTaskId !== undefined) {
         if (sprintId === 0) {
-          queryBuilder.andWhere('task.relatedTaskId IS NULL');
+          queryBuilder.andWhere('task.relatedTaskId IS NULL')
         } else {
-          queryBuilder.andWhere('task.relatedTaskId = :relatedTaskId', { relatedTaskId });
+          queryBuilder.andWhere('task.relatedTaskId = :relatedTaskId', { relatedTaskId })
         }
       }
       if (search) {
@@ -112,113 +109,112 @@ export class TaskController extends Controller {
               .orWhere('task.description LIKE :search', { search: `%${search}%` })
               .orWhere('task.type LIKE :search', { search: `%${search}%` })
               .orWhere('task.status LIKE :search', { search: `%${search}%` })
-              .orWhere('task.priority LIKE :search', { search: `%${search}%` });
+              .orWhere('task.priority LIKE :search', { search: `%${search}%` })
           })
-        );
+        )
       }
       if (assignee) {
-        const assigneeIds = (assignee as string).split(',');
-        queryBuilder.andWhere('assignees.id IN (:...assigneeIds)', { assigneeIds });
+        const assigneeIds = (assignee as string).split(',')
+        queryBuilder.andWhere('assignees.id IN (:...assigneeIds)', { assigneeIds })
       }
       if (tags) {
-        const tagsArray = (tags as string).split(',');
+        const tagsArray = (tags as string).split(',')
         queryBuilder.andWhere(
           new Brackets((qb) => {
             tagsArray.forEach((tag) => {
-              qb.orWhere(':tag = ANY(task.tags)', { tag });
-            });
+              qb.orWhere(':tag = ANY(task.tags)', { tag })
+            })
           })
-        );
+        )
       }
       if (startDate || endDate) {
         queryBuilder.andWhere(
           new Brackets((qb) => {
             if (startDate) {
-              qb.orWhere('task.startDate >= :startDate', { startDate });
+              qb.orWhere('task.startDate >= :startDate', { startDate })
             }
             if (endDate) {
-              qb.orWhere('task.stopDate <= :endDate', { endDate });
+              qb.orWhere('task.stopDate <= :endDate', { endDate })
             }
           })
-        );
+        )
       }
 
-      queryBuilder.orderBy('task.order', 'DESC');
+      queryBuilder.orderBy('task.order', 'DESC')
 
       const [tasks, count] = await queryBuilder
         .skip((page - 1) * pageSize)
         .take(pageSize)
-        .getManyAndCount();
+        .getManyAndCount()
 
-      return { tasks, total: count };
+      return { tasks, total: count }
     } catch (err: any) {
-      this.setStatus(400);
-      throw new Error(err.message);
+      this.setStatus(400)
+      throw new Error(err.message)
     }
   }
 
   @Get('{projectId}/{id}')
   @Response(404, 'Task not found')
   @SuccessResponse(200, 'Task details')
-  @Middlewares([
-    authenticateAll,
-  ])
-  public async getTask(
-    @Path() projectId: number,
-    @Path() id: number
-  ): Promise<Task> {
+  @Middlewares([authenticateAll])
+  public async getTask(@Path() projectId: number, @Path() id: number): Promise<Task> {
     try {
-      const taskRepository = AppDataSource.getRepository(Task);
+      const taskRepository = AppDataSource.getRepository(Task)
       const task = await taskRepository.findOne({
         where: { project: { id: projectId }, id },
         relations: ['label', 'assignees']
-      });
+      })
       if (!task) {
-        this.setStatus(404);
-        throw new Error('Task not found');
+        this.setStatus(404)
+        throw new Error('Task not found')
       }
-      return task;
+      return task
     } catch (err: any) {
-      this.setStatus(400);
-      throw new Error(err.message);
+      this.setStatus(400)
+      throw new Error(err.message)
     }
   }
 
   @Post('{projectId}')
   @Response(400, 'Bad request')
   @SuccessResponse(201, 'Task created successfully')
-  @Middlewares([
-    authenticateAll,
-  ])
+  @Middlewares([authenticateAll])
   public async createTask(
     @Path() projectId: number,
     @Body() requestBody: Partial<TaskDTO>,
-    @Request() req: ExpressRequest,
+    @Request() req: ExpressRequest
   ): Promise<Task> {
-    const userId = req.session!.user!.id;
+    const userId = req.session!.user!.id
 
     try {
-      const taskRepository = AppDataSource.getRepository(Task);
-      const labelRepository = AppDataSource.getRepository(Label);
-      const projectRepository = AppDataSource.getRepository(Project);
-      const projectUserRepository = AppDataSource.getRepository(ProjectUser);
-      const sprintRepository = AppDataSource.getRepository(Sprint);
+      const taskRepository = AppDataSource.getRepository(Task)
+      const labelRepository = AppDataSource.getRepository(Label)
+      const projectRepository = AppDataSource.getRepository(Project)
+      const projectUserRepository = AppDataSource.getRepository(ProjectUser)
+      const sprintRepository = AppDataSource.getRepository(Sprint)
 
-      const project = await projectRepository.findOne({ where: { id: projectId } });
+      const project = await projectRepository.findOne({ where: { id: projectId } })
       if (!project) {
-        this.setStatus(404);
-        throw new Error('Project not found');
+        this.setStatus(404)
+        throw new Error('Project not found')
       }
 
-      const label = requestBody.labelId ? await labelRepository.findOne({ where: { id: requestBody.labelId } }) : null;
-      const relatedTask = requestBody.relatedTaskId ? await taskRepository.findOne({ where: { id: requestBody.relatedTaskId } }) : null;
-      const assignees = requestBody.assigneesIds ? await projectUserRepository.find({
-        where: {
-          user: { id: In(requestBody.assigneesIds) },
-          project: { id: projectId }
-        },
-        relations: ['user']
-      }) : [];
+      const label = requestBody.labelId
+        ? await labelRepository.findOne({ where: { id: requestBody.labelId } })
+        : null
+      const relatedTask = requestBody.relatedTaskId
+        ? await taskRepository.findOne({ where: { id: requestBody.relatedTaskId } })
+        : null
+      const assignees = requestBody.assigneesIds
+        ? await projectUserRepository.find({
+            where: {
+              user: { id: In(requestBody.assigneesIds) },
+              project: { id: projectId }
+            },
+            relations: ['user']
+          })
+        : []
 
       const newTask: Partial<Task> = {
         ...requestBody,
@@ -230,45 +226,52 @@ export class TaskController extends Controller {
         tags: requestBody.tags || [],
         customFields: requestBody.customFields || {},
         startDate: requestBody.status === 'In Progress' ? new Date() : null,
-        stopDate: requestBody.status === 'In Progress' && requestBody.estimatedTime ? new Date(Date.now() + requestBody.estimatedTime * 60 * 60 * 1000) : null
-      };
+        stopDate:
+          requestBody.status === 'In Progress' && requestBody.estimatedTime
+            ? new Date(Date.now() + requestBody.estimatedTime * 60 * 60 * 1000)
+            : null
+      }
 
       if (requestBody.status === 'Done') {
-        newTask.stopDate = new Date();
+        newTask.stopDate = new Date()
         if (newTask.startDate) {
-          newTask.actualTime = (newTask.stopDate.getTime() - new Date(newTask.startDate).getTime()) / (60 * 60 * 1000);
+          newTask.actualTime =
+            (newTask.stopDate.getTime() - new Date(newTask.startDate).getTime()) / (60 * 60 * 1000)
         }
       }
 
       if (requestBody.sprintId) {
-        const sprint = await sprintRepository.findOne({ where: { id: requestBody.sprintId } });
+        const sprint = await sprintRepository.findOne({ where: { id: requestBody.sprintId } })
         if (!sprint) {
-          this.setStatus(404);
-          throw new Error('Sprint not found');
+          this.setStatus(404)
+          throw new Error('Sprint not found')
         }
-        newTask.sprint = sprint;
+        newTask.sprint = sprint
       }
 
-      const task = taskRepository.create(newTask);
-      await taskRepository.save(task);
+      const task = taskRepository.create(newTask)
+      await taskRepository.save(task)
 
       // Log all fields as changes
-      const changes: Record<string, { oldValue: any, newValue: any }> = {};
+      const changes: Record<string, { oldValue: any; newValue: any }> = {}
       const title = newTask.title ?? ''
-      changes[title] = { oldValue: null, newValue: title };
-      await logTaskHistory(task.id, userId, 'created', changes);
+      changes[title] = { oldValue: null, newValue: title }
+      await logTaskHistory(task.id, userId, 'created', changes)
 
       if (assignees.length) {
         for (let assignee of assignees) {
-          await createNotification(assignee.id, `You have been assigned a new task: ${requestBody.title}`);
+          await createNotification(
+            assignee.id,
+            `You have been assigned a new task: ${requestBody.title}`
+          )
         }
       }
 
-      io.to(`project:${project.id}`).emit('task:create', task);
-      return task;
+      io.to(`project:${project.id}`).emit('task:create', task)
+      return task
     } catch (err: any) {
-      this.setStatus(400);
-      throw new Error(err.message);
+      this.setStatus(400)
+      throw new Error(err.message)
     }
   }
 
@@ -276,55 +279,55 @@ export class TaskController extends Controller {
   @Response(400, 'Bad request')
   @Response(404, 'Task not found')
   @SuccessResponse(200, 'Task updated successfully')
-  @Middlewares([
-    authenticateAll,
-  ])
+  @Middlewares([authenticateAll])
   public async updateTask(
     @Path() projectId: number,
     @Path() id: number,
     @Body() requestBody: Partial<TaskDTO>,
-    @Request() req: ExpressRequest,
+    @Request() req: ExpressRequest
   ): Promise<Task> {
-    const userId = req.session.user!.id;
+    const userId = req.session.user!.id
     if (!userId) {
-      this.setStatus(401);
-      throw new Error('User not authenticated');
+      this.setStatus(401)
+      throw new Error('User not authenticated')
     }
 
     try {
-      const projectUserRepository = AppDataSource.getRepository(ProjectUser);
-      const taskRepository = AppDataSource.getRepository(Task);
-      const task = await taskRepository.findOne({ where: { id, project: { id: projectId } } });
+      const projectUserRepository = AppDataSource.getRepository(ProjectUser)
+      const taskRepository = AppDataSource.getRepository(Task)
+      const task = await taskRepository.findOne({ where: { id, project: { id: projectId } } })
       if (!task) {
-        this.setStatus(404);
-        throw new Error('Task not found');
+        this.setStatus(404)
+        throw new Error('Task not found')
       }
 
-      const changes: Record<string, { oldValue: any, newValue: any }> = {};
+      const changes: Record<string, { oldValue: any; newValue: any }> = {}
 
       for (const key of Object.keys(requestBody)) {
-        if(key === 'assignees') continue;
-        const oldValue = task[key as keyof Task];
-        const newValue = requestBody[key as keyof TaskDTO];
+        if (key === 'assignees') continue
+        const oldValue = task[key as keyof Task]
+        const newValue = requestBody[key as keyof TaskDTO]
 
         if (!isEqual(oldValue, newValue)) {
           changes[key] = {
             oldValue: Array.isArray(oldValue) ? [...oldValue] : oldValue,
-            newValue: Array.isArray(newValue) ? [...newValue] : newValue,
-          };
+            newValue: Array.isArray(newValue) ? [...newValue] : newValue
+          }
         }
       }
 
-      const updatedTask: Task = Object.assign(task, requestBody);
+      const updatedTask: Task = Object.assign(task, requestBody)
 
       if (requestBody.status) {
         if (requestBody.status === 'Done') {
-          updatedTask.stopDate = new Date();
+          updatedTask.stopDate = new Date()
           if (task.startDate) {
-            updatedTask.actualTime = (updatedTask.stopDate.getTime() - new Date(task.startDate).getTime()) / (60 * 60 * 1000);
+            updatedTask.actualTime =
+              (updatedTask.stopDate.getTime() - new Date(task.startDate).getTime()) /
+              (60 * 60 * 1000)
           }
         } else if (requestBody.status === 'In Progress' && !task.startDate) {
-          updatedTask.startDate = new Date();
+          updatedTask.startDate = new Date()
         }
       }
 
@@ -333,9 +336,11 @@ export class TaskController extends Controller {
           updatedTask.sprint = null
         } else {
           const sprintRepository = AppDataSource.getRepository(Sprint)
-          const sprint = await sprintRepository.findOne({ where: { id: parseInt(requestBody.sprintId.toString()) } })
+          const sprint = await sprintRepository.findOne({
+            where: { id: parseInt(requestBody.sprintId.toString()) }
+          })
           if (!sprint) {
-            throw new Error('Sprint not found');
+            throw new Error('Sprint not found')
           }
           updatedTask.sprint = sprint
         }
@@ -345,9 +350,11 @@ export class TaskController extends Controller {
         if (requestBody.relatedTaskId === null) {
           updatedTask.relatedTaskId = null
         } else {
-          const relatedTask = await taskRepository.findOne({ where: { id: requestBody.relatedTaskId } });
+          const relatedTask = await taskRepository.findOne({
+            where: { id: requestBody.relatedTaskId }
+          })
           if (!relatedTask) {
-            throw new Error('Related Task not found');
+            throw new Error('Related Task not found')
           }
           updatedTask.relatedTask = relatedTask
         }
@@ -362,15 +369,14 @@ export class TaskController extends Controller {
         })
       }
 
+      await taskRepository.save(updatedTask)
+      await logTaskHistory(updatedTask.id, userId, 'updated', changes)
 
-      await taskRepository.save(updatedTask);
-      await logTaskHistory(updatedTask.id, userId, 'updated', changes);
-
-      io.to(`project:${projectId}`).emit('task:update', updatedTask);
-      return updatedTask;
+      io.to(`project:${projectId}`).emit('task:update', updatedTask)
+      return updatedTask
     } catch (err: any) {
-      this.setStatus(400);
-      throw new Error(err.message);
+      this.setStatus(400)
+      throw new Error(err.message)
     }
   }
 
@@ -380,64 +386,58 @@ export class TaskController extends Controller {
   @Middlewares([authenticateAll])
   public async reorderTasks(
     @Path() projectId: number,
-    @Body() body: {
-      draggedTaskId: number,
-      targetTaskId: number,
-    },
+    @Body()
+    body: {
+      draggedTaskId: number
+      targetTaskId: number
+    }
   ): Promise<void> {
-
-    const taskRepository = AppDataSource.getRepository(Task);
+    const taskRepository = AppDataSource.getRepository(Task)
 
     const draggedTask = await taskRepository.findOne({
-      where: { id: body.draggedTaskId, project: { id: projectId } },
-    });
+      where: { id: body.draggedTaskId, project: { id: projectId } }
+    })
 
     const targetTask = await taskRepository.findOne({
-      where: { id: body.targetTaskId, project: { id: projectId } },
-    });
+      where: { id: body.targetTaskId, project: { id: projectId } }
+    })
 
     if (!draggedTask) {
-      this.setStatus(404);
-      throw new Error(`Dragged Task ${body.draggedTaskId} not found`);
+      this.setStatus(404)
+      throw new Error(`Dragged Task ${body.draggedTaskId} not found`)
     }
 
     if (!targetTask) {
-      this.setStatus(404);
-      throw new Error(`Target Task ${targetTask} not found`);
+      this.setStatus(404)
+      throw new Error(`Target Task ${targetTask} not found`)
     }
 
     // Update the order of draggedTask
-    const draggedOrder = draggedTask.order;
-    draggedTask.order = targetTask.order;
-    targetTask.order = draggedOrder;
+    const draggedOrder = draggedTask.order
+    draggedTask.order = targetTask.order
+    targetTask.order = draggedOrder
 
-    await taskRepository.save([draggedTask, targetTask]);
+    await taskRepository.save([draggedTask, targetTask])
 
-    io.to(`project:${projectId}`).emit(`task:reorder`);
+    io.to(`project:${projectId}`).emit(`task:reorder`)
   }
 
   @Delete('{projectId}/{id}')
   @Response(404, 'Task not found')
   @SuccessResponse(200, 'Task deleted successfully')
-  @Middlewares([
-    authenticateAll,
-    isProjectCreator
-  ])
-  public async deleteTask(
-    @Path() projectId: number,
-    @Path() id: number
-  ): Promise<void> {
+  @Middlewares([authenticateAll, isProjectCreator])
+  public async deleteTask(@Path() projectId: number, @Path() id: number): Promise<void> {
     try {
-      const taskRepository = AppDataSource.getRepository(Task);
-      const task = await taskRepository.findOne({ where: { id, project: { id: projectId } } });
+      const taskRepository = AppDataSource.getRepository(Task)
+      const task = await taskRepository.findOne({ where: { id, project: { id: projectId } } })
       if (!task) {
-        this.setStatus(404);
-        return;
+        this.setStatus(404)
+        return
       }
-      await taskRepository.remove(task);
-      io.to(`project:${projectId}`).emit('task:delete', id);
+      await taskRepository.remove(task)
+      io.to(`project:${projectId}`).emit('task:delete', id)
     } catch (err: any) {
-      this.setStatus(400);
+      this.setStatus(400)
     }
   }
 }

@@ -5,31 +5,31 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn
-} from 'typeorm';
-import { Task } from './Task';
-import { Example } from 'tsoa';
+} from 'typeorm'
+import { Task } from './Task'
+import { Example } from 'tsoa'
 
 @Entity('task_attachments')
 export class TaskAttachment {
   @PrimaryGeneratedColumn()
   @Example(1)
-  id!: number;
+  id!: number
 
   @ManyToOne(() => Task, (task) => task.attachments, { nullable: false })
   @Example(1)
-  task!: Task;
+  task!: Task
 
   @Column({ length: 128 })
   @Example('document.pdf')
-  filename!: string;
+  filename!: string
 
   @Column({ length: 255 })
   @Example('/uploads/documents/document.pdf')
-  filePath!: string;
+  filePath!: string
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   @Example('2024-08-11T00:00:00Z')
-  createdAt!: Date;
+  createdAt!: Date
 
   @UpdateDateColumn({
     type: 'datetime',
@@ -37,5 +37,5 @@ export class TaskAttachment {
     onUpdate: 'CURRENT_TIMESTAMP'
   })
   @Example('2024-08-11T00:00:00Z')
-  updatedAt!: Date;
+  updatedAt!: Date
 }

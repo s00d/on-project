@@ -169,7 +169,7 @@
 </template>
 
 <script lang="ts" setup>
-import {ref, onMounted, computed, onUnmounted} from 'vue'
+import { ref, onMounted, computed, onUnmounted } from 'vue'
 import { type Task, useTaskStore } from '@/stores/taskStore'
 import { useRoute } from 'vue-router'
 import { useProjectStore } from '@/stores/projectStore'
@@ -182,11 +182,11 @@ import TaskTable from '@/components/tasks/TaskTable.vue'
 import ModalComponent from '@/components/ModalComponent.vue'
 import SettingsModalContent from '@/components/tasks/SettingsModalContent.vue'
 import { useAlertStore } from '@/stores/alertStore'
-import {useAuthStore, type User} from '@/stores/authStore'
+import { useAuthStore, type User } from '@/stores/authStore'
 import TaskPreviewCard from '@/components/tasks/TaskPreviewCard.vue'
-import TaskHistoryModalContent from "@/components/tasks/TaskHistoryModalContent.vue";
-import axios from "axios";
-import { socket } from "@/plugins/socketPlugin";
+import TaskHistoryModalContent from '@/components/tasks/TaskHistoryModalContent.vue'
+import axios from 'axios'
+import { socket } from '@/plugins/socketPlugin'
 
 const taskStore = useTaskStore()
 const projectStore = useProjectStore()
@@ -291,14 +291,14 @@ onMounted(async () => {
   loadSavedFilters()
   users.value = await projectStore.fetchUsers(Number(projectId))
 
-  socket.emit('subscribeToProject', { projectId, userId: useAuthStore().userId });
+  socket.emit('subscribeToProject', { projectId, userId: useAuthStore().userId })
 
   socket!.on(`task:reorder`, applyFilters)
 })
 
 onUnmounted(() => {
   socket.off(`task:reorder`, applyFilters)
-  socket.emit('unsubscribeFromProject', { projectId, userId: useAuthStore().userId });
+  socket.emit('unsubscribeFromProject', { projectId, userId: useAuthStore().userId })
 })
 
 const createTaskModal = () => {
@@ -414,7 +414,7 @@ const selectPage = (page: number) => {
 const clearHistory = async () => {
   try {
     await axios.delete(`/task-history/${Number(projectId)}/${selectedTask.value!.id}`)
-    closeTaskModal();
+    closeTaskModal()
   } catch (error) {
     console.error('Error clearing task history:', error)
   }

@@ -18,20 +18,20 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import axios from 'axios'
-import type {Document} from "@/pages/documents/List.vue";
+import type { Document } from '@/pages/documents/List.vue'
 
 // Типизация для входящих свойств (props)
 interface DocumentProps {
-  id?: number;
-  title: string;
-  description?: string;
-  filePath?: string;
-  userId: number;
+  id?: number
+  title: string
+  description?: string
+  filePath?: string
+  userId: number
 }
 
 const props = defineProps<{
-  projectId: string,
-  document?: Document | null;
+  projectId: string
+  document?: Document | null
 }>()
 
 const emit = defineEmits(['close'])
@@ -44,21 +44,21 @@ const form = ref({
 
 // Обработка загрузки файла
 const handleFileUpload = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const files = target.files;
+  const target = event.target as HTMLInputElement
+  const files = target.files
   if (files && files.length > 0) {
-    form.value.filePath = files[0];
+    form.value.filePath = files[0]
   }
 }
 
 // Сохранение документа
 const saveDocument = async () => {
-  const formData = new FormData();
-  formData.append('title', form.value.title);
-  formData.append('description', form.value.description);
+  const formData = new FormData()
+  formData.append('title', form.value.title)
+  formData.append('description', form.value.description)
 
   if (form.value.filePath && form.value.filePath instanceof File) {
-    formData.append('file', form.value.filePath);
+    formData.append('file', form.value.filePath)
   }
 
   try {
@@ -67,17 +67,17 @@ const saveDocument = async () => {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
-      });
+      })
     } else {
       await axios.post(`/documents/${props.projectId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
-      });
+      })
     }
-    emit('close');
+    emit('close')
   } catch (error) {
-    console.error('Failed to save document', error);
+    console.error('Failed to save document', error)
     // Можно добавить уведомление об ошибке
   }
 }

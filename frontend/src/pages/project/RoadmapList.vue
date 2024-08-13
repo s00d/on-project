@@ -20,10 +20,16 @@
               <div class="board-column-header">
                 <h2 class="board-column-title" :title="roadmap.title">{{ roadmap.title }}</h2>
                 <div class="actions">
-                  <button @click.stop.prevent="openEditRoadmapModal(roadmap)" class="btn btn-primary btn-sm m-0">
+                  <button
+                    @click.stop.prevent="openEditRoadmapModal(roadmap)"
+                    class="btn btn-primary btn-sm m-0"
+                  >
                     <i class="fas fa-pencil-alt"></i>
                   </button>
-                  <button @click.stop.prevent="confirmDelete(roadmap.id, roadmap.title)" class="btn btn-danger btn-sm m-0 ms-1">
+                  <button
+                    @click.stop.prevent="confirmDelete(roadmap.id, roadmap.title)"
+                    class="btn btn-danger btn-sm m-0 ms-1"
+                  >
                     <i class="fas fa-trash-alt"></i>
                   </button>
                 </div>
@@ -36,7 +42,7 @@
                     params: { roadmapId: roadmap.id, projectId: projectId }
                   }"
                   class="btn btn-light btn-sm"
-                >View Sprints</router-link
+                  >View Sprints</router-link
                 >
               </div>
             </div>
@@ -132,9 +138,15 @@ const deleteRoadmap = async () => {
 
 const handleSaveRoadmap = async (roadmapData: any) => {
   if (isEditMode.value) {
-    await roadmapStore.updateRoadmap(projectId, roadmapData.id, { title: roadmapData.title, description: roadmapData.description })
+    await roadmapStore.updateRoadmap(projectId, roadmapData.id, {
+      title: roadmapData.title,
+      description: roadmapData.description
+    })
   } else {
-    await roadmapStore.createRoadmap(projectId, { title: roadmapData.title, description: roadmapData.description })
+    await roadmapStore.createRoadmap(projectId, {
+      title: roadmapData.title,
+      description: roadmapData.description
+    })
   }
   closeModal()
   fetchRoadmaps()
@@ -164,8 +176,4 @@ onMounted(() => {
 })
 </script>
 
-
-<style scoped>
-
-
-</style>
+<style scoped></style>

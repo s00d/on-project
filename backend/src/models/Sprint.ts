@@ -7,50 +7,53 @@ import {
   UpdateDateColumn,
   OneToMany,
   Index
-} from 'typeorm';
-import { Roadmap } from './Roadmap';
-import { Task } from './Task';
-import { Project } from './Project';
-import { Example } from 'tsoa';
+} from 'typeorm'
+import { Roadmap } from './Roadmap'
+import { Task } from './Task'
+import { Project } from './Project'
+import { Example } from 'tsoa'
 
 @Entity('sprints')
 export class Sprint {
   @PrimaryGeneratedColumn()
   @Example(1)
-  id!: number;
+  id!: number
 
   @Column({ length: 128 })
   @Example('Sprint 1')
-  title!: string;
+  title!: string
 
   @Column('text', { nullable: true })
   @Example('This sprint focuses on the initial implementation of the project.')
-  description!: string;
+  description!: string
 
   @Column('date')
   @Example('2024-08-11')
-  startDate!: Date;
+  startDate!: Date
 
   @Column('date')
   @Example('2024-08-25')
-  endDate!: Date;
+  endDate!: Date
 
   @ManyToOne(() => Roadmap, (roadmap) => roadmap.sprints, { nullable: false })
   @Example(1)
-  roadmap!: Roadmap;
+  roadmap!: Roadmap
 
   @OneToMany(() => Task, (task) => task.sprint)
-  @Example([{ id: 1, title: 'Task 1' }, { id: 2, title: 'Task 2' }])
-  tasks!: Task[];
+  @Example([
+    { id: 1, title: 'Task 1' },
+    { id: 2, title: 'Task 2' }
+  ])
+  tasks!: Task[]
 
   @ManyToOne(() => Project, (project) => project.sprints, { nullable: false })
   @Example(1)
-  project!: Project;
+  project!: Project
 
   @CreateDateColumn({ type: 'datetime', default: () => 'CURRENT_TIMESTAMP' })
   @Index()
   @Example('2024-08-11T00:00:00Z')
-  createdAt!: Date;
+  createdAt!: Date
 
   @UpdateDateColumn({
     type: 'datetime',
@@ -59,5 +62,5 @@ export class Sprint {
   })
   @Index()
   @Example('2024-08-11T00:00:00Z')
-  updatedAt!: Date;
+  updatedAt!: Date
 }

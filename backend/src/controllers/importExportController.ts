@@ -9,25 +9,25 @@ import {
   Security,
   Tags,
   Path,
-  Request,
-} from 'tsoa';
-import { readFileSync } from 'fs';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import { AppDataSource } from '../ormconfig';
-import { Task } from '../models/Task';
-import { Project } from '../models/Project';
-import { authenticateAll } from '../middlewares/authMiddleware';
-import { isProjectCreator } from "../middlewares/roleMiddleware";
-import { Request as ExpressRequest } from "express";
+  Request
+} from 'tsoa'
+import { readFileSync } from 'fs'
+import { exec } from 'child_process'
+import { promisify } from 'util'
+import { AppDataSource } from '../ormconfig'
+import { Task } from '../models/Task'
+import { Project } from '../models/Project'
+import { authenticateAll } from '../middlewares/authMiddleware'
+import { isProjectCreator } from '../middlewares/roleMiddleware'
+import { Request as ExpressRequest } from 'express'
 
-const execAsync = promisify(exec);
+const execAsync = promisify(exec)
 
 interface GitHubImportBody {
-  token: string;
-  organization: string; // URL проекта GitHub
-  projectNumber: number; // URL проекта GitHub
-  userMapping: { [key: string]: number }; // Сопоставление GitHub username -> User ID
+  token: string
+  organization: string // URL проекта GitHub
+  projectNumber: number // URL проекта GitHub
+  userMapping: { [key: string]: number } // Сопоставление GitHub username -> User ID
 }
 
 @Route('api/import-export')
@@ -35,31 +35,28 @@ interface GitHubImportBody {
 @Security('session')
 @Security('apiKey')
 export class ImportExportController extends Controller {
-
   @Get('{projectId}/export')
   @Middlewares([authenticateAll, isProjectCreator])
-  public async exportData(
-    @Path() projectId: number,
-  ): Promise<{ project: Project }> {
+  public async exportData(@Path() projectId: number): Promise<{ project: Project }> {
     try {
-      const projectRepository = AppDataSource.getRepository(Project);
+      const projectRepository = AppDataSource.getRepository(Project)
 
       const project = await projectRepository.findOne({
         where: { id: projectId },
-        relations: ['tasks'],
-      });
+        relations: ['tasks']
+      })
 
       if (!project) {
-        throw new Error('Project not found');
+        throw new Error('Project not found')
       }
 
-      const data = { project };
+      const data = { project }
 
-      this.setHeader('Content-Disposition', 'attachment; filename=data.json');
-      this.setHeader('Content-Type', 'application/json');
-      return data;
+      this.setHeader('Content-Disposition', 'attachment; filename=data.json')
+      this.setHeader('Content-Type', 'application/json')
+      return data
     } catch (err: any) {
-      throw new Error('An error occurred during export');
+      throw new Error('An error occurred during export')
     }
   }
 
@@ -67,29 +64,29 @@ export class ImportExportController extends Controller {
   @Middlewares([authenticateAll, isProjectCreator])
   public async importData(
     @Request() req: ExpressRequest,
-    @UploadedFile('file') file: Express.Multer.File,
+    @UploadedFile('file') file: Express.Multer.File
   ): Promise<{ message: string }> {
     try {
-      const userId = req.session.user!.id;
+      const userId = req.session.user!.id
 
-      const data = JSON.parse(readFileSync(file.path, 'utf-8'));
+      const data = JSON.parse(readFileSync(file.path, 'utf-8'))
 
-      const projectRepository = AppDataSource.getRepository(Project);
-      const taskRepository = AppDataSource.getRepository(Task);
-      data.ownerId = userId;
+      const projectRepository = AppDataSource.getRepository(Project)
+      const taskRepository = AppDataSource.getRepository(Task)
+      data.ownerId = userId
 
       // Сохранение проекта
-      const savedProject = await projectRepository.save(data.project);
+      const savedProject = await projectRepository.save(data.project)
 
       // Сохранение задач, которые не привязаны к спринтам
       for (const task of data.project.tasks) {
-        task.project = savedProject;
-        await taskRepository.save(task);
+        task.project = savedProject
+        await taskRepository.save(task)
       }
 
-      return { message: 'Data imported successfully' };
+      return { message: 'Data imported successfully' }
     } catch (err: any) {
-      throw new Error(`Failed to import data: ${err.message}`);
+      throw new Error(`Failed to import data: ${err.message}`)
     }
   }
 
@@ -99,15 +96,14 @@ export class ImportExportController extends Controller {
     @Path() projectId: number,
     @Body() body: GitHubImportBody
   ): Promise<{ message: string }> {
-    const { token, organization, projectNumber, userMapping } = body;
+    const { token, organization, projectNumber, userMapping } = body
     try {
+      const projectRepository = AppDataSource.getRepository(Project)
+      const taskRepository = AppDataSource.getRepository(Task)
 
-      const projectRepository = AppDataSource.getRepository(Project);
-      const taskRepository = AppDataSource.getRepository(Task);
-
-      const project = await projectRepository.findOne({ where: { id: projectId } });
+      const project = await projectRepository.findOne({ where: { id: projectId } })
       if (!project) {
-        throw new Error('Проект не найден');
+        throw new Error('Проект не найден')
       }
 
       // Формирование команды gh для выполнения GraphQL-запроса
@@ -148,28 +144,28 @@ export class ImportExportController extends Controller {
             }
           }
         }
-      `;
+      `
 
       // Выполнение команды gh
-      const command = `gh api graphql -f query='${query}' -F org='${organization}' -F num=${projectNumber}`;
-      const { stdout, stderr } = await execAsync(command);
+      const command = `gh api graphql -f query='${query}' -F org='${organization}' -F num=${projectNumber}`
+      const { stdout, stderr } = await execAsync(command)
 
       if (stderr) {
-        throw new Error(`Ошибка выполнения команды: ${stderr}`);
+        throw new Error(`Ошибка выполнения команды: ${stderr}`)
       }
 
-      const response = JSON.parse(stdout);
-      const items = response.data.organization.projectV2.items.nodes;
+      const response = JSON.parse(stdout)
+      const items = response.data.organization.projectV2.items.nodes
 
       for (const item of items) {
-        const content = item.content;
-        const assignees = content.assignees?.nodes || [];
-        let status = content.state;
+        const content = item.content
+        const assignees = content.assignees?.nodes || []
+        let status = content.state
 
         // Проверка, существует ли статус в массиве статусов проекта
-        let statuses: string[]|string = project.statuses;
+        let statuses: string[] | string = project.statuses
         if (typeof statuses === 'string') {
-          statuses = JSON.parse(project.statuses || '[]');
+          statuses = JSON.parse(project.statuses || '[]')
         }
         if (!project.statuses.includes(status)) {
           status = 'To Do'
@@ -182,16 +178,16 @@ export class ImportExportController extends Controller {
           status: status, // Используем статус из GitHub
           project,
           assignees: assignees.map((a: any) => userMapping[a.login]).filter(Boolean),
-          priority: 'Medium',
-        });
+          priority: 'Medium'
+        })
 
-        await taskRepository.save(task);
+        await taskRepository.save(task)
       }
 
-      return { message: 'Данные успешно импортированы из GitHub' };
+      return { message: 'Данные успешно импортированы из GitHub' }
     } catch (err: any) {
       console.error(err)
-      throw new Error(err.message);
+      throw new Error(err.message)
     }
   }
 }
