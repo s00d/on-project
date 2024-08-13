@@ -62,8 +62,6 @@ app.use(
 app.use(morgan('combined'))
 app.use(errorReporter())
 
-console.log(111, path.join(__dirname, '../public'), isDev)
-
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
 
 app.use('/docs', swaggerUi.serve, async (_req: ExRequest, res: ExResponse) => {
