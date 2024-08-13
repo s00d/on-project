@@ -68,7 +68,7 @@ On-Project is a comprehensive project management web application designed to fac
 
 ### Step 1: Clone the repository
 ```bash
-git clone https://github.com/yourusername/on-project.git
+git clone https://github.com/s00d/on-project.git
 cd on-project
 ```
 
