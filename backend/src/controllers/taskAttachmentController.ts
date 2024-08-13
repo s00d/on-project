@@ -15,10 +15,9 @@ import {
 import { TaskAttachment } from '../models/TaskAttachment'
 import { AppDataSource } from '../ormconfig'
 import { authenticateAll } from '../middlewares/authMiddleware'
-import { Request as ExpressRequest } from 'express'
 import path from 'path'
-import fs from 'fs'
 import { isProjectCreator } from '../middlewares/roleMiddleware'
+import {deleteFile, handleFileUpload} from "./fileController";
 
 @Route('api/task-attachments')
 @Tags('Task Attachments')
@@ -31,7 +30,7 @@ export class TaskAttachmentController extends Controller {
    * Get all attachments for a task
    * @param taskId ID of the task
    */
-  @Get('{taskId}/attachments')
+  @Get('{projectId}/{taskId}/attachments')
   @Middlewares([authenticateAll])
   public async getTaskAttachments(@Path() taskId: number): Promise<TaskAttachment[]> {
     try {
@@ -46,66 +45,44 @@ export class TaskAttachmentController extends Controller {
 
   /**
    * Add an attachment to a task
+   * @param projectId
    * @param attachment
    * @param taskId ID of the task
-   * @param request The attachment request containing the file
    */
-  @Post('{taskId}/attachments')
+  @Post('{projectId}/{taskId}/attachments')
   @Middlewares([authenticateAll])
   @SuccessResponse(201, 'Attachment added')
   public async addTaskAttachment(
+    @Path() projectId: number,
     @UploadedFile() attachment: Express.Multer.File,
     @Path() taskId: number,
-    @Request() request: ExpressRequest
   ): Promise<TaskAttachment> {
     if (!attachment) {
       this.setStatus(400)
       throw new Error('File not provided')
     }
-    let savedFilename: string | null = null
 
-    if (attachment) {
-      const uploadDir = path.join(__dirname, '../../uploads')
-      const filename = `${Date.now()}_${attachment.originalname}`
-      const folderPath = path.join(uploadDir, taskId.toString())
-      const filepath = path.join(folderPath, filename)
+    const uploadResult = await handleFileUpload(attachment, 'uploads', projectId, 'task', taskId);
 
-      if (!fs.existsSync(folderPath)) {
-        try {
-          fs.mkdirSync(folderPath, { recursive: true })
-        } catch (err: any) {
-          throw new Error('Failed to create directory')
-        }
-      }
-
-      try {
-        fs.writeFileSync(filepath, attachment.buffer)
-        savedFilename = path.join(taskId.toString(), filename)
-      } catch (uploadError) {
-        throw new Error('File upload failed')
-      }
-
-      try {
-        const attachment = this.attachmentRepository.create({
-          task: { id: taskId },
-          filename: savedFilename!,
-          filePath: savedFilename!
-        })
-        await this.attachmentRepository.save(attachment)
-        return attachment
-      } catch (err: any) {
-        this.setStatus(400)
-        throw new Error(`Error adding task attachment}`)
-      }
+    try {
+      const attachment = this.attachmentRepository.create({
+        task: { id: taskId },
+        filename: uploadResult.filename,
+        filePath: uploadResult.fillPath
+      });
+      await this.attachmentRepository.save(attachment);
+      return attachment;
+    } catch (err: any) {
+      this.setStatus(400);
+      throw new Error(`Error adding task attachment`);
     }
-    throw new Error(`Error adding task attachment.`)
   }
 
   /**
    * Delete an attachment by ID
    * @param id ID of the attachment
    */
-  @Delete('attachments/{id}')
+  @Delete('{projectId}/attachments/{id}')
   @Middlewares([authenticateAll, isProjectCreator])
   @SuccessResponse(204, 'Attachment deleted')
   public async deleteTaskAttachment(@Path() id: number): Promise<void> {
@@ -113,6 +90,10 @@ export class TaskAttachmentController extends Controller {
       const attachment = await this.attachmentRepository.findOne({ where: { id } })
       if (attachment) {
         await this.attachmentRepository.remove(attachment)
+
+        if (attachment.filePath) {
+          await deleteFile(path.join(__dirname, '../../', attachment.filePath));
+        }
       } else {
         this.setStatus(404)
         throw new Error('Attachment not found')

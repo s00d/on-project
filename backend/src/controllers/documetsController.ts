@@ -26,6 +26,7 @@ import { authenticateAll } from '../middlewares/authMiddleware'
 import { Request as ExpressRequest } from 'express'
 import * as fs from 'fs'
 import * as path from 'path'
+import {deleteFile, handleFileUpload} from "./fileController";
 
 interface DocumentDTO {
   title: string
@@ -90,25 +91,8 @@ export class DocumentController extends Controller {
     let savedFilename: string | null = null
 
     if (file) {
-      const uploadDir = path.join(__dirname, '../../documents')
-      const filename = `${Date.now()}_${file.originalname}`
-      const folderPath = path.join(uploadDir, projectId.toString())
-      const filepath = path.join(folderPath, filename)
-
-      if (!fs.existsSync(folderPath)) {
-        try {
-          fs.mkdirSync(folderPath, { recursive: true })
-        } catch (err: any) {
-          throw new Error('Failed to create directory')
-        }
-      }
-
-      try {
-        fs.writeFileSync(filepath, file.buffer)
-        savedFilename = path.join('/api/documents/', projectId.toString(), '/download/', filename)
-      } catch (uploadError) {
-        throw new Error('File upload failed')
-      }
+      const uploadResult = await handleFileUpload(file, 'uploads', projectId, 'document');
+      savedFilename = uploadResult.fillPath; // Сохраняем только имя файла, так как путь будет универсальным.
     }
 
     try {
@@ -166,25 +150,8 @@ export class DocumentController extends Controller {
     }
 
     if (file) {
-      const uploadDir = path.join(__dirname, '../../documents')
-      const filename = `${Date.now()}_${file.originalname}`
-      const folderPath = path.join(uploadDir, projectId.toString())
-      const filepath = path.join(folderPath, filename)
-
-      if (!fs.existsSync(folderPath)) {
-        try {
-          fs.mkdirSync(folderPath, { recursive: true })
-        } catch (err: any) {
-          throw new Error('Failed to create directory')
-        }
-      }
-
-      try {
-        fs.writeFileSync(filepath, file.buffer)
-        savedFilename = path.join('/api/documents/', projectId.toString(), '/download/', filename)
-      } catch (uploadError) {
-        throw new Error('File upload failed')
-      }
+      const uploadResult = await handleFileUpload(file, 'uploads', projectId, 'document');
+      savedFilename = uploadResult.fillPath; // Сохраняем только имя файла, так как путь будет универсальным.
     }
 
     try {
@@ -226,42 +193,15 @@ export class DocumentController extends Controller {
         return
       }
 
-      // Определяем путь к файлу для удаления
-      const filePath = path.join(__dirname, '../../', document.filePath)
-
       // Удаление записи из базы данных
       await this.documentRepository.remove(document)
 
-      // Удаление файла с файловой системы
-      if (fs.existsSync(filePath)) {
-        try {
-          fs.unlinkSync(filePath)
-        } catch (err: any) {
-          throw new Error(`Failed to delete file: ${err.message}`)
-        }
+      if (document.filePath) {
+        await deleteFile(path.join(__dirname, '../../', document.filePath));
       }
     } catch (err: any) {
       this.setStatus(400)
       throw new Error(err.message)
-    }
-  }
-
-  @Get('{projectId}/download/{filename}')
-  @Response(404, 'File not found')
-  @SuccessResponse(200, 'File retrieved successfully')
-  @Middlewares([authenticateAll])
-  public async getFile(
-    @Path() projectId: number,
-    @Path() filename: string,
-    @Res() notFoundResponse: TsoaResponse<404, { message: string }>,
-    @Res() fileResponse: TsoaResponse<200, any>
-  ): Promise<void> {
-    const filePath = path.join(__dirname, `../../documents/${projectId}/`, filename)
-
-    if (fs.existsSync(filePath)) {
-      fileResponse(200, fs.createReadStream(filePath))
-    } else {
-      notFoundResponse(404, { message: 'File not found' })
     }
   }
 }

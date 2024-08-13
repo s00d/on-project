@@ -23,6 +23,8 @@ import { authenticateAll } from '../middlewares/authMiddleware'
 import { isProjectCreator } from '../middlewares/roleMiddleware'
 import { Request as ExpressRequest } from 'express'
 import { io } from '../index'
+import {deleteDirectory} from "./fileController";
+import path from "path";
 
 export interface Filter {
   name: string
@@ -188,6 +190,9 @@ export class ProjectController extends Controller {
 
       await projectUserRepository.delete({ project: { id: projectId } })
       await projectRepository.remove(project)
+
+      const projectUploadsPath = path.join(__dirname, '../../uploads', projectId.toString());
+      await deleteDirectory(projectUploadsPath);
     } catch (err: any) {
       throw new Error(`Error deleting project: ${err.message}`)
     }

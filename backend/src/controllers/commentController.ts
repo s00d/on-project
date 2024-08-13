@@ -23,6 +23,7 @@ import fs from 'fs'
 import path from 'path'
 import { authenticateAll } from '../middlewares/authMiddleware'
 import { isProjectCreator } from '../middlewares/roleMiddleware'
+import {handleFileUpload} from "./fileController";
 
 @Route('api/comments')
 @Tags('Comments')
@@ -51,25 +52,8 @@ export class CommentController extends Controller {
     let savedFilename: string | null = null
 
     if (attachment) {
-      const uploadDir = path.join(__dirname, '../../uploads')
-      const filename = `${Date.now()}_${attachment.originalname}`
-      const folderPath = path.join(uploadDir, taskId.toString())
-      const filepath = path.join(folderPath, filename)
-
-      if (!fs.existsSync(folderPath)) {
-        try {
-          fs.mkdirSync(folderPath, { recursive: true })
-        } catch (err: any) {
-          throw new Error('Failed to create directory')
-        }
-      }
-
-      try {
-        fs.writeFileSync(filepath, attachment.buffer)
-        savedFilename = path.join(taskId.toString(), filename)
-      } catch (uploadError) {
-        throw new Error('File upload failed')
-      }
+      const uploadResult = await handleFileUpload(attachment, 'uploads', projectId, 'comments', taskId);
+      savedFilename = uploadResult.fillPath;
     }
 
     try {
