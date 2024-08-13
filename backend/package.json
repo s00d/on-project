@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "concurrently \"nodemon\" \"nodemon -x tsoa spec-and-routes\"",
     "build": "NODE_ENV=development tsoa spec-and-routes && NODE_ENV=development tsc",
-    "start": "NODE_ENV=production node build/src/server.js",
+    "start": "NODE_ENV=production node dist/index.js",
     "build-only": "tsc",
     "format": "prettier --write src/",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",

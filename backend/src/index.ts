@@ -19,6 +19,8 @@ import { Response as ExResponse, Request as ExRequest } from 'express'
 import { createUser } from './controllers/userController'
 import { errorHandler } from './middlewares/errorHandler'
 
+process.chdir(path.dirname(__filename));
+
 dotenv.config({ path: '../.env' })
 
 const isDev = process.env.NODE_ENV === 'development'
@@ -60,8 +62,9 @@ app.use(
 app.use(morgan('combined'))
 app.use(errorReporter())
 
+console.log(111, path.join(__dirname, '../public'), isDev)
+
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
-app.use('/public', express.static(path.join(__dirname, '../public')))
 
 app.use('/docs', swaggerUi.serve, async (_req: ExRequest, res: ExResponse) => {
   return res.send(swaggerUi.generateHTML(await import('../dist/swagger.json')))
@@ -71,18 +74,6 @@ app.use('/docs', swaggerUi.serve, async (_req: ExRequest, res: ExResponse) => {
 RegisterRoutes(app)
 
 app.use(errorHandler)
-
-if (isDev) {
-  // frontend proxy
-  app.use(
-    '/*',
-    createProxyMiddleware({
-      target: 'http://localhost:5173',
-      changeOrigin: true,
-      ws: true
-    })
-  )
-}
 
 io.on('connection', (socket) => {
   socket.on('subscribeToProject', async ({ projectId, apikey }) => {
@@ -156,6 +147,21 @@ io.on('connection', (socket) => {
 
 app.set('io', io)
 
+if (isDev) {
+  // frontend proxy
+  app.use(
+    '/*',
+    createProxyMiddleware({
+      target: 'http://localhost:5173',
+      changeOrigin: true,
+      ws: true
+    })
+  )
+}
+
+app.use('/assets', express.static(path.join(__dirname, '../public/assets'), { redirect: false }));
+app.use('/*', express.static(path.join(__dirname, '../public')))
+
 AppDataSource.initialize()
   .then(async () => {
     console.log('Data Source has been initialized!')
@@ -164,9 +170,9 @@ AppDataSource.initialize()
     const adminUser = await AppDataSource.getRepository(User).findOneBy({ username: adminUsername })
     if (!adminUser) {
       const email = process.env.DEFAULT_ADMIN_EMAIL || 'admin@admin.ru'
-      const pass = process.env.DEFAULT_ADMIN_EMAIL || 'password'
+      const pass = process.env.DEFAULT_ADMIN_EMAIL || 'admin@admin.ru'
       await createUser(adminUsername, email, pass)
-      console.log('Admin user created')
+      console.log(`Admin user created, login: ${adminUsername}, email: ${email}, pass: ${pass}`)
     } else {
       console.log('Admin user already exists')
     }

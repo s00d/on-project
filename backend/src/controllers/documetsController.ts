@@ -258,8 +258,6 @@ export class DocumentController extends Controller {
   ): Promise<void> {
     const filePath = path.join(__dirname, `../../documents/${projectId}/`, filename)
 
-    console.log(111, filePath)
-
     if (fs.existsSync(filePath)) {
       fileResponse(200, fs.createReadStream(filePath))
     } else {

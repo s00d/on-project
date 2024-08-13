@@ -80,7 +80,6 @@ export class UserController extends Controller {
   @Post('logout')
   public async logout(@Request() req: Express.Request): Promise<{ success: boolean }> {
     return new Promise((resolve, reject) => {
-      console.log(111, req.session)
       req.session.destroy((err) => {
         if (err) {
           this.setStatus(500)
@@ -95,7 +94,6 @@ export class UserController extends Controller {
   @Middlewares([authenticateAll])
   public async getMe(@Request() req: Express.Request): Promise<{ user: UserDTO | null }> {
     const userRepository = AppDataSource.getRepository(User)
-    console.log(111, req.session)
     if (!req.session.user) {
       return { user: null }
     }
