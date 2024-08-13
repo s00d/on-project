@@ -112,12 +112,14 @@ npm start
 #### dev
 
 ```bash
+bun install
 bun run bun:dev
 ```
 
 #### prod 
 
 ```bash
+bun install
 bun run bun:build
 bun run bun:start
 ```
