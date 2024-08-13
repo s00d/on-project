@@ -173,6 +173,7 @@ const projectData = ref<Project>({
   customFields: [],
   description: '',
   name: '',
+  isArchived: false,
   priorities: ['Low', 'Medium', 'High'],
   savedFilters: [],
   sprints: [],
@@ -207,6 +208,7 @@ const submitProject = async () => {
     delete (dataToSave as { updatedAt?: string }).updatedAt
     delete (dataToSave as { ownerId?: number }).ownerId
     delete (dataToSave as { id?: number }).id
+    delete (dataToSave as { isArchived?: boolean }).isArchived
 
     await projectStore.updateProject(projectData.value.id!, dataToSave)
   }

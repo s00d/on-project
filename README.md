@@ -63,7 +63,7 @@ On-Project is a comprehensive project management web application designed to fac
 ## Installation and Setup
 
 ### Prerequisites
-- Node.js (v14+)
+- Node.js (v20+)
 - npm package manager
 
 ### Step 1: Clone the repository
